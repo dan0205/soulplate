@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 # 데이터베이스 테이블 생성
 models.Base.metadata.create_all(bind=engine)
+# 중요, 시작될 때, modesl.py에 정의한 클래스를 기반으로 실제 데이터베이스에 테이블을 생성한다
+# 테이블이 이미 존재하면 아무 작업도 하지 않는다 
 
 # FastAPI 앱
 app = FastAPI(
@@ -31,6 +33,7 @@ app = FastAPI(
     description="Web backend for Two-Tower recommendation system",
     version="1.0.0"
 )
+# FastAPI 애플리케이션의 핵심 인스턴스를 생성한다 
 
 # CORS 설정
 app.add_middleware(
@@ -40,9 +43,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# Cross Origin Resource Sharing 설정이다 
+# 브라우저 보안 정책상 기본적으로 localhost:3000에서 localhost:8000으로 API를 호출할수없다
+# 이 미들웨어는 allow_origins=["*"] 에서 요청을 허용하도록 설정하여
+# 개발 환경에서 프론트엔드와 백엔드가 원할하게 통신할 수 있게 해준다
+# 프로덕션에서는 ["*"] 대신 실제 프론트엔드 도메인을 적어야한다 
 
 # Model API URL
 MODEL_API_URL = "http://localhost:8001"
+# 추천 요청을 보낼 머신러닝 모델 API 서버의 주소를 저장한다 
 
 # Root
 @app.get("/")
@@ -62,9 +71,11 @@ async def health_check():
 # Authentication Endpoints
 # ============================================================================
 
-@app.post("/api/auth/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/auth/register", status_code=status.HTTP_201_CREATED)
 async def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """회원가입"""
+    # 새 사용자를 생성한다
+    # 사용자가 입력한 username 등을 받고, UserResponse 객체를 출력한다 
     # 중복 확인
     db_user = db.query(models.User).filter(models.User.username == user.username).first()
     if db_user:
@@ -76,6 +87,7 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     
     # 사용자 생성
     hashed_password = auth.get_password_hash(user.password)
+    # 사용자가 작성한 비밀번호를 해시한다 
     db_user = models.User(
         username=user.username,
         email=user.email,
@@ -83,16 +95,31 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         age=user.age,
         gender=user.gender
     )
+    # models.User 객체를 생성해서 디비에 저장한다 
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     
     logger.info(f"New user registered: {user.username}")
-    return db_user
+    
+    # 자동 로그인: 토큰 생성
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": db_user.username}, expires_delta=access_token_expires
+    )
+    
+    # 토큰과 사용자 정보를 함께 반환
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": db_user
+    }
 
 @app.post("/api/auth/login", response_model=schemas.Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """로그인"""
+    # 사용자 인증 후 JWT 액세스 토큰을 발급한다 
+    # Depends()는 FastAPI가 이 형식의 데이터를 자동으로 받아오게 한다 
     user = db.query(models.User).filter(models.User.username == form_data.username).first()
     if not user or not auth.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -112,6 +139,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
 @app.get("/api/auth/me", response_model=schemas.UserResponse)
 async def get_current_user_info(current_user: models.User = Depends(auth.get_current_user)):
     """현재 사용자 정보"""
+    # 현재 로그인된 사용자의 정보를 반환한다 
     return current_user
 
 # ============================================================================
@@ -127,6 +155,7 @@ async def get_businesses(
     """비즈니스 목록 조회"""
     businesses = db.query(models.Business).offset(skip).limit(limit).all()
     return businesses
+    # 가게 목록을 페이지네이션으로 조회한다 
 
 @app.get("/api/businesses/{business_id}", response_model=schemas.BusinessResponse)
 async def get_business(business_id: str, db: Session = Depends(get_db)):
@@ -139,6 +168,7 @@ async def get_business(business_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Business not found")
     
     return business
+    # 특정 가게의 상세 정보를 본다 
 
 # ============================================================================
 # Review Endpoints
@@ -164,6 +194,7 @@ async def get_reviews(
     ).offset(skip).limit(limit).all()
     
     return reviews
+    # app.get으로 가게에 작성된 리뷰를 가져온다 
 
 @app.post("/api/businesses/{business_id}/reviews", response_model=schemas.ReviewResponse, status_code=status.HTTP_201_CREATED)
 async def create_review(
@@ -193,17 +224,20 @@ async def create_review(
     
     logger.info(f"New review created by user {current_user.username} for business {business_id}")
     return db_review
+    # app.post로 가게에 리뷰를 작성한다 
 
 # ============================================================================
 # Recommendation Endpoint
 # ============================================================================
 
+# 모델 API 게이트웨이 역할을 수행한다
+# 현재 로그인한 사용자에게 맞춤형 가게 목록을 추천한다 (인증필요) 
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
 async def get_recommendations(
     top_k: int = 10,
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db)
-):
+): # Depends로 현재 사용자를 식별한다 
     """개인화 추천"""
     logger.info(f"Recommendation request for user: {current_user.username}")
     
@@ -217,6 +251,7 @@ async def get_recommendations(
             db.query(models.Business).filter(models.Business.id == review.business_id).first().business_id
             for review in recent_reviews
         ]
+        # 현재 사용자가 최근에 리뷰를 작성한 5곳의 비즈니스 아이디를 가져온다 
         
         # Model API 호출
         async with httpx.AsyncClient() as client:
@@ -226,15 +261,17 @@ async def get_recommendations(
                     "user_id": current_user.username,
                     "user_features": {
                         "age": float(current_user.age) if current_user.age else 30.0,
-                        "review_count": 50.0,  # 실제로는 DB에서 계산
-                        "useful": 20.0,
-                        "average_stars": 4.0
+                        "review_count": db.query(models.Review).filter(models.Review.user_id == current_user.id).count(),
+                        "useful": 0.0,
+                        "average_stars": 3.0
                     },
                     "recent_business_ids": recent_business_ids,
                     "top_k": top_k
                 },
                 timeout=10.0
-            )
+            ) 
+            # 현재 사용자의 나이, 성별, 리뷰 수, 평균 별점 등을 추천 모델에 전송한다 
+            # 즉, 백엔드에서 json 형식으로 데이터를 보내면, 모델은 해당 json을 이용해 결과를 분석하고, response 형태로 답장한다 
             
             if response.status_code != 200:
                 raise HTTPException(
@@ -247,8 +284,8 @@ async def get_recommendations(
         # Business 정보와 함께 반환
         recommendations = []
         for business_id, score in zip(
-            model_response["recommendations"],
-            model_response["scores"]
+            model_response["recommendations"], # 비즈니스 아이디 목록
+            model_response["scores"] # 추천 점수 목록
         ):
             business = db.query(models.Business).filter(
                 models.Business.business_id == business_id
@@ -260,14 +297,14 @@ async def get_recommendations(
                         business=business,
                         score=score
                     )
-                )
+                ) # 추천 결과 목록의 1개 항목 형태로 추가한다 
         
         logger.info(f"Returned {len(recommendations)} recommendations for user {current_user.username}")
         
         return schemas.RecommendationResponse(
             recommendations=recommendations,
             user_id=current_user.id
-        )
+        ) # 응답에 필요한 recommendations은 List[RecommendationItem] 형식이다 
         
     except httpx.RequestError as e:
         logger.error(f"Error connecting to model API: {e}")

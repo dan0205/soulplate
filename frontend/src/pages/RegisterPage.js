@@ -38,8 +38,9 @@ const RegisterPage = () => {
         ...formData,
         age: formData.age ? parseInt(formData.age) : null
       });
-      alert('Registration successful! Please login.');
-      navigate('/login');
+      // 회원가입 성공 시 자동 로그인 후 홈으로 이동
+      alert('Registration successful!');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed');
     } finally {
@@ -106,7 +107,6 @@ const RegisterPage = () => {
             <select name="gender" value={formData.gender} onChange={handleChange}>
               <option value="M">Male</option>
               <option value="F">Female</option>
-              <option value="Other">Other</option>
             </select>
           </div>
           
