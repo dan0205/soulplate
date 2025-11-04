@@ -1,0 +1,75 @@
+# Phase 6: 오프라인 파이프라인 자동화
+# GitHub Actions 워크플로 - 일일 모델 재학습
+
+name: Daily Model Retrain
+
+on:
+  schedule:
+    # 매일 UTC 3시 (한국 시간 정오) 실행
+    - cron: '0 3 * * *'
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  retrain-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+          pip install boto3
+      
+      - name: Download latest Yelp data
+        run: |
+          # 실제로는 Yelp API 또는 데이터베이스에서 최신 데이터 가져오기
+          echo "Downloading latest data..."
+          # python scripts/download_yelp_data.py
+      
+      - name: Preprocess data
+        run: |
+          python scripts/preprocess_yelp.py
+      
+      - name: Create training dataset
+        run: |
+          python scripts/create_train_data.py
+      
+      - name: Train Two-Tower model
+        run: |
+          python scripts/train_two_tower.py
+      
+      - name: Build FAISS index
+        run: |
+          python scripts/build_faiss_index.py
+      
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+        run: |
+          python scripts/upload_to_s3.py
+      
+      - name: Trigger model reload
+        env:
+          MODEL_API_URL: ${{ secrets.MODEL_API_URL }}
+          RELOAD_SECRET: ${{ secrets.RELOAD_SECRET }}
+        run: |
+          # 서버의 /model/reload 엔드포인트 호출
+          curl -X POST "$MODEL_API_URL/model/reload" \
+            -H "Authorization: Bearer $RELOAD_SECRET"
+      
+      - name: Notify completion
+        if: always()
+        run: |
+          echo "Training pipeline completed!"
+          # 슬랙/이메일 알림 추가 가능
+
