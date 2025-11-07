@@ -2,6 +2,9 @@
 Tier 3: Model API Server
 Two-Tower 모델을 사용한 추천 API
 """
+# 웹 백엔드와는 별개의 서버로, uvicorn을 통해 포트 8001에서 독립적으로 실행된다
+# 이 서버의 유일한 목적은 추천 계산이라는 무거운 AI작업을 전담하는 것이다
+# 이 서버는 사용자 DB나 비밀번호같은 것은 전혀 모르며, 오직 AI모델과 벡터 계산에만 집중한다
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware

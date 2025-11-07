@@ -147,6 +147,7 @@ python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8001
+uvicorn backend_model.main:app --reload --port 8001
 ```
 
 #### Tier 2: Web Backend
@@ -161,6 +162,7 @@ python scripts/init_db.py
 
 # 서버 실행
 uvicorn main:app --reload --port 8000
+uvicorn backend_web.main:app --reload --port 8000
 ```
 
 ### 4. Frontend 실행

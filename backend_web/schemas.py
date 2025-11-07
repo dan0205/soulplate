@@ -92,6 +92,7 @@ class ReviewResponse(ReviewBase):
     user_id: int
     business_id: int
     created_at: datetime
+    username: str  # 리뷰 작성자 이름
     # 작성된 리뷰 정보를 응답할 때 사용 
     
     class Config:

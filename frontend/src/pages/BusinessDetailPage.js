@@ -9,23 +9,32 @@ import './BusinessDetail.css';
 
 const BusinessDetailPage = () => {
   const { businessId } = useParams();
+  // react router가 url의 동적 파라미터에서 businessId를 변수로 추출해준다 
   const navigate = useNavigate();
   
   const [business, setBusiness] = useState(null);
+  // api에서 받아온 가게 정보 1개를 저장한다 
   const [reviews, setReviews] = useState([]);
+  // api에서 받아온 리뷰 목록을 저장한다 
   const [loading, setLoading] = useState(true);
+  // 가게 정보를 불러오는 중인지 나타냄 
   const [error, setError] = useState('');
+  // 데이터 로딩 중 에러가 발생했는지 
+  
   
   const [reviewForm, setReviewForm] = useState({
     stars: 5,
     text: ''
   });
+  // 사용자가 리뷰 작성 폼에 입력 중인 별점과 텍스트를 실시간으로 저장한다 
   const [submitting, setSubmitting] = useState(false);
+  // 리뷰 제출 버튼을 눌렀을 때, API에 전송 중인지 판단한다 
 
   useEffect(() => {
     loadBusinessDetails();
     loadReviews();
   }, [businessId]);
+  // 페이지가 처음 열리거나, url의 businessId가 바뀔 때, useEffect를 실행한다 
 
   const loadBusinessDetails = async () => {
     try {
@@ -38,6 +47,7 @@ const BusinessDetailPage = () => {
       setLoading(false);
     }
   };
+  // GET /api/businesses/{businessId} 호출하여 가게 정보를 business에 저장한다 
 
   const loadReviews = async () => {
     try {
@@ -47,16 +57,21 @@ const BusinessDetailPage = () => {
       console.error('Failed to load reviews:', err);
     }
   };
+  // GET /api/businesses/{businessId}/reviews 호출하여 리뷰 목록을 setReviews에 저장한다
 
   const handleSubmitReview = async (e) => {
     e.preventDefault();
+    // form이 제출될 때 브라우저가 새로고침되는 기본 동작을 막는다 
     setSubmitting(true);
+    // 제출중 상태로 바꾸고, 버튼을 비활성화한다 
     
     try {
       await businessAPI.createReview(businessId, reviewForm);
+      // POST /api/businesses/{businessId}/reviews 호출하여 리뷰를 생성한다  
       alert('Review submitted successfully! 🎉');
       setReviewForm({ stars: 5, text: '' });
       loadReviews();
+      // from을 제출한 후, 방금 작성한 리뷰가 포함된 새 목록을 서버에서 다시 불러와 화면을 갱신한다 
       // 홈페이지로 돌아가면 추천이 업데이트됨
     } catch (err) {
       alert(err.response?.data?.detail || 'Failed to submit review');
@@ -72,7 +87,7 @@ const BusinessDetailPage = () => {
         <p>Loading business details...</p>
       </div>
     );
-  }
+  } // 로딩 중일때 spinner를 보여준다 
 
   if (error || !business) {
     return (
@@ -82,7 +97,7 @@ const BusinessDetailPage = () => {
         <button onClick={() => navigate('/')}>Go Back</button>
       </div>
     );
-  }
+  } // 에러가 났거나 business 데이터가 없으면 에러를 보여준다 
 
   return (
     <div className="business-detail-container">
@@ -147,6 +162,7 @@ const BusinessDetailPage = () => {
             {reviews.map((review) => (
               <div key={review.id} className="review-item">
                 <div className="review-header">
+                  <span className="review-author">👤 {review.username}</span>
                   <span className="review-stars">
                     {'⭐'.repeat(review.stars)}
                   </span>

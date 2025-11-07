@@ -173,8 +173,16 @@
 
 .review-header {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.review-author {
+  font-weight: 600;
+  color: #667eea;
+  font-size: 14px;
 }
 
 .review-stars {
@@ -184,6 +192,7 @@
 .review-date {
   color: #888;
   font-size: 13px;
+  margin-left: auto;
 }
 
 .review-text {

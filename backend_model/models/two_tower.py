@@ -2,14 +2,14 @@
 Two-Tower 모델 정의
 User Tower와 Item Tower를 각각 정의하고, 학습용 Combined Model도 포함
 """
-
+# 사용자와 아이템을 각각 별개의 타워에 통과시켜, 두 대상을 동일한 벡터 공간에 매핑하는 것 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 class UserTower(nn.Module):
     """User Tower: 사용자 임베딩 생성"""
-    
+    # 사용자를 128차원의 취향 벡터로 변환한다 
     def __init__(self, num_users, embedding_dim=64, hidden_dim=256, output_dim=128):
         super(UserTower, self).__init__()
         
@@ -19,7 +19,7 @@ class UserTower(nn.Module):
         
         # User ID 임베딩
         self.user_embedding = nn.Embedding(num_users, embedding_dim)
-        
+        # 사용자 고유 ID를 받아 64차원의 벡터로 변환한다 
         # MLP layers
         self.fc1 = nn.Linear(embedding_dim + 4, hidden_dim)  # +4 for user features
         self.bn1 = nn.BatchNorm1d(hidden_dim)
@@ -55,7 +55,7 @@ class UserTower(nn.Module):
         
         # Concatenate with features
         x = torch.cat([user_emb, user_features], dim=1)  # (batch_size, embedding_dim + 4)
-        
+        # ID 임베딩 벡터(64차원)과 특징 벡터(4차원)을 연결하여 68차원의 벡터를 완성 
         # MLP
         x = self.fc1(x)
         x = self.bn1(x)
@@ -76,7 +76,8 @@ class UserTower(nn.Module):
 
 class ItemTower(nn.Module):
     """Item Tower: 아이템(비즈니스) 임베딩 생성"""
-    
+    # 아이템을 128차원의 특징 벡터로 변환한다 
+
     def __init__(self, num_items, embedding_dim=64, hidden_dim=256, output_dim=128):
         super(ItemTower, self).__init__()
         
@@ -138,7 +139,8 @@ class ItemTower(nn.Module):
         
         # L2 normalize for cosine similarity
         x = F.normalize(x, p=2, dim=1)
-        
+        # 최종 출력 벡터의 크기를 1로 정규화한다 
+        # 이렇게 하면 나중에 두 벡터 간의 내적이 코사인 유사도와 동일해진다 
         return x
 
 class TwoTowerModel(nn.Module):
@@ -146,6 +148,10 @@ class TwoTowerModel(nn.Module):
     Two-Tower Model: User Tower + Item Tower + Dot Product
     학습 전용 모델
     """
+    # 모델을 학습시킬 때만 사용하는 통합 모델이다
+    # API 서버는 이 TwoTowerModel을 사용하지 않는다
+    # API 서버는 이미 학습된 UserTower의 가중치와 결과물만 사용한다 
+    
     
     def __init__(self, num_users, num_items, embedding_dim=64, hidden_dim=256, output_dim=128):
         super(TwoTowerModel, self).__init__()

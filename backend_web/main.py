@@ -189,12 +189,27 @@ async def get_reviews(
     if not business:
         raise HTTPException(status_code=404, detail="Business not found")
     
-    reviews = db.query(models.Review).filter(
+    # User 정보를 함께 로드 (username 포함)
+    reviews = db.query(models.Review).join(models.User).filter(
         models.Review.business_id == business.id
     ).offset(skip).limit(limit).all()
     
-    return reviews
-    # app.get으로 가게에 작성된 리뷰를 가져온다 
+    # 각 리뷰에 username 추가
+    result = []
+    for review in reviews:
+        review_dict = {
+            "id": review.id,
+            "user_id": review.user_id,
+            "business_id": review.business_id,
+            "stars": review.stars,
+            "text": review.text,
+            "created_at": review.created_at,
+            "username": review.user.username  # User relationship을 통해 username 추가
+        }
+        result.append(review_dict)
+    
+    return result
+    # app.get으로 가게에 작성된 리뷰를 가져오고, 각 리뷰에 작성자의 username을 포함한다 
 
 @app.post("/api/businesses/{business_id}/reviews", response_model=schemas.ReviewResponse, status_code=status.HTTP_201_CREATED)
 async def create_review(
@@ -223,8 +238,18 @@ async def create_review(
     db.refresh(db_review)
     
     logger.info(f"New review created by user {current_user.username} for business {business_id}")
-    return db_review
-    # app.post로 가게에 리뷰를 작성한다 
+    
+    # username을 포함한 응답 반환
+    return {
+        "id": db_review.id,
+        "user_id": db_review.user_id,
+        "business_id": db_review.business_id,
+        "stars": db_review.stars,
+        "text": db_review.text,
+        "created_at": db_review.created_at,
+        "username": current_user.username
+    }
+    # app.post로 가게에 리뷰를 작성하고, 작성자의 username을 포함하여 반환한다 
 
 # ============================================================================
 # Recommendation Endpoint
