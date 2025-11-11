@@ -1,0 +1,228 @@
+/**
+ * 프로필 페이지 스타일
+ */
+
+.profile-container {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 20px 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.profile-header-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.btn-back, .btn-logout {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.btn-back:hover, .btn-logout:hover {
+  background: #5568d3;
+}
+
+.profile-header {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.profile-info h1 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 40px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.absa-section {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.absa-section h2 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.absa-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.absa-tag {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.reviews-section {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.reviews-section h2 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.no-reviews {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.user-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.user-review-item {
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.review-business-info {
+  margin-bottom: 10px;
+}
+
+.business-name-link {
+  color: #667eea;
+  cursor: pointer;
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.business-name-link:hover {
+  color: #5568d3;
+  text-decoration: underline;
+}
+
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+.review-stars {
+  font-size: 16px;
+}
+
+.review-date {
+  color: #888;
+  font-size: 13px;
+}
+
+.review-useful {
+  color: #666;
+  font-size: 14px;
+}
+
+.review-text {
+  color: #555;
+  line-height: 1.6;
+  margin: 10px 0 0 0;
+}
+
+.loading-more {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.no-more-reviews {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  font-size: 14px;
+}
+
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.error-container h2 {
+  color: #c33;
+  margin-bottom: 10px;
+}
+
+.error-container button {
+  margin-top: 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+

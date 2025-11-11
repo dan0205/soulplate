@@ -14,6 +14,7 @@ const HomePage = () => {
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState('');
   const itemsPerPage = 20;
   
   const { user, logout } = useAuth();
@@ -21,7 +22,8 @@ const HomePage = () => {
 
   useEffect(() => {
     loadRecommendations();
-  }, [currentPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, sortBy]);
 
   const loadRecommendations = async () => {
     setLoading(true);
@@ -30,7 +32,11 @@ const HomePage = () => {
     try {
       // 비즈니스 목록 가져오기
       const skip = (currentPage - 1) * itemsPerPage;
-      const response = await businessAPI.list({ skip, limit: itemsPerPage });
+      const params = { skip, limit: itemsPerPage };
+      if (sortBy) {
+        params.sort_by = sortBy;
+      }
+      const response = await businessAPI.list(params);
       
       // 응답 구조 확인: response.data가 { businesses, total, skip, limit } 형태
       const { businesses, total } = response.data;
@@ -124,11 +130,17 @@ const HomePage = () => {
     navigate(`/business/${businessId}`);
   };
 
+  const handleSortChange = (newSortBy) => {
+    setSortBy(newSortBy);
+    setCurrentPage(1); // 정렬 변경 시 1페이지로 리셋
+  };
+
   return (
     <div className="home-container">
       <header className="home-header">
         <h1>🚀 Two-Tower Recommendations</h1>
         <div className="user-info">
+          <button onClick={() => navigate('/my-profile')} className="btn-profile">My Profile</button>
           <span>Welcome, {user?.username}!</span>
           <button onClick={logout} className="btn-logout">Logout</button>
         </div>
@@ -137,9 +149,37 @@ const HomePage = () => {
       <main className="home-main">
         <div className="recommendations-header">
           <h2>🏪 Restaurant List</h2>
-          <button onClick={loadRecommendations} className="btn-refresh" disabled={loading}>
-            {loading ? 'Loading...' : '🔄 Refresh'}
-          </button>
+          <div className="header-actions">
+            <div className="sort-buttons">
+              <button 
+                className={`sort-btn ${sortBy === '' ? 'active' : ''}`}
+                onClick={() => handleSortChange('')}
+              >
+                기본
+              </button>
+              <button 
+                className={`sort-btn ${sortBy === 'deepfm' ? 'active' : ''}`}
+                onClick={() => handleSortChange('deepfm')}
+              >
+                DeepFM 별점순
+              </button>
+              <button 
+                className={`sort-btn ${sortBy === 'multitower' ? 'active' : ''}`}
+                onClick={() => handleSortChange('multitower')}
+              >
+                Multi-Tower 별점순
+              </button>
+              <button 
+                className={`sort-btn ${sortBy === 'review_count' ? 'active' : ''}`}
+                onClick={() => handleSortChange('review_count')}
+              >
+                리뷰 많은순
+              </button>
+            </div>
+            <button onClick={loadRecommendations} className="btn-refresh" disabled={loading}>
+              {loading ? 'Loading...' : '🔄 Refresh'}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -171,12 +211,15 @@ const HomePage = () => {
                     <div className="card-rank">#{(currentPage - 1) * itemsPerPage + index + 1}</div>
                     <h3>{item.business.name}</h3>
                     <div className="card-info">
-                      <span className="stars">⭐ {item.business.stars?.toFixed(1) || 'N/A'}</span>
                       <span className="reviews">📝 {item.business.review_count} reviews</span>
                     </div>
-                    {item.business.ai_prediction && (
+                    {item.business.ai_prediction ? (
                       <div className="ai-prediction-inline">
-                        AI 예상: {item.business.ai_prediction.deepfm_rating?.toFixed(1)} (DeepFM) / {item.business.ai_prediction.multitower_rating?.toFixed(1) || 'N/A'} (Multi-Tower)
+                        🤖 AI 예상: {item.business.ai_prediction.deepfm_rating?.toFixed(1)} (DeepFM) / {item.business.ai_prediction.multitower_rating?.toFixed(1) || 'N/A'} (Multi-Tower)
+                      </div>
+                    ) : (
+                      <div className="ai-prediction-inline" style={{background: '#f0f0f0', color: '#666'}}>
+                        ⚠️ AI 예측을 사용하려면 로그인이 필요합니다
                       </div>
                     )}
                     <p className="categories">{item.business.categories || 'No category'}</p>

@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from typing import List
+from typing import List, Optional
 import httpx
 import logging
 
@@ -227,6 +227,80 @@ async def get_current_user_info(current_user: models.User = Depends(auth.get_cur
     return current_user
 
 # ============================================================================
+# User Profile Endpoints
+# ============================================================================
+
+@app.get("/api/users/me/profile", response_model=schemas.UserProfileResponse)
+async def get_my_profile(current_user: models.User = Depends(auth.get_current_user)):
+    """본인 프로필 조회"""
+    return schemas.UserProfileResponse(
+        id=current_user.id,
+        username=current_user.username,
+        review_count=current_user.review_count,
+        useful=current_user.useful,
+        fans=current_user.fans,
+        created_at=current_user.created_at,
+        absa_features=current_user.absa_features
+    )
+
+@app.get("/api/users/{user_id}/profile", response_model=schemas.UserProfileResponse)
+async def get_user_profile(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    """다른 사용자 프로필 조회"""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return schemas.UserProfileResponse(
+        id=user.id,
+        username=user.username,
+        review_count=user.review_count,
+        useful=user.useful,
+        fans=user.fans,
+        created_at=user.created_at,
+        absa_features=user.absa_features
+    )
+
+@app.get("/api/users/{user_id}/reviews", response_model=List[schemas.UserReviewResponse])
+async def get_user_reviews(
+    user_id: int,
+    skip: int = 0,
+    limit: int = 20,
+    db: Session = Depends(get_db)
+):
+    """사용자의 리뷰 목록 조회 (음식점 정보 포함)"""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Business 정보를 JOIN하여 리뷰 조회
+    reviews = db.query(models.Review).join(models.Business).filter(
+        models.Review.user_id == user_id
+    ).order_by(models.Review.created_at.desc()).offset(skip).limit(limit).all()
+    
+    result = []
+    for review in reviews:
+        result.append({
+            "id": review.id,
+            "user_id": review.user_id,
+            "business_id": review.business_id,
+            "stars": review.stars,
+            "text": review.text,
+            "created_at": review.created_at,
+            "useful": review.useful or 0,
+            "business": {
+                "business_id": review.business.business_id,
+                "name": review.business.name
+            }
+        })
+    
+    return result
+
+# ============================================================================
 # Business Endpoints
 # ============================================================================
 
@@ -234,15 +308,44 @@ async def get_current_user_info(current_user: models.User = Depends(auth.get_cur
 async def get_businesses(
     skip: int = 0,
     limit: int = 20,
+    sort_by: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user_optional)
 ):
-    """비즈니스 목록 조회 (ABSA 상위 특징 포함)"""
+    """비즈니스 목록 조회 (ABSA 상위 특징 포함, 정렬 지원)"""
     # 총 개수 조회
     total = db.query(models.Business).count()
     
-    # 페이지네이션 적용
-    businesses = db.query(models.Business).offset(skip).limit(limit).all()
+    # 정렬에 따라 다른 쿼리 사용
+    if sort_by == "review_count":
+        # 리뷰 개수 내림차순
+        businesses = db.query(models.Business).order_by(
+            models.Business.review_count.desc()
+        ).offset(skip).limit(limit).all()
+    elif sort_by in ["deepfm", "multitower"]:
+        # AI 예측 기반 정렬: 모든 비즈니스 가져와서 메모리에서 정렬
+        if not current_user:
+            # 로그인 안 한 경우 기본 정렬
+            businesses = db.query(models.Business).offset(skip).limit(limit).all()
+        else:
+            # 정렬을 위해 더 많은 데이터 가져오기 (페이지네이션 고려)
+            all_businesses = db.query(models.Business).offset(skip).limit(limit * 3).all()
+            
+            # AI 예측 계산 및 정렬
+            businesses_with_predictions = []
+            for business in all_businesses:
+                prediction = await get_ai_prediction(current_user, business)
+                if prediction:
+                    sort_value = prediction.deepfm_rating if sort_by == "deepfm" else prediction.multitower_rating
+                    if sort_value is not None:
+                        businesses_with_predictions.append((business, prediction, sort_value))
+            
+            # 정렬 후 limit만큼만 가져오기
+            businesses_with_predictions.sort(key=lambda x: x[2], reverse=True)
+            businesses = [item[0] for item in businesses_with_predictions[:limit]]
+    else:
+        # 기본: 정렬 없음
+        businesses = db.query(models.Business).offset(skip).limit(limit).all()
     
     # 각 비즈니스에 상위 ABSA 특징 추가
     result = []
@@ -270,6 +373,8 @@ async def get_businesses(
             prediction = await get_ai_prediction(current_user, business)
             if prediction:
                 business_dict["ai_prediction"] = prediction
+            else:
+                logger.warning(f"AI prediction failed for business {business.business_id}")
         
         result.append(schemas.BusinessResponse(**business_dict))
     
@@ -321,6 +426,10 @@ async def get_business(
         prediction = await get_ai_prediction(current_user, business)
         if prediction:
             business_dict["ai_prediction"] = prediction
+        else:
+            logger.warning(f"AI prediction failed for business {business.business_id}")
+    else:
+        logger.info("No current_user, skipping AI prediction")
     
     return schemas.BusinessResponse(**business_dict)
     # 특정 가게의 상세 정보를 본다 
@@ -349,7 +458,7 @@ async def get_reviews(
         models.Review.business_id == business.id
     ).offset(skip).limit(limit).all()
     
-    # 각 리뷰에 username 추가
+    # 각 리뷰에 username과 useful 추가
     result = []
     for review in reviews:
         review_dict = {
@@ -359,7 +468,8 @@ async def get_reviews(
             "stars": review.stars,
             "text": review.text,
             "created_at": review.created_at,
-            "username": review.user.username  # User relationship을 통해 username 추가
+            "username": review.user.username,  # User relationship을 통해 username 추가
+            "useful": review.useful or 0  # useful 값 추가
         }
         result.append(review_dict)
     
@@ -394,7 +504,7 @@ async def create_review(
     
     logger.info(f"New review created by user {current_user.username} for business {business_id}")
     
-    # username을 포함한 응답 반환
+    # username과 useful을 포함한 응답 반환
     return {
         "id": db_review.id,
         "user_id": db_review.user_id,
@@ -402,9 +512,41 @@ async def create_review(
         "stars": db_review.stars,
         "text": db_review.text,
         "created_at": db_review.created_at,
-        "username": current_user.username
+        "username": current_user.username,
+        "useful": db_review.useful or 0
     }
     # app.post로 가게에 리뷰를 작성하고, 작성자의 username을 포함하여 반환한다 
+
+@app.put("/api/reviews/{review_id}/useful", response_model=schemas.ReviewResponse)
+async def increment_review_useful(
+    review_id: int,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """리뷰 useful 증가"""
+    review = db.query(models.Review).filter(models.Review.id == review_id).first()
+    
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    
+    # useful 값 증가
+    review.useful = (review.useful or 0) + 1
+    db.commit()
+    db.refresh(review)
+    
+    logger.info(f"Review {review_id} useful incremented by user {current_user.username}")
+    
+    # username을 포함한 응답 반환
+    return {
+        "id": review.id,
+        "user_id": review.user_id,
+        "business_id": review.business_id,
+        "stars": review.stars,
+        "text": review.text,
+        "created_at": review.created_at,
+        "username": review.user.username,
+        "useful": review.useful or 0
+    }
 
 if __name__ == "__main__":
     import uvicorn

@@ -21,10 +21,6 @@ const AIPrediction = ({ prediction }) => {
           <span className="model-name">Multi-Tower:</span>
           <span className="rating">⭐ {prediction.multitower_rating}</span>
         </div>
-        <div className="prediction-item ensemble">
-          <span className="model-name">앙상블:</span>
-          <span className="rating">⭐ {prediction.ensemble_rating}</span>
-        </div>
       </div>
     </div>
   );

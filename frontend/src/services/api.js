@@ -77,6 +77,16 @@ export const businessAPI = {
     api.post(`/businesses/${businessId}/reviews`, data),
 };
 
+export const reviewAPI = {
+  incrementUseful: (reviewId) => api.put(`/reviews/${reviewId}/useful`),
+};
+
+export const userAPI = {
+  getMyProfile: () => api.get('/users/me/profile'),
+  getUserProfile: (userId) => api.get(`/users/${userId}/profile`),
+  getUserReviews: (userId, params) => api.get(`/users/${userId}/reviews`, { params }),
+};
+
 export const recommendationAPI = {
   get: (params) => api.get('/recommendations', { params }),
 };

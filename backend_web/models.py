@@ -90,6 +90,9 @@ class Review(Base):
     # ABSA 피처 (JSON: 51개 aspect-sentiment 값)
     absa_features = Column(JSONB, nullable=True)
     
+    # 유용성 점수
+    useful = Column(Integer, default=0, nullable=False)
+    
     # Relationships
     user = relationship("User", back_populates="reviews")
     business = relationship("Business", back_populates="reviews")

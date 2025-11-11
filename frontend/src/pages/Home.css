@@ -28,6 +28,21 @@
   gap: 15px;
 }
 
+.btn-profile {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid white;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-profile:hover {
+  background: white;
+  color: #667eea;
+}
+
 .btn-logout {
   background: rgba(255,255,255,0.2);
   color: white;
@@ -50,15 +65,47 @@
 }
 
 .recommendations-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 30px;
 }
 
 .recommendations-header h2 {
-  margin: 0;
+  margin: 0 0 15px 0;
   color: #333;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.sort-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sort-btn {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.sort-btn:hover {
+  background: #f0f0ff;
+}
+
+.sort-btn.active {
+  background: #667eea;
+  color: white;
 }
 
 .btn-refresh {
@@ -218,8 +265,8 @@
 }
 
 .feature-tag {
-  background: #e8f0fe;
-  color: #1a73e8;
+  background: #1976d2;
+  color: #ffffff;
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 12px;

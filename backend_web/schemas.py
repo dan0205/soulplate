@@ -40,7 +40,20 @@ class UserResponse(UserBase):
         from_attributes = True
         # 매우 중요한 설정이다
         # SQLAlchemy같은 ORM 객체를 받았을 때, user.id가 아닌 user['id']로 접근하려다
-        # 오류가 나는 걸 방지한다 
+        # 오류가 나는 걸 방지한다
+
+class UserProfileResponse(BaseModel):
+    """사용자 프로필 정보"""
+    id: int
+    username: str
+    review_count: int
+    useful: int
+    fans: int
+    created_at: datetime
+    absa_features: Optional[Dict[str, float]] = None
+    
+    class Config:
+        from_attributes = True 
 
 # Token Schemas
 class Token(BaseModel):
@@ -103,8 +116,26 @@ class ReviewResponse(ReviewBase):
     business_id: int
     created_at: datetime
     username: str  # 리뷰 작성자 이름
+    useful: int = 0  # 유용성 점수
     absa_features: Optional[Dict[str, float]] = None  # ABSA 피처
     # 작성된 리뷰 정보를 응답할 때 사용 
+    
+    class Config:
+        from_attributes = True
+
+class BusinessInfo(BaseModel):
+    """리뷰에 포함될 음식점 정보"""
+    business_id: str
+    name: str
+    
+class UserReviewResponse(ReviewBase):
+    """사용자 프로필에서 보여줄 리뷰 정보 (음식점 정보 포함)"""
+    id: int
+    user_id: int
+    business_id: int
+    created_at: datetime
+    useful: int = 0
+    business: BusinessInfo  # 음식점 정보
     
     class Config:
         from_attributes = True

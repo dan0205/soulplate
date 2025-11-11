@@ -10,6 +10,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import BusinessDetailPage from './pages/BusinessDetailPage';
+import MyProfilePage from './pages/MyProfilePage';
+import UserProfilePage from './pages/UserProfilePage';
 
 function App() {
   return (
@@ -31,6 +33,22 @@ function App() {
             element={
               <PrivateRoute>
                 <BusinessDetailPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/my-profile"
+            element={
+              <PrivateRoute>
+                <MyProfilePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile/:userId"
+            element={
+              <PrivateRoute>
+                <UserProfilePage />
               </PrivateRoute>
             }
           />

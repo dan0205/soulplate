@@ -2,11 +2,12 @@
  * 비즈니스 상세 페이지
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { businessAPI } from '../services/api';
+import { businessAPI, reviewAPI } from '../services/api';
 import AIPrediction from '../components/AIPrediction';
 import { ABSAFeaturesDetailed } from '../components/ABSAFeatures';
+import Avatar from '../components/Avatar';
 import './BusinessDetail.css';
 
 const BusinessDetailPage = () => {
@@ -21,7 +22,11 @@ const BusinessDetailPage = () => {
   const [loading, setLoading] = useState(true);
   // 가게 정보를 불러오는 중인지 나타냄 
   const [error, setError] = useState('');
-  // 데이터 로딩 중 에러가 발생했는지 
+  // 데이터 로딩 중 에러가 발생했는지
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [reviewSkip, setReviewSkip] = useState(0);
+  const reviewsEndRef = useRef(null); 
   
   
   const [reviewForm, setReviewForm] = useState({
@@ -34,7 +39,12 @@ const BusinessDetailPage = () => {
 
   useEffect(() => {
     loadBusinessDetails();
-    loadReviews();
+    // 리뷰 초기화 및 첫 로드
+    setReviews([]);
+    setReviewSkip(0);
+    setHasMore(true);
+    loadReviews(0, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessId]);
   // 페이지가 처음 열리거나, url의 businessId가 바뀔 때, useEffect를 실행한다 
 
@@ -51,15 +61,78 @@ const BusinessDetailPage = () => {
   };
   // GET /api/businesses/{businessId} 호출하여 가게 정보를 business에 저장한다 
 
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async (skip = 0, isInitial = false) => {
+    if (loadingMore && !isInitial) return;
+    
     try {
-      const response = await businessAPI.getReviews(businessId);
-      setReviews(response.data);
+      if (!isInitial) {
+        setLoadingMore(true);
+      }
+      const limit = 20;
+      const response = await businessAPI.getReviews(businessId, { skip, limit });
+      const newReviews = response.data;
+      
+      if (isInitial) {
+        setReviews(newReviews);
+      } else {
+        setReviews(prev => [...prev, ...newReviews]);
+      }
+      
+      // 더 불러올 리뷰가 있는지 확인
+      if (newReviews.length < limit) {
+        setHasMore(false);
+      }
+      
+      setReviewSkip(skip + newReviews.length);
     } catch (err) {
       console.error('Failed to load reviews:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [businessId, loadingMore]);
+  // GET /api/businesses/{businessId}/reviews 호출하여 리뷰 목록을 setReviews에 저장한다
+
+  // 무한 스크롤 핸들러
+  const handleScroll = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+    
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    
+    // 끝에서 200px 전에 도달하면 다음 페이지 로드
+    if (scrollTop + windowHeight >= documentHeight - 200) {
+      loadReviews(reviewSkip, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviewSkip, hasMore, loadingMore]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  // useful 버튼 클릭 핸들러
+  const handleUsefulClick = async (reviewId, currentUseful) => {
+    try {
+      // Optimistic update
+      setReviews(prev => prev.map(review => 
+        review.id === reviewId 
+          ? { ...review, useful: (review.useful || 0) + 1 }
+          : review
+      ));
+      
+      await reviewAPI.incrementUseful(reviewId);
+    } catch (err) {
+      // 실패 시 롤백
+      setReviews(prev => prev.map(review => 
+        review.id === reviewId 
+          ? { ...review, useful: currentUseful }
+          : review
+      ));
+      console.error('Failed to increment useful:', err);
     }
   };
-  // GET /api/businesses/{businessId}/reviews 호출하여 리뷰 목록을 setReviews에 저장한다
 
   const handleSubmitReview = async (e) => {
     e.preventDefault();
@@ -72,7 +145,11 @@ const BusinessDetailPage = () => {
       // POST /api/businesses/{businessId}/reviews 호출하여 리뷰를 생성한다  
       alert('Review submitted successfully! 🎉');
       setReviewForm({ stars: 5, text: '' });
-      loadReviews();
+      // 리뷰 목록 초기화 및 재로드
+      setReviews([]);
+      setReviewSkip(0);
+      setHasMore(true);
+      loadReviews(0, true);
       // from을 제출한 후, 방금 작성한 리뷰가 포함된 새 목록을 서버에서 다시 불러와 화면을 갱신한다 
       // 홈페이지로 돌아가면 추천이 업데이트됨
     } catch (err) {
@@ -108,7 +185,6 @@ const BusinessDetailPage = () => {
       <div className="business-header">
         <h1>{business.name}</h1>
         <div className="business-info">
-          <span className="stars">⭐ {business.stars?.toFixed(1) || 'N/A'}</span>
           <span className="reviews">📝 {business.review_count} reviews</span>
           <span className={business.is_open ? 'status-open' : 'status-closed'}>
             {business.is_open ? '🟢 Open' : '🔴 Closed'}
@@ -169,26 +245,53 @@ const BusinessDetailPage = () => {
       </div>
 
       <div className="reviews-section">
-        <h2>Recent Reviews ({reviews.length})</h2>
-        {reviews.length === 0 ? (
+        <h2>Recent Reviews {reviews.length > 0 && `(${reviews.length})`}</h2>
+        {reviews.length === 0 && !loadingMore ? (
           <p className="no-reviews">No reviews yet. Be the first to review!</p>
         ) : (
-          <div className="reviews-list">
-            {reviews.map((review) => (
-              <div key={review.id} className="review-item">
-                <div className="review-header">
-                  <span className="review-author">👤 {review.username}</span>
-                  <span className="review-stars">
-                    {'⭐'.repeat(review.stars)}
-                  </span>
-                  <span className="review-date">
-                    {new Date(review.created_at).toLocaleDateString()}
-                  </span>
+          <>
+            <div className="reviews-list">
+              {reviews.map((review) => (
+                <div key={review.id} className="review-item">
+                  <div className="review-header">
+                    <div 
+                      className="review-author-section"
+                      onClick={() => navigate(`/profile/${review.user_id}`)}
+                    >
+                      <Avatar username={review.username} size="small" />
+                      <span className="review-author">{review.username}</span>
+                    </div>
+                    <span className="review-stars">
+                      {'⭐'.repeat(review.stars)}
+                    </span>
+                    <span className="review-date">
+                      {new Date(review.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="review-text">{review.text}</p>
+                  <div className="review-footer">
+                    <button 
+                      className="useful-button"
+                      onClick={() => handleUsefulClick(review.id, review.useful || 0)}
+                    >
+                      👍 {review.useful || 0}
+                    </button>
+                  </div>
                 </div>
-                <p className="review-text">{review.text}</p>
+              ))}
+            </div>
+            {loadingMore && (
+              <div className="loading-more">
+                <p>Loading more reviews...</p>
               </div>
-            ))}
-          </div>
+            )}
+            {!hasMore && reviews.length > 0 && (
+              <div className="no-more-reviews">
+                <p>No more reviews to load</p>
+              </div>
+            )}
+            <div ref={reviewsEndRef} />
+          </>
         )}
       </div>
     </div>
