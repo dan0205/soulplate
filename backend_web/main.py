@@ -126,9 +126,9 @@ app.add_middleware(
 # 개발 환경에서 프론트엔드와 백엔드가 원할하게 통신할 수 있게 해준다
 # 프로덕션에서는 ["*"] 대신 실제 프론트엔드 도메인을 적어야한다 
 
-# Model API URL
+# Model API URL (별점 예측용)
 MODEL_API_URL = "http://localhost:8001"
-# 추천 요청을 보낼 머신러닝 모델 API 서버의 주소를 저장한다 
+# 별점 예측 요청을 보낼 머신러닝 모델 API 서버의 주소를 저장한다 
 
 # Root
 @app.get("/")
@@ -405,101 +405,6 @@ async def create_review(
         "username": current_user.username
     }
     # app.post로 가게에 리뷰를 작성하고, 작성자의 username을 포함하여 반환한다 
-
-# ============================================================================
-# Recommendation Endpoint
-# ============================================================================
-
-# 모델 API 게이트웨이 역할을 수행한다
-# 현재 로그인한 사용자에게 맞춤형 가게 목록을 추천한다 (인증필요) 
-@app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
-async def get_recommendations(
-    top_k: int = 10,
-    current_user: models.User = Depends(auth.get_current_user),
-    db: Session = Depends(get_db)
-): # Depends로 현재 사용자를 식별한다 
-    """개인화 추천"""
-    logger.info(f"Recommendation request for user: {current_user.username}")
-    
-    try:
-        # 사용자의 최근 리뷰한 비즈니스 ID 가져오기
-        recent_reviews = db.query(models.Review).filter(
-            models.Review.user_id == current_user.id
-        ).order_by(models.Review.created_at.desc()).limit(5).all()
-        
-        recent_business_ids = [
-            db.query(models.Business).filter(models.Business.id == review.business_id).first().business_id
-            for review in recent_reviews
-        ]
-        # 현재 사용자가 최근에 리뷰를 작성한 5곳의 비즈니스 아이디를 가져온다 
-        
-        # Model API 호출
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{MODEL_API_URL}/recommend",
-                json={
-                    "user_id": current_user.username,
-                    "user_features": {
-                        "review_count": db.query(models.Review).filter(models.Review.user_id == current_user.id).count(),
-                        "useful": current_user.useful if current_user.useful else 0.0,
-                        "compliment": current_user.compliment if current_user.compliment else 0.0,
-                        "fans": current_user.fans if current_user.fans else 0.0,
-                        "average_stars": current_user.average_stars if current_user.average_stars else 3.0,
-                        "yelping_since_days": current_user.yelping_since_days if current_user.yelping_since_days else 0.0
-                    },
-                    "recent_business_ids": recent_business_ids,
-                    "top_k": top_k
-                },
-                timeout=10.0
-            ) 
-            # 현재 사용자의 나이, 성별, 리뷰 수, 평균 별점 등을 추천 모델에 전송한다 
-            # 즉, 백엔드에서 json 형식으로 데이터를 보내면, 모델은 해당 json을 이용해 결과를 분석하고, response 형태로 답장한다 
-            
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Failed to get recommendations from model API"
-                )
-            
-            model_response = response.json()
-        
-        # Business 정보와 함께 반환
-        recommendations = []
-        for business_id, score in zip(
-            model_response["recommendations"], # 비즈니스 아이디 목록
-            model_response["scores"] # 추천 점수 목록
-        ):
-            business = db.query(models.Business).filter(
-                models.Business.business_id == business_id
-            ).first()
-            
-            if business:
-                recommendations.append(
-                    schemas.RecommendationItem(
-                        business=business,
-                        score=score
-                    )
-                ) # 추천 결과 목록의 1개 항목 형태로 추가한다 
-        
-        logger.info(f"Returned {len(recommendations)} recommendations for user {current_user.username}")
-        
-        return schemas.RecommendationResponse(
-            recommendations=recommendations,
-            user_id=current_user.id
-        ) # 응답에 필요한 recommendations은 List[RecommendationItem] 형식이다 
-        
-    except httpx.RequestError as e:
-        logger.error(f"Error connecting to model API: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model API is unavailable"
-        )
-    except Exception as e:
-        logger.error(f"Error in recommendation: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate recommendations: {str(e)}"
-        )
 
 if __name__ == "__main__":
     import uvicorn

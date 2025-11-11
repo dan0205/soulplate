@@ -1,118 +1,87 @@
 <!-- dc299d1c-36b6-4f9d-a8d7-d3628c5145da 23ae83a8-c6dc-44bb-8771-31a9d8ea7c95 -->
-# 홈페이지 페이지네이션 및 AI 예측 표시 개선
+# DeepFM/Multi-Tower 별점 예측 모델 문제 해결
 
-## 현재 문제점
+## 발견된 문제들
 
-1. 홈페이지에서 상위 20개 음식점만 표시되고 페이지네이션 없음
-2. AI 예측 별점이 하나만 표시됨 (DeepFM, Multi-Tower 구분 없음)
-3. BusinessDetail 페이지에 AI 예측 및 ABSA 특징이 표시되지 않음
+### 1. Multi-Tower 모델이 완전히 비활성화됨
 
-## 수정 계획
+`prediction_service.py` 169-172번 줄에서 Multi-Tower 예측이 하드코딩으로 스킵됨
 
-### 1. Backend API 수정 (backend_web/main.py)
+### 2. Multi-Tower 학습 시 피처 분리 문제
 
-`GET /api/businesses` 엔드포인트에 총 비즈니스 개수 반환 추가
+`train_models_colab.py` 98-100번 줄:
 
-- 응답에 `total` 필드 추가하여 전체 비즈니스 개수 반환
-- 프론트엔드에서 총 페이지 수 계산에 사용
+- 전체 피처를 단순히 절반으로 나누어 User/Business로 분리
+- 이는 잘못된 방식! User 피처와 Business 피처가 섞임
 
-### 2. Frontend 홈페이지 수정 (frontend/src/pages/HomePage.js)
+### 3. ABSA 피처 키 순서 문제
 
-**상태 관리 추가:**
+`prediction_service.py`에서 하드코딩된 ABSA 키 순서가 실제 학습 데이터와 다를 수 있음
 
-- `currentPage` (현재 페이지, 기본값 1)
-- `totalPages` (총 페이지 수)
-- `itemsPerPage` (페이지당 항목 수, 20)
+### 4. DeepFM이 1.0만 예측하는 문제
 
-**API 호출 수정:**
+- 모델 파일 손상 가능성
+- 입력 데이터 전처리 불일치 가능성
+- ABSA 피처 순서 불일치
 
-- `skip = (currentPage - 1) * itemsPerPage` 계산
-- 응답에서 `total` 받아서 `totalPages` 계산
+## 해결 방안
 
-**AI 예측 표시 개선:**
+### Step 1: 학습 데이터 구조 확인
 
-- 카드에 `ai_prediction` 있으면 표시
-- 형식: "⭐ 4.2 | AI 예상: 4.5 (DeepFM) / 4.3 (Multi-Tower)"
-- `business.top_features` 표시 (맛, 서비스, 분위기 등)
+ranking_train.csv의 실제 컬럼 순서 확인:
 
-**페이지네이션 UI 추가:**
+- User 기본 피처 6개
+- Business 기본 피처 4개
+- ABSA 피처 51개 (컬럼명 확인 필요)
 
-- 이전/다음 버튼
-- 페이지 번호 버튼 (현재 페이지 ±2 범위)
-- 첫 페이지/마지막 페이지 버튼
+### Step 2: ABSA 피처 키 순서 수정
 
-### 3. BusinessDetail 페이지 수정 (frontend/src/pages/BusinessDetailPage.js)
+`prediction_service.py`의 `_get_absa_keys()` 함수를:
 
-**컴포넌트 import:**
+- 실제 학습 데이터의 ABSA 컬럼 순서와 동일하게 수정
+- 또는 학습 시 저장한 피처 순서 파일 사용
 
-- `AIPrediction` (이미 생성됨)
-- `ABSAFeaturesDetailed` (이미 생성됨)
+### Step 3: Multi-Tower 피처 분리 문제 해결
 
-**AI 예측 섹션 추가:**
+**옵션 A: Multi-Tower 재학습 (권장)**
 
-- business-header 아래에 AIPrediction 컴포넌트 추가
-- `business.ai_prediction` 전달
+- User 피처: 기본 6개 + ABSA 51개 = 57개
+- Business 피처: 기본 4개 + ABSA 51개 = 55개
+- 제대로 분리하여 재학습
 
-**ABSA 특징 섹션 추가:**
+**옵션 B: 예측 시 올바른 분리 적용**
 
-- review-section 위에 ABSAFeaturesDetailed 컴포넌트 추가
-- `business.absa_features` 전달
+- 현재 모델 파일 그대로 사용
+- 예측 시 학습 때와 동일한 방식으로 피처 분리
 
-### 4. 스타일 추가 (frontend/src/pages/Home.css)
+### Step 4: prediction_service.py 수정
 
-**페이지네이션 스타일:**
+1. ABSA 키 순서 수정
+2. Multi-Tower 예측 활성화
+3. User/Business 피처 올바르게 분리
+4. 디버그 로깅 추가
 
-- `.pagination-container`: 페이지네이션 컨테이너
-- `.pagination-button`: 페이지 버튼
-- `.pagination-button.active`: 현재 페이지 버튼
+### Step 5: 테스트
 
-**AI 예측 인라인 표시:**
+실제 사용자 데이터로 예측 테스트:
 
-- `.ai-prediction-inline`: 카드 내 AI 예측 표시 스타일
+- DeepFM 예측값이 1.0이 아닌지 확인
+- Multi-Tower 예측값이 제대로 나오는지 확인
+- 두 모델의 예측값이 합리적인 범위(1-5)인지 확인
 
-## 주요 파일 변경
+## 중요 체크포인트
 
-- `backend_web/main.py`: total 개수 반환 추가
-- `frontend/src/pages/HomePage.js`: 페이지네이션 및 AI 예측 표시 개선
-- `frontend/src/pages/BusinessDetailPage.js`: AI 예측 및 ABSA 특징 컴포넌트 추가
-- `frontend/src/pages/Home.css`: 페이지네이션 스타일 추가
-
-## 예상 결과
-
-**홈페이지:**
-
-```
-🏪 Restaurant Name
-⭐ 4.2 | AI 예상: 4.5 (DeepFM) / 4.3 (Multi-Tower)
-맛(96%) 서비스(88%) 분위기(75%)
-
-[페이지네이션]
-[처음] [이전] [1] [2] [3] [4] [5] [다음] [마지막]
-```
-
-**BusinessDetail 페이지:**
-
-```
-[가게 정보]
-
-🤖 AI 예상 별점
-⭐ DeepFM: 4.2
-⭐ Multi-Tower: 4.5
-⭐ 앙상블: 4.35
-
-📍 이 가게의 특징 (리뷰 분석)
-🍽️ 음식 관련
-  맛        ████████░░ 85% 긍정
-  품질/신선도 ███████░░░ 78% 긍정
-
-[리뷰 작성 폼]
-```
+1. **ABSA 컬럼 순서**: `data/processed/ranking_train.csv` 확인
+2. **Multi-Tower 입력 차원**: 학습 시 사용한 차원 확인
+3. **Scaler 일관성**: user_scaler/business_scaler가 학습 시와 동일한지 확인
 
 ### To-dos
 
-- [ ] backend_web/main.py - GET /api/businesses에 총 개수 반환 추가
-- [ ] HomePage.js - 페이지네이션 상태 관리 및 UI 추가
-- [ ] HomePage.js - AI 예측 표시 개선 (DeepFM/Multi-Tower 구분)
-- [ ] Home.css - 페이지네이션 및 AI 예측 인라인 스타일 추가
-- [ ] BusinessDetailPage.js - AIPrediction 및 ABSAFeaturesDetailed 컴포넌트 추가
-- [ ] 전체 기능 테스트 (페이지네이션, AI 예측, ABSA 특징)
+- [x] Two-Tower 모델 파일 삭제 (two_tower.py, .pth, index.faiss 등)
+- [x] 
+- [x] 
+- [x] 
+- [x] 
+- [x] 
+- [x] 
+- [x] 
