@@ -22,6 +22,83 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ============================================================================
+# ABSA 헬퍼 함수
+# ============================================================================
+
+def get_top_absa_features(absa_dict, top_k=5):
+    """상위 ABSA 특징 추출"""
+    if not absa_dict:
+        return []
+    
+    # aspect_sentiment별로 점수 정리
+    features = []
+    for key, score in absa_dict.items():
+        parts = key.rsplit('_', 1)  # 마지막 _를 기준으로 분리
+        if len(parts) == 2:
+            aspect, sentiment = parts
+            features.append({
+                'aspect': aspect,
+                'sentiment': sentiment,
+                'score': float(score)
+            })
+    
+    # 긍정 특징 상위 3개
+    positive = sorted([f for f in features if f['sentiment'] == '긍정'], 
+                     key=lambda x: x['score'], reverse=True)[:3]
+    
+    # 부정 특징 상위 2개
+    negative = sorted([f for f in features if f['sentiment'] == '부정'], 
+                     key=lambda x: x['score'], reverse=True)[:2]
+    
+    # 합치기
+    top_features = positive + negative
+    
+    return [schemas.ABSAFeature(**f) for f in top_features]
+
+async def get_ai_prediction(user: models.User, business: models.Business):
+    """AI 예측 별점 가져오기"""
+    try:
+        # ABSA features 가져오기 (별도 테이블에서)
+        user_absa = user.absa_features.absa_features if user.absa_features else {}
+        business_absa = business.absa_features.absa_features if business.absa_features else {}
+        
+        # backend_model API 호출
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "http://localhost:8001/predict_rating",
+                json={
+                    "user_data": {
+                        "review_count": user.review_count,
+                        "useful": user.useful,
+                        "compliment": user.compliment,
+                        "fans": user.fans,
+                        "average_stars": user.average_stars,
+                        "yelping_since_days": user.yelping_since_days,
+                        "absa_features": user_absa
+                    },
+                    "business_data": {
+                        "stars": business.stars,
+                        "review_count": business.review_count,
+                        "latitude": business.latitude,
+                        "longitude": business.longitude,
+                        "absa_features": business_absa
+                    }
+                },
+                timeout=10.0
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return schemas.AIPrediction(**data)
+            else:
+                logger.warning(f"AI prediction failed: {response.status_code}")
+                return None
+                
+    except Exception as e:
+        logger.error(f"AI prediction error: {e}")
+        return None
+
 # 데이터베이스 테이블 생성
 models.Base.metadata.create_all(bind=engine)
 # 중요, 시작될 때, modesl.py에 정의한 클래스를 기반으로 실제 데이터베이스에 테이블을 생성한다
@@ -92,8 +169,15 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         username=user.username,
         email=user.email,
         hashed_password=hashed_password,
-        age=user.age,
-        gender=user.gender
+        # 신규 회원은 Yelp 데이터 없이 기본값으로 생성
+        yelp_user_id=None,
+        review_count=0,
+        useful=0,
+        compliment=0,
+        fans=0,
+        average_stars=0.0,
+        yelping_since_days=0,
+        absa_features=None
     )
     # models.User 객체를 생성해서 디비에 저장한다 
     db.add(db_user)
@@ -150,16 +234,51 @@ async def get_current_user_info(current_user: models.User = Depends(auth.get_cur
 async def get_businesses(
     skip: int = 0,
     limit: int = 20,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user_optional)
 ):
-    """비즈니스 목록 조회"""
+    """비즈니스 목록 조회 (ABSA 상위 특징 포함)"""
     businesses = db.query(models.Business).offset(skip).limit(limit).all()
-    return businesses
+    
+    # 각 비즈니스에 상위 ABSA 특징 추가
+    result = []
+    for business in businesses:
+        # ABSA features 가져오기 (별도 테이블에서)
+        absa_dict = business.absa_features.absa_features if business.absa_features else None
+        
+        business_dict = {
+            "id": business.id,
+            "business_id": business.business_id,
+            "name": business.name,
+            "categories": business.categories,
+            "stars": business.stars,
+            "review_count": business.review_count,
+            "address": business.address,
+            "city": business.city,
+            "state": business.state,
+            "latitude": business.latitude,
+            "longitude": business.longitude,
+            "top_features": get_top_absa_features(absa_dict)
+        }
+        
+        # 로그인 사용자면 AI 예측 추가
+        if current_user:
+            prediction = await get_ai_prediction(current_user, business)
+            if prediction:
+                business_dict["ai_prediction"] = prediction
+        
+        result.append(schemas.BusinessResponse(**business_dict))
+    
+    return result
     # 가게 목록을 페이지네이션으로 조회한다 
 
 @app.get("/api/businesses/{business_id}", response_model=schemas.BusinessResponse)
-async def get_business(business_id: str, db: Session = Depends(get_db)):
-    """비즈니스 상세 정보 조회"""
+async def get_business(
+    business_id: str, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user_optional)
+):
+    """비즈니스 상세 정보 조회 (전체 ABSA 피처 포함)"""
     business = db.query(models.Business).filter(
         models.Business.business_id == business_id
     ).first()
@@ -167,7 +286,33 @@ async def get_business(business_id: str, db: Session = Depends(get_db)):
     if not business:
         raise HTTPException(status_code=404, detail="Business not found")
     
-    return business
+    # ABSA features 가져오기 (별도 테이블에서)
+    absa_dict = business.absa_features.absa_features if business.absa_features else None
+    
+    # 상세 정보 구성
+    business_dict = {
+        "id": business.id,
+        "business_id": business.business_id,
+        "name": business.name,
+        "categories": business.categories,
+        "stars": business.stars,
+        "review_count": business.review_count,
+        "address": business.address,
+        "city": business.city,
+        "state": business.state,
+        "latitude": business.latitude,
+        "longitude": business.longitude,
+        "absa_features": absa_dict,  # 전체 ABSA 피처
+        "top_features": get_top_absa_features(absa_dict)  # 상위 특징도 포함
+    }
+    
+    # 로그인 사용자면 AI 예측 추가
+    if current_user:
+        prediction = await get_ai_prediction(current_user, business)
+        if prediction:
+            business_dict["ai_prediction"] = prediction
+    
+    return schemas.BusinessResponse(**business_dict)
     # 특정 가게의 상세 정보를 본다 
 
 # ============================================================================
@@ -285,10 +430,12 @@ async def get_recommendations(
                 json={
                     "user_id": current_user.username,
                     "user_features": {
-                        "age": float(current_user.age) if current_user.age else 30.0,
                         "review_count": db.query(models.Review).filter(models.Review.user_id == current_user.id).count(),
-                        "useful": 0.0,
-                        "average_stars": 3.0
+                        "useful": current_user.useful if current_user.useful else 0.0,
+                        "compliment": current_user.compliment if current_user.compliment else 0.0,
+                        "fans": current_user.fans if current_user.fans else 0.0,
+                        "average_stars": current_user.average_stars if current_user.average_stars else 3.0,
+                        "yelping_since_days": current_user.yelping_since_days if current_user.yelping_since_days else 0.0
                     },
                     "recent_business_ids": recent_business_ids,
                     "top_k": top_k

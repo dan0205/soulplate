@@ -8,7 +8,7 @@ Pydantic 스키마 정의
 # JSON 형식으로 변환해준다 
 
 from pydantic import BaseModel, EmailStr, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 # BaseModel = 모든 스키마가 상속받는 Pydantic의 기본 클래스
 # EmailStr = 문자열이 유효한 이메일 형식인지 검사하는 타입
@@ -23,10 +23,8 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    age: Optional[int] = None
-    gender: Optional[str] = None
     # 회원가입 API를 요청할 때 사용 
-    # UserBase를 상속받아서 username과 email을 포함하고, 추가 정보를 받는다 
+    # UserBase를 상속받아서 username과 email을 포함하고, password를 받는다 
 
 class UserLogin(BaseModel):
     username: str
@@ -35,8 +33,6 @@ class UserLogin(BaseModel):
 
 class UserResponse(UserBase):
     id: int
-    age: Optional[int]
-    gender: Optional[str]
     created_at: datetime
     # 사용자 정보를 클라이언트에 응답할 때 사용 
     
@@ -65,6 +61,18 @@ class BusinessBase(BaseModel):
     stars: Optional[float] = None
     review_count: int = 0
 
+class ABSAFeature(BaseModel):
+    """ABSA 특징"""
+    aspect: str  # 예: "맛"
+    sentiment: str  # "긍정", "부정", "중립"
+    score: float  # 0~1
+
+class AIPrediction(BaseModel):
+    """AI 예측 별점"""
+    deepfm_rating: float
+    multitower_rating: Optional[float] = None  # Multi-Tower 사용 불가 시 None
+    ensemble_rating: float
+
 class BusinessResponse(BusinessBase):
     id: int
     address: Optional[str]
@@ -72,7 +80,9 @@ class BusinessResponse(BusinessBase):
     state: Optional[str]
     latitude: Optional[float]
     longitude: Optional[float]
-    is_open: bool
+    absa_features: Optional[Dict[str, float]] = None  # 전체 ABSA 피처 (Detail용)
+    top_features: Optional[List[ABSAFeature]] = None  # 상위 특징 (리스트용)
+    ai_prediction: Optional[AIPrediction] = None  # AI 예측 (로그인 사용자)
     # 가게 정보를 클라이언트에 응답할 때 사용 
     
     class Config:
@@ -80,7 +90,7 @@ class BusinessResponse(BusinessBase):
 
 # Review Schemas
 class ReviewBase(BaseModel):
-    stars: int = Field(..., ge=1, le=5)
+    stars: float = Field(..., ge=1.0, le=5.0)
     text: str
 
 class ReviewCreate(ReviewBase):
@@ -93,6 +103,7 @@ class ReviewResponse(ReviewBase):
     business_id: int
     created_at: datetime
     username: str  # 리뷰 작성자 이름
+    absa_features: Optional[Dict[str, float]] = None  # ABSA 피처
     # 작성된 리뷰 정보를 응답할 때 사용 
     
     class Config:

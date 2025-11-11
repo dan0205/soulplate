@@ -86,3 +86,24 @@ async def get_current_user(
     # 일반 함수처럼 직접 호출하는 것이 아니라 인증이 필요한 API 엔드포인트에서 사용된다 
     # 클라이언트가 보낸 JWT 토큰을 검증하고, 유효하다면 해당 토큰의 사용자 정보를 DB에서 찾아 반환한다
 
+async def get_current_user_optional(
+    token: Optional[str] = Depends(OAuth2PasswordBearer(tokenUrl="api/auth/login", auto_error=False)),
+    db: Session = Depends(get_db)
+) -> Optional[models.User]:
+    """현재 사용자 가져오기 (선택적, 인증 실패시 None 반환)"""
+    if not token:
+        return None
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+    except JWTError:
+        return None
+    
+    user = db.query(models.User).filter(models.User.username == username).first()
+    return user
+    # 로그인하지 않은 사용자도 접근 가능한 엔드포인트에서 사용
+    # 토큰이 있으면 사용자 정보 반환, 없으면 None 반환
+

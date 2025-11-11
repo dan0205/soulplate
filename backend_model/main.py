@@ -13,6 +13,9 @@ from contextlib import asynccontextmanager
 
 from backend_model.schemas import RecommendRequest, RecommendResponse, HealthResponse
 from backend_model.model_loader import get_model_loader
+from backend_model.prediction_service import get_prediction_service
+from pydantic import BaseModel
+from typing import Optional
 
 # 로깅 설정
 logging.basicConfig(
@@ -21,8 +24,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# 예측 요청/응답 스키마
+class PredictRatingRequest(BaseModel):
+    """별점 예측 요청"""
+    user_data: dict
+    business_data: dict
+
+class PredictRatingResponse(BaseModel):
+    """별점 예측 응답"""
+    deepfm_rating: float
+    multitower_rating: Optional[float]  # Multi-Tower 사용 불가 시 None
+    ensemble_rating: float
+    confidence: float
+
 # FastAPI 앱 생명주기 관리
-@asynccontextmanager
+@asynccontextmanager #FastAPI 서버의 시작과 종료 시점에 특정 작업을 수행하도록 관리한다 
 async def lifespan(app: FastAPI):
     """앱 시작/종료 시 실행"""
     # Startup
@@ -30,6 +46,11 @@ async def lifespan(app: FastAPI):
     try:
         model_loader = get_model_loader()
         model_loader.load_all()
+        
+        # 예측 서비스 로딩
+        pred_service = get_prediction_service()
+        logger.info("Prediction Service loaded!")
+        
         logger.info("Model API Server started successfully!")
     except Exception as e:
         logger.error(f"Failed to start server: {e}")
@@ -69,6 +90,7 @@ async def root():
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
     """Health check 엔드포인트"""
+    # 이 모델 서버가 살아있는지, 제대로 작동할 준비가 되었는지를 확인한다 
     model_loader = get_model_loader()
     
     return HealthResponse(
@@ -78,6 +100,7 @@ async def health_check():
         num_items=model_loader.faiss_index.ntotal if model_loader.faiss_index else 0
     )
 
+# 웹 백엔드로부터 실제 추천 요청을 받아 처리하는 메인 엔드포인트 
 @app.post("/recommend", response_model=RecommendResponse, tags=["Recommendation"])
 async def recommend(request: RecommendRequest):
     """
@@ -94,7 +117,7 @@ async def recommend(request: RecommendRequest):
         user_vector = model_loader.get_user_vector(
             user_id=request.user_id,
             user_features=request.user_features
-        )
+        ) # 유저 아이디와 피처를 유저 타워 모델에 통과시켜 사용자의 현재 취향 벡터를 생성 
         
         # 2. FAISS로 유사 아이템 검색
         business_ids, scores = model_loader.search_similar_items(
@@ -118,6 +141,35 @@ async def recommend(request: RecommendRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate recommendations: {str(e)}"
+        )
+
+@app.post("/predict_rating", response_model=PredictRatingResponse, tags=["Prediction"])
+async def predict_rating(request: PredictRatingRequest):
+    """
+    별점 예측 엔드포인트
+    
+    DeepFM과 Multi-Tower 모델을 사용하여 사용자가 특정 비즈니스에 매길 별점을 예측합니다.
+    """
+    logger.info(f"Rating prediction request")
+    
+    try:
+        pred_service = get_prediction_service()
+        
+        # 예측 수행
+        result = pred_service.predict_rating(
+            user_data=request.user_data,
+            business_data=request.business_data
+        )
+        
+        logger.info(f"Prediction: DeepFM={result['deepfm_rating']}, MT={result['multitower_rating']}, Ensemble={result['ensemble_rating']}")
+        
+        return PredictRatingResponse(**result)
+        
+    except Exception as e:
+        logger.error(f"Error in rating prediction: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to predict rating: {str(e)}"
         )
 
 @app.get("/model/info", tags=["Model"])

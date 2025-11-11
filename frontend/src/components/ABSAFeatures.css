@@ -1,0 +1,105 @@
+/* 간결한 버전 (홈페이지) */
+.absa-features-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.feature-tag {
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.85em;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+}
+
+.feature-tag.긍정 {
+  background-color: #4CAF50;
+}
+
+.feature-tag.부정 {
+  background-color: #f44336;
+}
+
+.feature-tag.중립 {
+  background-color: #9E9E9E;
+}
+
+/* 상세 버전 (디테일 페이지) */
+.absa-features-detailed {
+  background-color: #f9f9f9;
+  padding: 25px;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.absa-features-detailed h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.3em;
+  color: #333;
+}
+
+.feature-category {
+  margin-bottom: 25px;
+}
+
+.feature-category h4 {
+  margin: 0 0 15px 0;
+  font-size: 1.1em;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-icon {
+  font-size: 1.2em;
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature-item {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.feature-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.aspect-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.sentiment-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+  color: white;
+}
+
+.sentiment-badge.긍정 {
+  background-color: #4CAF50;
+}
+
+.sentiment-badge.부정 {
+  background-color: #f44336;
+}
+
+.sentiment-badge.중립 {
+  background-color: #9E9E9E;
+}
+
