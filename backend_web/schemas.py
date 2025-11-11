@@ -124,5 +124,12 @@ class RecommendationItem(BaseModel):
 class RecommendationResponse(BaseModel):
     recommendations: List[RecommendationItem]
     user_id: int
-    # 추천 api의 최종 응답 형식 
+    # 추천 api의 최종 응답 형식
+
+# Business List with Pagination
+class BusinessListResponse(BaseModel):
+    businesses: List[BusinessResponse]
+    total: int
+    skip: int
+    limit: int 
     

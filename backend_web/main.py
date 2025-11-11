@@ -230,7 +230,7 @@ async def get_current_user_info(current_user: models.User = Depends(auth.get_cur
 # Business Endpoints
 # ============================================================================
 
-@app.get("/api/businesses", response_model=List[schemas.BusinessResponse])
+@app.get("/api/businesses", response_model=schemas.BusinessListResponse)
 async def get_businesses(
     skip: int = 0,
     limit: int = 20,
@@ -238,6 +238,10 @@ async def get_businesses(
     current_user: models.User = Depends(auth.get_current_user_optional)
 ):
     """비즈니스 목록 조회 (ABSA 상위 특징 포함)"""
+    # 총 개수 조회
+    total = db.query(models.Business).count()
+    
+    # 페이지네이션 적용
     businesses = db.query(models.Business).offset(skip).limit(limit).all()
     
     # 각 비즈니스에 상위 ABSA 특징 추가
@@ -269,7 +273,13 @@ async def get_businesses(
         
         result.append(schemas.BusinessResponse(**business_dict))
     
-    return result
+    # 페이지네이션 정보와 함께 반환
+    return schemas.BusinessListResponse(
+        businesses=result,
+        total=total,
+        skip=skip,
+        limit=limit
+    )
     # 가게 목록을 페이지네이션으로 조회한다 
 
 @app.get("/api/businesses/{business_id}", response_model=schemas.BusinessResponse)

@@ -5,6 +5,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { businessAPI } from '../services/api';
+import AIPrediction from '../components/AIPrediction';
+import { ABSAFeaturesDetailed } from '../components/ABSAFeatures';
 import './BusinessDetail.css';
 
 const BusinessDetailPage = () => {
@@ -117,6 +119,19 @@ const BusinessDetailPage = () => {
           📍 {business.address}, {business.city}, {business.state}
         </p>
       </div>
+
+      {/* AI 예측 별점 섹션 */}
+      {business.ai_prediction && (
+        <AIPrediction prediction={business.ai_prediction} />
+      )}
+
+      {/* ABSA 특징 섹션 */}
+      {business.absa_features && (
+        <ABSAFeaturesDetailed 
+          absaFeatures={business.absa_features}
+          topFeatures={business.top_features}
+        />
+      )}
 
       <div className="review-section">
         <h2>Write a Review</h2>

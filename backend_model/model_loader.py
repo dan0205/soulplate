@@ -1,7 +1,8 @@
 """
 모델 및 FAISS 인덱스 로더
 """
-
+# 추천 시스템을 실행하는데 필요한 모든 무거운 자원들을 서버가 시작할 때
+# 메모리에 미리 로드하고 관리하는 역할이다 
 import torch
 import faiss
 import json
@@ -10,7 +11,14 @@ from pathlib import Path
 import logging
 
 from backend_model.models.two_tower import UserTower
-
+# 투 타워 모델:
+# 유저 타워: 사용자의 정보를 입력받아, 이 사용자의 현재 취향을 나타내는 하나의 유저 벡터로 압축한다 
+# 아이템 타워: 가게의 정보를 입력받아, 이 가게의 특징을 나타내는 아이템 벡터로 압축한다 
+# Faiss:
+# 추천을 하려면 유저 벡터와 가장 가까운 아이템 벡터를 찾아야 한다
+# 가게가 수백만 개라면, 모든 아이템 벡터와 일일이 비교하는 것은 너무 느리다
+# Faiss는 이 수백만 개의 아이템 벡터들을 미리 저장해 둔 초고속 벡터 검색 라이브러리이다 
+# 이 model_loader.py 코드는 유저 타워 모델과 Faiss에 저장된 아이템 벡터 데이터베이스를 로드한다 
 logger = logging.getLogger(__name__)
 
 # 경로 설정
@@ -22,6 +30,7 @@ class ModelLoader:
     """모델 및 데이터 로더 클래스"""
     
     def __init__(self):
+        # 서버가 시작될 때 필요한 모든 것을 load_all을 통해 한 번에 로드한다 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.user_tower = None
         self.faiss_index = None
@@ -37,9 +46,9 @@ class ModelLoader:
         logger.info("Loading UserTower model...")
         
         try:
-            # 사용자 수 확인
-            users_df = pd.read_csv(DATA_DIR / "users.csv")
-            num_users = len(users_df)
+            # 학습 시점의 사용자 수 사용 (모델 가중치에 맞춰야 함)
+            # 모델은 학습 데이터의 user 수로 만들어졌으므로, 그 크기를 그대로 사용
+            num_users = 1000  # 학습 시 사용된 user 수
             
             # 모델 생성
             model = UserTower(
