@@ -78,10 +78,3 @@ ranking_train.csv의 실제 컬럼 순서 확인:
 ### To-dos
 
 - [x] Two-Tower 모델 파일 삭제 (two_tower.py, .pth, index.faiss 등)
-- [x] 
-- [x] 
-- [x] 
-- [x] 
-- [x] 
-- [x] 
-- [x] 

@@ -17,15 +17,24 @@ from sklearn.model_selection import train_test_split
 def create_user_business_pairs():
     """User-Business 쌍과 평균 별점 생성"""
     print("=" * 80)
-    print("Step 3: 학습 데이터 생성")
+    print("Step 3: 학습 데이터 생성 (텍스트 임베딩 포함)")
     print("=" * 80)
     
-    print("\n[1/5] 리뷰 데이터 로딩 중...")
+    print("\n[1/6] 리뷰 데이터 로딩 중...")
     reviews_df = pd.read_csv("data/processed/review_absa_features.csv")
     print(f"  [OK] {len(reviews_df):,}개 리뷰")
     
+    # 텍스트 임베딩 로딩
+    print("\n[2/6] 텍스트 임베딩 로딩 중...")
+    text_embeddings = pd.read_csv("data/processed/review_text_embeddings.csv")
+    print(f"  [OK] {len(text_embeddings):,}개 임베딩 ({text_embeddings.shape[1]-1}차원)")
+    
+    # 리뷰와 임베딩 병합
+    reviews_df = reviews_df.merge(text_embeddings, on='review_id', how='left')
+    print(f"  병합 후: {reviews_df.shape}")
+    
     # User-Business 쌍별 평균 별점 계산
-    print("\n[2/5] User-Business 쌍별 평균 별점 계산 중...")
+    print("\n[3/6] User-Business 쌍별 평균 별점 계산 중...")
     pairs = reviews_df.groupby(['user_id', 'business_id'])['stars'].agg(['mean', 'count']).reset_index()
     pairs.columns = ['user_id', 'business_id', 'avg_stars', 'review_count']
     
@@ -33,11 +42,22 @@ def create_user_business_pairs():
     print(f"  평균 별점 분포:")
     print(pairs['avg_stars'].describe())
     
+    # User-Business 쌍별 평균 텍스트 임베딩 계산
+    print("\n[4/6] User-Business 쌍별 평균 텍스트 임베딩 계산 중...")
+    text_cols = [col for col in reviews_df.columns if col.startswith('text_embed_')]
+    
+    # 각 쌍별로 평균 계산
+    text_avg = reviews_df.groupby(['user_id', 'business_id'])[text_cols].mean().reset_index()
+    
+    # pairs에 병합
+    pairs = pairs.merge(text_avg, on=['user_id', 'business_id'], how='left')
+    print(f"  [OK] {len(text_cols)}개 텍스트 피처 추가")
+    
     return pairs
 
 def merge_features(pairs):
     """User와 Business 피처 병합"""
-    print("\n[3/5] User/Business 피처 병합 중...")
+    print("\n[5/6] User/Business 피처 병합 중...")
     
     # User 피처 로딩
     user_features = pd.read_csv("data/processed/user_preprocessed.csv")
@@ -63,7 +83,7 @@ def merge_features(pairs):
 
 def split_data(data):
     """Train/Valid/Test 분할 (80/10/10)"""
-    print("\n[4/5] Train/Valid/Test 분할 중...")
+    print("\n[6/6] Train/Valid/Test 분할 중...")
     
     # 먼저 Train과 Temp(Valid+Test) 분할 (80/20)
     train_data, temp_data = train_test_split(
@@ -95,7 +115,7 @@ def split_data(data):
 
 def save_datasets(train_data, valid_data, test_data):
     """데이터셋 저장"""
-    print("\n[5/5] 데이터셋 저장 중...")
+    print("\n[저장] 데이터셋 저장 중...")
     
     train_data.to_csv("data/processed/ranking_train.csv", index=False, encoding='utf-8-sig')
     valid_data.to_csv("data/processed/ranking_valid.csv", index=False, encoding='utf-8-sig')
@@ -111,14 +131,15 @@ def save_datasets(train_data, valid_data, test_data):
     print(f"    - ID: user_id, business_id")
     print(f"    - Target: avg_stars")
     print(f"    - Meta: review_count")
-    user_feat_count = len([c for c in train_data.columns if c.startswith(('review_count', 'useful', 'compliment', 'fans', 'average_stars', 'yelping_since')) or (c.startswith('absa_') and c not in [col for col in train_data.columns if 'business' in col])])
-    business_feat_count = len([c for c in train_data.columns if c.startswith(('stars', 'latitude', 'longitude')) or (c.startswith('absa_') and c in [col for col in train_data.columns])])
     
-    # 간단하게 ABSA 피처 개수 계산
+    # ABSA 피처 개수 계산
     absa_cols = [c for c in train_data.columns if c.startswith('absa_')]
+    text_cols = [c for c in train_data.columns if c.startswith('text_embed_')]
+    
     print(f"    - User 피처: 6개 기본")
     print(f"    - Business 피처: 4개 기본")
     print(f"    - ABSA 피처: {len(absa_cols)}개 (User + Business 공유)")
+    print(f"    - 텍스트 임베딩: {len(text_cols)}개 (새로 추가!)")
 
 def main():
     # 1. User-Business 쌍 생성

@@ -1,12 +1,16 @@
 """
 예측 서비스 - DeepFM과 Multi-Tower 모델을 사용한 별점 예측
+- 텍스트 임베딩 포함
 """
 
 import torch
 import numpy as np
 from backend_model.models.deepfm_ranking import DeepFM
 from backend_model.models.multitower_ranking import MultiTowerModel
+from backend_model.utils.text_embedding import TextEmbeddingService
 import pickle
+import json
+import os
 
 class PredictionService:
     """예측 서비스 클래스"""
@@ -22,11 +26,38 @@ class PredictionService:
         self.user_scaler = None
         self.business_scaler = None
         
+        # Scaler 파라미터 (mean, std)
+        self.scaler_params = None
+        self._load_scaler_params()
+        
+        # 텍스트 임베딩 서비스
+        self.text_embedding_service = None
+        
         # ABSA 피처 키 (순서 유지)
         self.absa_keys = self._get_absa_keys()
+    
+    def _load_scaler_params(self):
+        """Scaler 파라미터 로딩 (mean, std)"""
+        scaler_path = 'models/scaler_params.json'
+        if os.path.exists(scaler_path):
+            with open(scaler_path, 'r') as f:
+                self.scaler_params = json.load(f)
+        else:
+            print(f"  [WARNING] Scaler params 파일 없음: {scaler_path}")
+            self.scaler_params = None
         
     def _get_absa_keys(self):
-        """ABSA 피처 키 목록 (순서 유지)"""
+        """ABSA 피처 키 목록 (순서 유지) - 학습 데이터와 동일한 순서"""
+        # 저장된 ABSA 컬럼 순서 로드
+        absa_file = 'models/absa_columns.json'
+        if os.path.exists(absa_file):
+            with open(absa_file, 'r', encoding='utf-8') as f:
+                absa_info = json.load(f)
+                # "absa_" prefix 제거
+                keys = [col.replace('absa_', '') for col in absa_info['user_absa_columns']]
+                return keys
+        
+        # 파일이 없으면 기본값 사용 (하드코딩)
         aspects = ['맛', '짠맛', '매운맛', '단맛', '느끼함', '담백함', '고소함', 
                    '품질/신선도', '양', '서비스', '가격', '쾌적함/청결도', 
                    '소음', '분위기', '공간', '주차', '대기']
@@ -41,7 +72,8 @@ class PredictionService:
     def load_models(self, deepfm_path='models/deepfm_ranking.pth',
                     multitower_path='models/multitower_ranking.pth',
                     user_scaler_path='models/user_scaler.pkl',
-                    business_scaler_path='models/business_scaler.pkl'):
+                    business_scaler_path='models/business_scaler.pkl',
+                    vectorizer_path='models/tfidf_vectorizer.pkl'):
         """모델 및 Scaler 로딩"""
         print("모델 로딩 중...")
         
@@ -50,138 +82,261 @@ class PredictionService:
         
         try:
             # DeepFM 로딩
-            input_dim = 112  # 6(user) + 4(business) + 51(user_absa) + 51(business_absa)
+            # 모델이 212차원으로 학습됨 (실제 데이터는 210이지만 모델 재학습 필요)
+            input_dim = 212
             self.deepfm_model = DeepFM(input_dim=input_dim, embed_dim=16, hidden_dims=[256, 128, 64])
             self.deepfm_model.load_state_dict(torch.load(deepfm_path, map_location=self.device))
             self.deepfm_model.to(self.device)
             self.deepfm_model.eval()
-            print("  ✓ DeepFM 로딩 완료")
+            print("  [OK] DeepFM 로딩 완료 (입력 차원: 212, 패딩 2개 추가 필요)")
             deepfm_loaded = True
             
         except Exception as e:
-            print(f"  ✗ DeepFM 로딩 실패: {e}")
+            print(f"  [ERROR] DeepFM 로딩 실패: {e}")
         
         try:
-            # Multi-Tower 로딩 (학습 시 차원에 맞춤: 56/56)
-            user_dim = 56
-            business_dim = 56
+            # Multi-Tower 로딩
+            # 모델이 106, 106으로 학습됨 (실제는 105, 105이지만 모델 재학습 필요)
+            user_dim = 106
+            business_dim = 106
             self.multitower_model = MultiTowerModel(user_dim, business_dim, tower_dims=[128, 64], interaction_dims=[64, 32])
             self.multitower_model.load_state_dict(torch.load(multitower_path, map_location=self.device))
             self.multitower_model.to(self.device)
             self.multitower_model.eval()
-            print("  ✓ Multi-Tower 로딩 완료")
+            print("  [OK] Multi-Tower 로딩 완료 (User: 106차원, Business: 106차원, 패딩 1개씩 추가 필요)")
             multitower_loaded = True
             
         except Exception as e:
-            print(f"  ✗ Multi-Tower 로딩 실패: {e}")
-            print("  → DeepFM만 사용합니다.")
+            print(f"  [ERROR] Multi-Tower 로딩 실패: {e}")
+            print("  [INFO] DeepFM만 사용합니다.")
         
         try:
-            # Scaler 로딩
-            with open(user_scaler_path, 'rb') as f:
-                self.user_scaler = pickle.load(f)
-            with open(business_scaler_path, 'rb') as f:
-                self.business_scaler = pickle.load(f)
-            print("  ✓ Scaler 로딩 완료")
+            # Scaler 로딩 (선택적)
+            if os.path.exists(user_scaler_path) and os.path.exists(business_scaler_path):
+                with open(user_scaler_path, 'rb') as f:
+                    self.user_scaler = pickle.load(f)
+                with open(business_scaler_path, 'rb') as f:
+                    self.business_scaler = pickle.load(f)
+                print("  [OK] Scaler 로딩 완료")
+            else:
+                print("  [WARNING] Scaler 파일 없음 - 스케일링 건너뜀")
+                self.user_scaler = None
+                self.business_scaler = None
             
         except Exception as e:
-            print(f"  ✗ Scaler 로딩 실패: {e}")
-            return False
+            print(f"  [WARNING] Scaler 로딩 실패: {e} - 스케일링 건너뜀")
+            self.user_scaler = None
+            self.business_scaler = None
+        
+        try:
+            # 텍스트 임베딩 서비스 로딩
+            self.text_embedding_service = TextEmbeddingService(vectorizer_path)
+            self.text_embedding_service.load_vectorizer()
+            
+        except Exception as e:
+            print(f"  [ERROR] 텍스트 임베딩 서비스 로딩 실패: {e}")
+            print("  [WARNING] 텍스트 피처 없이 진행합니다.")
+            self.text_embedding_service = None
         
         # 최소한 하나의 모델은 로딩되어야 함
         if deepfm_loaded or multitower_loaded:
             return True
         else:
-            print("  ✗ 모든 모델 로딩 실패")
+            print("  [ERROR] 모든 모델 로딩 실패")
             return False
     
-    def prepare_user_features(self, user_data):
-        """User 피처 준비"""
-        # 기본 피처 (6개)
-        features = [
-            user_data.get('review_count', 0),
-            user_data.get('useful', 0),
-            user_data.get('compliment', 0),
-            user_data.get('fans', 0),
-            user_data.get('average_stars', 0.0),
-            user_data.get('yelping_since_days', 0)
-        ]
+    def prepare_combined_features(self, user_data, business_data, review_text=None):
+        """
+        학습 데이터와 동일한 형식으로 전체 피처 준비
         
-        # ABSA 피처 (51개)
-        absa = user_data.get('absa_features', {})
+        학습 데이터 구조:
+        [텍스트 임베딩 100개] + [useful, compliment, fans, average_stars, yelping_since_days, 
+         stars, latitude, longitude] + [User ABSA 51개 + Business ABSA 51개] = 210개
+        
+        Args:
+            user_data: User 데이터 (dict)
+            business_data: Business 데이터 (dict)
+            review_text: User-Business 쌍의 리뷰 텍스트 (optional)
+        
+        Returns:
+            전체 210개 피처
+        """
+        features = []
+        
+        # 1. 텍스트 임베딩 (100개) - 맨 앞!
+        if self.text_embedding_service is not None:
+            # 방법 1: 리뷰 텍스트가 제공된 경우
+            if review_text:
+                text_emb = self.text_embedding_service.get_average_embedding([review_text])
+            # 방법 2: User의 평균 임베딩 사용 (fallback)
+            elif 'text_embedding' in user_data and user_data['text_embedding'] is not None:
+                text_emb = np.array(user_data['text_embedding'], dtype=np.float32)
+            # 방법 3: 텍스트가 없으면 0 벡터
+            else:
+                text_emb = np.zeros(100, dtype=np.float32)
+            
+            features.extend(text_emb.tolist())
+        else:
+            # 텍스트 임베딩 서비스가 없으면 0 벡터
+            features.extend([0.0] * 100)
+        
+        # 2. 기본 피처 (8개) - review_count 제외! + Log Transform + Standard Scaling
+        # User 피처 (5개)
+        useful = user_data.get('useful', 0)
+        compliment = user_data.get('compliment', 0)
+        fans = user_data.get('fans', 0)
+        average_stars = user_data.get('average_stars', 0.0)
+        yelping_since_days = user_data.get('yelping_since_days', 0)
+        
+        # Log Transform (학습 시와 동일)
+        compliment_log = np.log1p(compliment)
+        fans_log = np.log1p(fans)
+        
+        # Standard Scaling
+        if self.scaler_params:
+            user_params = self.scaler_params['user']
+            useful_scaled = (useful - user_params['useful']['mean']) / user_params['useful']['std']
+            compliment_scaled = (compliment_log - user_params['compliment']['mean']) / user_params['compliment']['std']
+            fans_scaled = (fans_log - user_params['fans']['mean']) / user_params['fans']['std']
+            average_stars_scaled = (average_stars - user_params['average_stars']['mean']) / user_params['average_stars']['std']
+            yelping_since_days_scaled = (yelping_since_days - user_params['yelping_since_days']['mean']) / user_params['yelping_since_days']['std']
+        else:
+            # Scaler 없으면 원본 값 사용 (비권장)
+            useful_scaled = useful
+            compliment_scaled = compliment_log
+            fans_scaled = fans_log
+            average_stars_scaled = average_stars
+            yelping_since_days_scaled = yelping_since_days
+        
+        # Business 피처 (3개) - review_count 제외!
+        stars = business_data.get('stars', 0.0)
+        latitude = business_data.get('latitude', 0.0)
+        longitude = business_data.get('longitude', 0.0)
+        
+        # Standard Scaling
+        if self.scaler_params:
+            business_params = self.scaler_params['business']
+            stars_scaled = (stars - business_params['stars']['mean']) / business_params['stars']['std']
+            latitude_scaled = (latitude - business_params['latitude']['mean']) / business_params['latitude']['std']
+            longitude_scaled = (longitude - business_params['longitude']['mean']) / business_params['longitude']['std']
+        else:
+            # Scaler 없으면 원본 값 사용 (비권장)
+            stars_scaled = stars
+            latitude_scaled = latitude
+            longitude_scaled = longitude
+        
+        features.extend([
+            useful_scaled, compliment_scaled, fans_scaled, average_stars_scaled, yelping_since_days_scaled,
+            stars_scaled, latitude_scaled, longitude_scaled
+        ])
+        
+        # 3. User ABSA 피처 (51개)
+        user_absa = user_data.get('absa_features', {})
         for key in self.absa_keys:
-            features.append(absa.get(key, 0.0))
+            features.append(user_absa.get(key, 0.0))
+        
+        # 4. Business ABSA 피처 (51개)
+        business_absa = business_data.get('absa_features', {})
+        for key in self.absa_keys:
+            features.append(business_absa.get(key, 0.0))
+        
+        # 5. 패딩 (모델이 212차원으로 학습됨, 현재 210개이므로 2개 추가)
+        # TODO: 모델을 210차원으로 재학습하면 이 부분 제거 가능
+        features.extend([0.0, 0.0])
         
         return np.array(features, dtype=np.float32)
     
-    def prepare_business_features(self, business_data):
-        """Business 피처 준비"""
-        # 기본 피처 (4개)
-        features = [
-            business_data.get('stars', 0.0),
-            business_data.get('review_count', 0),
-            business_data.get('latitude', 0.0),
-            business_data.get('longitude', 0.0)
-        ]
+    def predict_rating(self, user_data, business_data, review_text=None):
+        """
+        별점 예측
         
-        # ABSA 피처 (51개)
-        absa = business_data.get('absa_features', {})
-        for key in self.absa_keys:
-            features.append(absa.get(key, 0.0))
+        Args:
+            user_data: User 데이터 (dict)
+                필수: review_count, useful, compliment, fans, average_stars, yelping_since_days, absa_features
+            business_data: Business 데이터 (dict)
+                필수: stars, review_count, latitude, longitude, absa_features
+            review_text: User-Business 쌍의 리뷰 텍스트 (optional)
         
-        return np.array(features, dtype=np.float32)
-    
-    def predict_rating(self, user_data, business_data):
-        """별점 예측"""
+        Returns:
+            dict: 예측 결과
+                - deepfm_rating: DeepFM 예측값
+                - multitower_rating: Multi-Tower 예측값 (없으면 None)
+                - ensemble_rating: 앙상블 예측값
+                - confidence: 신뢰도
+        """
         if self.deepfm_model is None and self.multitower_model is None:
             raise ValueError("모델이 로딩되지 않았습니다. load_models()를 먼저 호출하세요.")
         
-        # 피처 준비
-        user_features = self.prepare_user_features(user_data)
-        business_features = self.prepare_business_features(business_data)
+        # 전체 피처 준비 (212개)
+        combined_features = self.prepare_combined_features(user_data, business_data, review_text)
         
-        # Log Transform (학습시와 동일하게)
-        user_features[0] = np.log1p(user_features[0])  # review_count
-        user_features[3] = np.log1p(user_features[3])  # fans
-        user_features[2] = np.log1p(user_features[2])  # compliment
-        
-        business_features[1] = np.log1p(business_features[1])  # review_count
-        
-        # Standard Scaling
-        user_features = self.user_scaler.transform(user_features.reshape(1, -1))[0]
-        business_features = self.business_scaler.transform(business_features.reshape(1, -1))[0]
+        print(f"[DEBUG] Combined features shape: {combined_features.shape}")
+        print(f"[DEBUG] Combined features stats: min={combined_features.min():.4f}, max={combined_features.max():.4f}, mean={combined_features.mean():.4f}")
+        print(f"[DEBUG] Non-zero features: {np.count_nonzero(combined_features)}/212")
+        print(f"[DEBUG] First 10 features: {combined_features[:10]}")
         
         predictions = {}
         
-        # DeepFM 예측
+        # DeepFM 예측 (전체 212개 피처 사용)
         if self.deepfm_model is not None:
             try:
-                combined_features = np.concatenate([user_features, business_features])
                 deepfm_input = torch.FloatTensor(combined_features).unsqueeze(0).to(self.device)
                 
                 with torch.no_grad():
                     deepfm_pred = self.deepfm_model(deepfm_input).item()
                     deepfm_pred = max(1.0, min(5.0, deepfm_pred))
                     predictions['deepfm'] = deepfm_pred
+                    print(f"[DEBUG] DeepFM 예측: {deepfm_pred:.2f}")
             except Exception as e:
                 print(f"DeepFM 예측 실패: {e}")
+                import traceback
+                traceback.print_exc()
         
-        # Multi-Tower 예측 (차원 문제로 스킵)
-        # 학습 시 피처가 잘못 분리되어 현재는 사용 불가
-        mt_pred = None
-        predictions['multitower'] = None
+        # Multi-Tower 예측 (212개 피처를 절반으로 나눔)
+        if self.multitower_model is not None:
+            try:
+                # 전체 212개 피처를 절반으로 나눔 (106, 106)
+                mid = len(combined_features) // 2
+                user_tower_input = combined_features[:mid]
+                business_tower_input = combined_features[mid:]
+                
+                mt_user_input = torch.FloatTensor(user_tower_input).unsqueeze(0).to(self.device)
+                mt_business_input = torch.FloatTensor(business_tower_input).unsqueeze(0).to(self.device)
+                
+                print(f"[DEBUG] Multi-Tower input shapes: user={mt_user_input.shape}, business={mt_business_input.shape}")
+                
+                with torch.no_grad():
+                    mt_pred = self.multitower_model(mt_user_input, mt_business_input).item()
+                    mt_pred = max(1.0, min(5.0, mt_pred))
+                    predictions['multitower'] = mt_pred
+                    print(f"[DEBUG] Multi-Tower 예측: {mt_pred:.2f}")
+            except Exception as e:
+                print(f"Multi-Tower 예측 실패: {e}")
+                import traceback
+                traceback.print_exc()
+                predictions['multitower'] = None
+        else:
+            predictions['multitower'] = None
         
-        # 앙상블 (DeepFM만 사용)
-        if 'deepfm' in predictions:
+        # 앙상블 (두 모델의 평균)
+        if 'deepfm' in predictions and predictions.get('multitower') is not None:
+            ensemble_pred = (predictions['deepfm'] + predictions['multitower']) / 2
+            confidence = 0.95
+        elif 'deepfm' in predictions:
             ensemble_pred = predictions['deepfm']
+            confidence = 0.75
+        elif predictions.get('multitower') is not None:
+            ensemble_pred = predictions['multitower']
+            confidence = 0.75
         else:
             ensemble_pred = 3.0  # 기본값
+            confidence = 0.5
         
         return {
             'deepfm_rating': round(predictions.get('deepfm', 3.0), 2),
-            'multitower_rating': None,  # 현재 사용 불가
+            'multitower_rating': round(predictions['multitower'], 2) if predictions.get('multitower') is not None else None,
             'ensemble_rating': round(ensemble_pred, 2),
-            'confidence': 0.75  # DeepFM만 사용하므로 confidence 낮춤
+            'confidence': confidence
         }
 
 # 전역 서비스 인스턴스
