@@ -59,9 +59,9 @@ def get_top_absa_features(absa_dict, top_k=5):
 async def get_ai_prediction(user: models.User, business: models.Business):
     """AI 예측 별점 가져오기"""
     try:
-        # ABSA features 가져오기 (별도 테이블에서)
-        user_absa = user.absa_features.absa_features if user.absa_features else {}
-        business_absa = business.absa_features.absa_features if business.absa_features else {}
+        # ABSA features 가져오기 (직접 접근)
+        user_absa = user.absa_features or {}
+        business_absa = business.absa_features or {}
         
         # backend_model API 호출
         async with httpx.AsyncClient() as client:
@@ -243,8 +243,8 @@ async def get_businesses(
     # 각 비즈니스에 상위 ABSA 특징 추가
     result = []
     for business in businesses:
-        # ABSA features 가져오기 (별도 테이블에서)
-        absa_dict = business.absa_features.absa_features if business.absa_features else None
+        # ABSA features 가져오기 (직접 접근)
+        absa_dict = business.absa_features
         
         business_dict = {
             "id": business.id,
@@ -286,8 +286,8 @@ async def get_business(
     if not business:
         raise HTTPException(status_code=404, detail="Business not found")
     
-    # ABSA features 가져오기 (별도 테이블에서)
-    absa_dict = business.absa_features.absa_features if business.absa_features else None
+    # ABSA features 가져오기 (직접 접근)
+    absa_dict = business.absa_features
     
     # 상세 정보 구성
     business_dict = {

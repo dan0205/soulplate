@@ -36,11 +36,13 @@ class User(Base):
     average_stars = Column(Float, default=0.0)
     yelping_since_days = Column(Integer, default=0)  # 가입 경과일
     
+    # ABSA 피처 (JSON: 51개 aspect-sentiment 평균값)
+    absa_features = Column(JSONB, nullable=True)
+    
     # Relationships
     reviews = relationship("Review", back_populates="user")
     # 한 명의 유저는 여러 개의 리뷰를 가질 수 있다 
     # my_user.reviews 처럼 해당 사용자가 작성한 모든 리뷰 목록에 바로 접근할 수 있다
-    absa_features = relationship("UserABSAFeatures", back_populates="user", uselist=False)
 
 
 class Business(Base):
@@ -64,11 +66,13 @@ class Business(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     
+    # ABSA 피처 (JSON: 51개 aspect-sentiment 평균값)
+    absa_features = Column(JSONB, nullable=True)
+    
     # Relationships
     reviews = relationship("Review", back_populates="business")
     # 하나의 비즈니스는 여러 개의 리뷰를 가질 수 있다 
-    # my_business.reviews 코드로 해당 가게의 모든 리뷰에 접근 가능
-    absa_features = relationship("BusinessABSAFeatures", back_populates="business", uselist=False) 
+    # my_business.reviews 코드로 해당 가게의 모든 리뷰에 접근 가능 
 
 class Review(Base):
     """리뷰 모델 (Yelp 데이터 + ABSA)"""
@@ -93,29 +97,5 @@ class Review(Base):
     # my_review.user 코드로 user 객체 정보에 바로 접근 
     # 하나의 리뷰는 하나의 비즈니스에 속한다 
     # my_review.business 코드로 business 객체 정보에 바로 접근 
-    # Foreign key 를 갖고 있는 클래스가 Many 쪽이다
-
-
-class UserABSAFeatures(Base):
-    """사용자별 ABSA 집계 피처 (별도 테이블)"""
-    __tablename__ = "user_absa_features"
-    
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
-    absa_features = Column(JSONB, nullable=False)  # 51개 aspect-sentiment 평균값
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc))
-    
-    # Relationships
-    user = relationship("User", back_populates="absa_features")
-
-
-class BusinessABSAFeatures(Base):
-    """비즈니스별 ABSA 집계 피처 (별도 테이블)"""
-    __tablename__ = "business_absa_features"
-    
-    business_id = Column(Integer, ForeignKey("businesses.id"), primary_key=True)
-    absa_features = Column(JSONB, nullable=False)  # 51개 aspect-sentiment 평균값
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc))
-    
-    # Relationships
-    business = relationship("Business", back_populates="absa_features") 
+    # Foreign key 를 갖고 있는 클래스가 Many 쪽이다 
 
