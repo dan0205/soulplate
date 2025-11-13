@@ -42,6 +42,26 @@ class UserResponse(UserBase):
         # SQLAlchemy같은 ORM 객체를 받았을 때, user.id가 아닌 user['id']로 접근하려다
         # 오류가 나는 걸 방지한다
 
+class TasteTestSubmit(BaseModel):
+    """취향 테스트 제출"""
+    test_type: str  # 'quick' or 'deep'
+    answers: List[int]  # [1, 2, 3, 4, 5, ...] 형태의 답변 리스트
+
+class TasteTestResult(BaseModel):
+    """취향 테스트 결과"""
+    mbti_type: str  # 예: "SQAF"
+    type_name: str  # 예: "미식가 감성파"
+    description: str
+    recommendations: List[str]
+
+class UserStatusResponse(BaseModel):
+    """사용자 상태 정보"""
+    is_new_user: bool  # 리뷰 개수가 0인지
+    review_count: int
+    has_taste_test: bool  # 취향 테스트 완료 여부
+    should_show_test_popup: bool  # 팝업 표시 여부
+    mbti_type: Optional[str] = None  # 취향 테스트 완료 시 MBTI 타입
+
 class UserProfileResponse(BaseModel):
     """사용자 프로필 정보"""
     id: int
@@ -51,6 +71,9 @@ class UserProfileResponse(BaseModel):
     fans: int
     created_at: datetime
     absa_features: Optional[Dict[str, float]] = None
+    taste_test_completed: bool = False
+    taste_test_type: Optional[str] = None  # 'quick' or 'deep'
+    taste_test_mbti_type: Optional[str] = None  # 'ABCD' 형태
     
     class Config:
         from_attributes = True 

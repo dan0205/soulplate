@@ -1,0 +1,185 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 24px;
+  max-width: 500px;
+  width: 100%;
+  padding: 40px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  color: #999;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  color: #333;
+  transform: rotate(90deg);
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.modal-header h2 {
+  font-size: 28px;
+  margin: 0 0 12px;
+  color: #333;
+}
+
+.modal-header p {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.test-option {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.test-option:hover {
+  background: #fff5f5;
+  border-color: #ff6b6b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+}
+
+.test-icon {
+  font-size: 40px;
+  flex-shrink: 0;
+}
+
+.test-info {
+  flex: 1;
+}
+
+.test-info h3 {
+  font-size: 18px;
+  margin: 0 0 6px;
+  color: #333;
+}
+
+.test-info p {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 8px;
+}
+
+.test-badge {
+  display: inline-block;
+  background: #ff6b6b;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.btn-skip-modal {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 8px;
+}
+
+.btn-skip-modal:hover {
+  background: #f8f9fa;
+  color: #666;
+}
+
+.modal-hint {
+  text-align: center;
+  font-size: 13px;
+  color: #999;
+  margin: 12px 0 0;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 30px 24px;
+  }
+
+  .modal-header h2 {
+    font-size: 24px;
+  }
+
+  .modal-header p {
+    font-size: 15px;
+  }
+
+  .test-option {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 20px;
+  }
+
+  .test-icon {
+    font-size: 48px;
+  }
+}
+

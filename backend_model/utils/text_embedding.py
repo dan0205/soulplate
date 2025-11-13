@@ -109,3 +109,5 @@ def get_text_embedding_service():
     return _text_embedding_service
 
 
+
+

@@ -5,7 +5,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { businessAPI } from '../services/api';
+import { businessAPI, userAPI } from '../services/api';
+import TasteTestModal from '../components/TasteTestModal';
 import './Home.css';
 
 const HomePage = () => {
@@ -15,6 +16,7 @@ const HomePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('');
+  const [showTasteTestModal, setShowTasteTestModal] = useState(false);
   const itemsPerPage = 20;
   
   const { user, logout } = useAuth();
@@ -24,6 +26,27 @@ const HomePage = () => {
     loadRecommendations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, sortBy]);
+
+  useEffect(() => {
+    checkUserStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const checkUserStatus = async () => {
+    try {
+      const response = await userAPI.getStatus();
+      const { should_show_test_popup } = response.data;
+      
+      // 로컬 스토리지에서 "나중에 하기" 확인
+      const skipped = localStorage.getItem('taste_test_skipped');
+      
+      if (should_show_test_popup && !skipped) {
+        setShowTasteTestModal(true);
+      }
+    } catch (err) {
+      console.error('사용자 상태 확인 실패:', err);
+    }
+  };
 
   const loadRecommendations = async () => {
     setLoading(true);
@@ -262,6 +285,10 @@ const HomePage = () => {
           </>
         )}
       </main>
+
+      {showTasteTestModal && (
+        <TasteTestModal onClose={() => setShowTasteTestModal(false)} />
+      )}
     </div>
   );
 };

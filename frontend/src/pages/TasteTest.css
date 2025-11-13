@@ -1,0 +1,300 @@
+.taste-test-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: calc(100vh - 80px);
+}
+
+.taste-test-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.taste-test-header h2 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.test-type-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #f0f0f0;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 40px;
+  background: #f0f0f0;
+  border-radius: 20px;
+  position: relative;
+  margin-bottom: 40px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ff8e53);
+  transition: width 0.3s ease;
+  border-radius: 20px;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.question-section {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.question-number {
+  display: inline-block;
+  background: #ff6b6b;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.question-text {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 30px;
+  line-height: 1.4;
+}
+
+.likert-scale {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.likert-button {
+  flex: 1;
+  padding: 20px 10px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.likert-button:hover {
+  border-color: #ff6b6b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.2);
+}
+
+.likert-button.selected {
+  background: #ff6b6b;
+  color: white;
+  border-color: #ff6b6b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.likert-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.likert-button.selected .likert-value {
+  color: white;
+}
+
+.likert-label {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.3;
+  word-break: keep-all;
+}
+
+.likert-button.selected .likert-label {
+  color: white;
+}
+
+/* 이모지 버전 스타일 */
+.likert-emoji-scale {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.likert-emoji-button {
+  flex: 1;
+  padding: 20px 10px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.likert-emoji-button:hover {
+  border-color: #ff6b6b;
+  transform: translateY(-2px);
+}
+
+.likert-emoji-button.selected {
+  background: #fff5f5;
+  border-color: #ff6b6b;
+  transform: translateY(-2px);
+}
+
+.emoji {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.navigation-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-skip {
+  padding: 14px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #ff6b6b;
+  color: white;
+  min-width: 120px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #ff5252;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+}
+
+.btn-primary:disabled {
+  background: #ddd;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: white;
+  color: #666;
+  border: 2px solid #ddd;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: #666;
+  color: #333;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-skip {
+  background: transparent;
+  color: #999;
+}
+
+.btn-skip:hover {
+  color: #666;
+  text-decoration: underline;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error {
+  color: #e74c3c;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .taste-test-container {
+    padding: 20px 16px;
+  }
+
+  .taste-test-header h2 {
+    font-size: 24px;
+  }
+
+  .question-section {
+    padding: 24px 20px;
+  }
+
+  .question-text {
+    font-size: 20px;
+  }
+
+  .likert-scale {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .likert-button {
+    width: 100%;
+    min-height: 70px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 16px;
+  }
+
+  .likert-value {
+    margin-right: 16px;
+    margin-bottom: 0;
+    font-size: 20px;
+  }
+
+  .likert-label {
+    text-align: left;
+    font-size: 14px;
+  }
+
+  .navigation-buttons {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-skip {
+    width: 100%;
+  }
+}
+

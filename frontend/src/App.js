@@ -12,6 +12,8 @@ import HomePage from './pages/HomePage';
 import BusinessDetailPage from './pages/BusinessDetailPage';
 import MyProfilePage from './pages/MyProfilePage';
 import UserProfilePage from './pages/UserProfilePage';
+import TasteTestPage from './pages/TasteTestPage';
+import TasteTestResultPage from './pages/TasteTestResultPage';
 
 function App() {
   return (
@@ -49,6 +51,22 @@ function App() {
             element={
               <PrivateRoute>
                 <UserProfilePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/taste-test"
+            element={
+              <PrivateRoute>
+                <TasteTestPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/taste-test/result"
+            element={
+              <PrivateRoute>
+                <TasteTestResultPage />
               </PrivateRoute>
             }
           />

@@ -9,8 +9,9 @@ import logging
 from contextlib import asynccontextmanager
 
 from backend_model.prediction_service import get_prediction_service
+from backend_model.absa_service import get_absa_service
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 # 로깅 설정
 logging.basicConfig(
@@ -32,6 +33,15 @@ class PredictRatingResponse(BaseModel):
     ensemble_rating: float
     confidence: float
 
+class AnalyzeReviewRequest(BaseModel):
+    """리뷰 분석 요청"""
+    text: str
+
+class AnalyzeReviewResponse(BaseModel):
+    """리뷰 분석 응답"""
+    absa_features: dict  # 51개 aspect-sentiment 확률
+    text_embedding: List[float]  # 100차원 텍스트 임베딩
+
 # FastAPI 앱 생명주기 관리
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,6 +52,11 @@ async def lifespan(app: FastAPI):
         # 예측 서비스 로딩
         pred_service = get_prediction_service()
         logger.info("Prediction Service loaded!")
+        
+        # ABSA 서비스 로딩
+        absa_service = get_absa_service()
+        logger.info("ABSA Service loaded!")
+        
         logger.info("Model API Server started successfully!")
     except Exception as e:
         logger.error(f"Failed to start server: {e}")
@@ -83,11 +98,12 @@ async def health_check():
     """Health check 엔드포인트"""
     try:
         pred_service = get_prediction_service()
-        models_loaded = pred_service.deepfm_model is not None
+        absa_service = get_absa_service()
         return {
             "status": "healthy",
             "deepfm_loaded": pred_service.deepfm_model is not None,
-            "multitower_loaded": pred_service.multitower_model is not None
+            "multitower_loaded": pred_service.multitower_model is not None,
+            "absa_loaded": absa_service.model is not None
         }
     except Exception as e:
         return {
@@ -122,6 +138,47 @@ async def predict_rating(request: PredictRatingRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to predict rating: {str(e)}"
+        )
+
+@app.post("/analyze_review", response_model=AnalyzeReviewResponse, tags=["ABSA"])
+async def analyze_review(request: AnalyzeReviewRequest):
+    """
+    리뷰 분석 엔드포인트
+    
+    리뷰 텍스트를 받아서 ABSA 분석 및 텍스트 임베딩을 반환합니다.
+    - ABSA: 51개 aspect-sentiment 확률 (예: 맛_긍정, 서비스_부정 등)
+    - 텍스트 임베딩: TF-IDF 기반 100차원 벡터
+    """
+    logger.info(f"Review analysis request: {len(request.text)} chars")
+    
+    try:
+        absa_service = get_absa_service()
+        pred_service = get_prediction_service()
+        
+        # ABSA 분석
+        absa_features = absa_service.analyze_review(request.text)
+        logger.info(f"ABSA analysis completed: {len(absa_features)} features")
+        
+        # 텍스트 임베딩
+        if pred_service.text_embedding_service is not None:
+            text_embedding = pred_service.text_embedding_service.transform_text(request.text)
+            text_embedding_list = text_embedding.tolist()
+        else:
+            # 텍스트 임베딩 서비스 없으면 0 벡터
+            text_embedding_list = [0.0] * 100
+        
+        logger.info(f"Text embedding completed: {len(text_embedding_list)} dims")
+        
+        return AnalyzeReviewResponse(
+            absa_features=absa_features,
+            text_embedding=text_embedding_list
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in review analysis: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to analyze review: {str(e)}"
         )
 
 if __name__ == "__main__":

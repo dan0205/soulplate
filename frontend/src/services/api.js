@@ -85,6 +85,13 @@ export const userAPI = {
   getMyProfile: () => api.get('/users/me/profile'),
   getUserProfile: (userId) => api.get(`/users/${userId}/profile`),
   getUserReviews: (userId, params) => api.get(`/users/${userId}/reviews`, { params }),
+  getStatus: () => api.get('/user/status'),
+};
+
+export const tasteTestAPI = {
+  getQuestions: (testType = 'quick') => api.get('/taste-test/questions', { params: { test_type: testType } }),
+  submit: (data) => api.post('/taste-test/submit', data),
+  delete: () => api.delete('/taste-test'),
 };
 
 export const recommendationAPI = {

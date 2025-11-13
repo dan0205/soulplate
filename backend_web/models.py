@@ -5,7 +5,7 @@ SQLAlchemy 데이터베이스 모델 (PostgreSQL + ABSA 통합)
 # 이 코드를 실행하면, SQLAlchemy가 이 파이썬 클래스 정의를 읽어서
 # 실제 SQL 데이터베이스에 각 테이블을 생성해준다 
 
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, JSON
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, JSON, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime, timezone
@@ -38,6 +38,9 @@ class User(Base):
     
     # ABSA 피처 (JSON: 51개 aspect-sentiment 평균값)
     absa_features = Column(JSONB, nullable=True)
+    
+    # 텍스트 임베딩 (JSON: 100차원 평균 벡터)
+    text_embedding = Column(JSONB, nullable=True)
     
     # Relationships
     reviews = relationship("Review", back_populates="user")
@@ -75,14 +78,14 @@ class Business(Base):
     # my_business.reviews 코드로 해당 가게의 모든 리뷰에 접근 가능 
 
 class Review(Base):
-    """리뷰 모델 (Yelp 데이터 + ABSA)"""
+    """리뷰 모델 (Yelp 데이터 + ABSA + 취향 테스트)"""
     __tablename__ = "reviews"
     
     # 기본 정보
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
-    stars = Column(Float, nullable=False)  # 1-5 (Float로 변경 - 평균 별점 지원)
+    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=True)  # 취향 테스트는 null
+    stars = Column(Float, nullable=True)  # 1-5 (취향 테스트는 null)
     text = Column(Text, nullable=False)
     date = Column(DateTime, nullable=True)  # Yelp 리뷰 원본 날짜
     created_at = Column(DateTime, default=datetime.now(timezone.utc))  # DB 삽입 시간
@@ -93,6 +96,11 @@ class Review(Base):
     # 유용성 점수
     useful = Column(Integer, default=0, nullable=False)
     
+    # 취향 테스트 관련 필드
+    is_taste_test = Column(Boolean, default=False, nullable=False)  # 취향 테스트 여부
+    taste_test_type = Column(String, nullable=True)  # 'quick' or 'deep'
+    taste_test_weight = Column(Float, default=1.0, nullable=False)  # 가중치 (0.7 or 1.0)
+    
     # Relationships
     user = relationship("User", back_populates="reviews")
     business = relationship("Business", back_populates="reviews")
@@ -101,4 +109,30 @@ class Review(Base):
     # 하나의 리뷰는 하나의 비즈니스에 속한다 
     # my_review.business 코드로 business 객체 정보에 바로 접근 
     # Foreign key 를 갖고 있는 클래스가 Many 쪽이다 
+
+
+class UserBusinessPrediction(Base):
+    """사용자-음식점 예측 점수 캐시"""
+    __tablename__ = "user_business_predictions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
+    deepfm_score = Column(Float, nullable=False)
+    multitower_score = Column(Float, nullable=False)
+    is_stale = Column(Boolean, default=False, nullable=False)
+    calculated_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    
+    # Relationships
+    user = relationship("User")
+    business = relationship("Business")
+    
+    # Unique constraint and indexes
+    __table_args__ = (
+        UniqueConstraint('user_id', 'business_id', name='uq_user_business'),
+        Index('idx_user_scores', 'user_id', 'deepfm_score'),
+        Index('idx_user_multitower', 'user_id', 'multitower_score'),
+        Index('idx_stale_predictions', 'is_stale', 'user_id'),
+    )
 

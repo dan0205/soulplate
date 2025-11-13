@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { userAPI } from '../services/api';
+import { userAPI, tasteTestAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
 import './Profile.css';
@@ -20,6 +20,7 @@ const MyProfilePage = () => {
   const [reviewSkip, setReviewSkip] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showTestOptions, setShowTestOptions] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -98,6 +99,27 @@ const MyProfilePage = () => {
     return features.slice(0, 5);
   };
 
+  const handleStartTest = (testType) => {
+    setShowTestOptions(false);
+    navigate('/taste-test', { state: { testType } });
+  };
+
+  const handleDeleteTest = async () => {
+    if (!window.confirm('기존 취향 테스트 결과를 삭제하시겠습니까?')) {
+      return;
+    }
+    
+    try {
+      await tasteTestAPI.delete();
+      alert('취향 테스트 결과가 삭제되었습니다.');
+      loadProfile();
+      loadReviews(0, true);
+    } catch (err) {
+      console.error('취향 테스트 삭제 실패:', err);
+      alert('삭제에 실패했습니다.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -159,6 +181,84 @@ const MyProfilePage = () => {
           </div>
         </div>
       )}
+
+      <div className="taste-test-section">
+        <h2>🍽️ 음식 취향 테스트</h2>
+        <div className="taste-test-card">
+          {profile.taste_test_completed ? (
+            <>
+              <div className="test-completed-badge">
+                ✅ 취향 테스트 완료
+              </div>
+              <div className="test-info">
+                <div className="test-type-label">
+                  {profile.taste_test_type === 'quick' ? '⚡ 간단 테스트' : '🔍 심화 테스트'}
+                </div>
+                {profile.taste_test_mbti_type && (
+                  <div className="mbti-type-display">
+                    <span className="mbti-label">당신의 타입:</span>
+                    <span className="mbti-value">{profile.taste_test_mbti_type}</span>
+                  </div>
+                )}
+              </div>
+              {profile.review_count === 0 && (
+                <p className="taste-test-hint">
+                  💡 실제 리뷰를 작성하면 추천이 더 정확해져요!
+                </p>
+              )}
+              <button 
+                className="btn-retest"
+                onClick={() => setShowTestOptions(!showTestOptions)}
+              >
+                🔄 재테스트하기
+              </button>
+            </>
+          ) : (
+            <>
+              {profile.review_count === 0 ? (
+                <p className="taste-test-desc">
+                  아직 리뷰가 없으시네요! 취향 테스트로 시작해보세요.
+                </p>
+              ) : (
+                <p className="taste-test-desc">
+                  취향 테스트로 더 정확한 맛집 추천을 받아보세요!
+                </p>
+              )}
+              <button 
+                className="btn-start-test"
+                onClick={() => setShowTestOptions(!showTestOptions)}
+              >
+                테스트 시작하기
+              </button>
+            </>
+          )}
+          
+          {showTestOptions && (
+            <div className="test-options">
+              <button 
+                className="test-option-btn quick"
+                onClick={() => handleStartTest('quick')}
+              >
+                ⚡ 간단 테스트 (8문항, ~1분)
+              </button>
+              <button 
+                className="test-option-btn deep"
+                onClick={() => handleStartTest('deep')}
+              >
+                🔍 심화 테스트 (20문항, ~3-4분)
+              </button>
+              {profile.taste_test_completed && (
+                <button 
+                  className="test-option-btn delete"
+                  onClick={handleDeleteTest}
+                >
+                  ❌ 기존 테스트 삭제
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="reviews-section">
         <h2>내가 작성한 리뷰 ({reviews.length})</h2>
