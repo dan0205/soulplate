@@ -17,15 +17,35 @@ const HomePage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('');
   const [showTasteTestModal, setShowTasteTestModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const itemsPerPage = 20;
   
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Debounce 검색어 (300ms 지연)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // 검색어 변경 시 페이지를 1로 리셋
+  useEffect(() => {
+    if (debouncedSearch !== '') {
+      setCurrentPage(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  // 검색어 또는 페이지, 정렬 변경 시 데이터 로드
   useEffect(() => {
     loadRecommendations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, sortBy]);
+  }, [currentPage, sortBy, debouncedSearch]);
 
   useEffect(() => {
     checkUserStatus();
@@ -58,6 +78,9 @@ const HomePage = () => {
       const params = { skip, limit: itemsPerPage };
       if (sortBy) {
         params.sort_by = sortBy;
+      }
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
       const response = await businessAPI.list(params);
       
@@ -158,10 +181,19 @@ const HomePage = () => {
     setCurrentPage(1); // 정렬 변경 시 1페이지로 리셋
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setDebouncedSearch('');
+  };
+
   return (
     <div className="home-container">
       <header className="home-header">
-        <h1>🚀 Two-Tower Recommendations</h1>
+        <h1>Souplate</h1>
         <div className="user-info">
           <button onClick={() => navigate('/my-profile')} className="btn-profile">My Profile</button>
           <span>Welcome, {user?.username}!</span>
@@ -172,6 +204,24 @@ const HomePage = () => {
       <main className="home-main">
         <div className="recommendations-header">
           <h2>🏪 Restaurant List</h2>
+          
+          <div className="search-section">
+            <div className="search-input-wrapper">
+              <input 
+                type="text"
+                className="search-input"
+                placeholder="🔍 음식점 이름, 카테고리, 지역 검색..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+              {searchQuery && (
+                <button className="clear-search-btn" onClick={clearSearch}>
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="header-actions">
             <div className="sort-buttons">
               <button 
@@ -222,7 +272,7 @@ const HomePage = () => {
             <div className="recommendations-grid">
               {recommendations.length === 0 ? (
                 <div className="no-results">
-                  <p>No businesses available.</p>
+                  <p>{searchQuery ? `"${searchQuery}"에 대한 검색 결과가 없습니다.` : 'No businesses available.'}</p>
                 </div>
               ) : (
                 recommendations.map((item, index) => (

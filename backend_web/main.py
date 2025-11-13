@@ -488,21 +488,38 @@ async def get_businesses(
     skip: int = 0,
     limit: int = 20,
     sort_by: Optional[str] = None,
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user_optional),
     background_tasks: BackgroundTasks = None
 ):
-    """비즈니스 목록 조회 (캐시된 예측 사용, 정렬 지원)"""
+    """비즈니스 목록 조회 (캐시된 예측 사용, 정렬 지원, 검색 지원)"""
     from backend_web.prediction_cache import check_predictions_exist, calculate_and_store_predictions
-    from sqlalchemy import and_
+    from sqlalchemy import and_, or_
     
-    # 총 개수 조회
-    total = db.query(models.Business).count()
+    # 검색 필터 생성
+    search_filter = None
+    if search:
+        search_pattern = f'%{search}%'
+        search_filter = or_(
+            models.Business.name.ilike(search_pattern),
+            models.Business.categories.ilike(search_pattern),
+            models.Business.city.ilike(search_pattern)
+        )
+    
+    # 총 개수 조회 (검색 필터 적용)
+    total_query = db.query(models.Business)
+    if search_filter is not None:
+        total_query = total_query.filter(search_filter)
+    total = total_query.count()
     
     # 정렬에 따라 다른 쿼리 사용
     if sort_by == "review_count":
         # 리뷰 개수 내림차순
-        businesses = db.query(models.Business).order_by(
+        query = db.query(models.Business)
+        if search_filter is not None:
+            query = query.filter(search_filter)
+        businesses = query.order_by(
             models.Business.review_count.desc()
         ).offset(skip).limit(limit).all()
     elif sort_by in ["deepfm", "multitower"] and current_user:
@@ -513,7 +530,10 @@ async def get_businesses(
             if background_tasks:
                 background_tasks.add_task(calculate_and_store_predictions, current_user.id, db)
             # 예측값이 없는 경우 기본 정렬로 폴백
-            businesses = db.query(models.Business).offset(skip).limit(limit).all()
+            query = db.query(models.Business)
+            if search_filter is not None:
+                query = query.filter(search_filter)
+            businesses = query.offset(skip).limit(limit).all()
         else:
             # DB에서 예측값과 함께 조회 (JOIN)
             if sort_by == "deepfm":
@@ -523,7 +543,10 @@ async def get_businesses(
                         models.UserBusinessPrediction.user_id == current_user.id,
                         models.UserBusinessPrediction.business_id == models.Business.id
                     )
-                ).order_by(models.UserBusinessPrediction.deepfm_score.desc())
+                )
+                if search_filter is not None:
+                    query = query.filter(search_filter)
+                query = query.order_by(models.UserBusinessPrediction.deepfm_score.desc())
             else:  # multitower
                 query = db.query(models.Business).join(
                     models.UserBusinessPrediction,
@@ -531,12 +554,18 @@ async def get_businesses(
                         models.UserBusinessPrediction.user_id == current_user.id,
                         models.UserBusinessPrediction.business_id == models.Business.id
                     )
-                ).order_by(models.UserBusinessPrediction.multitower_score.desc())
+                )
+                if search_filter is not None:
+                    query = query.filter(search_filter)
+                query = query.order_by(models.UserBusinessPrediction.multitower_score.desc())
             
             businesses = query.offset(skip).limit(limit).all()
     else:
         # 기본: 정렬 없음
-        businesses = db.query(models.Business).offset(skip).limit(limit).all()
+        query = db.query(models.Business)
+        if search_filter is not None:
+            query = query.filter(search_filter)
+        businesses = query.offset(skip).limit(limit).all()
     
     # 각 비즈니스에 상위 ABSA 특징 추가
     result = []
@@ -659,7 +688,7 @@ async def get_reviews(
     # User 정보를 함께 로드 (username 포함)
     reviews = db.query(models.Review).join(models.User).filter(
         models.Review.business_id == business.id
-    ).offset(skip).limit(limit).all()
+    ).order_by(models.Review.created_at.desc()).offset(skip).limit(limit).all()
     
     # 각 리뷰에 username과 useful 추가
     result = []
