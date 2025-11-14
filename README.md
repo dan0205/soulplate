@@ -2,6 +2,30 @@
 
 Yelp 데이터셋 기반의 실시간 개인화 추천 시스템입니다. Two-Tower 아키텍처를 사용하여 사용자와 비즈니스를 각각 임베딩하고, FAISS를 통해 빠른 유사도 검색을 수행합니다.
 
+## 🌐 배포 준비 완료!
+
+코드가 배포 준비되었습니다! 다음 문서를 참고하여 배포하세요:
+
+- **[배포 가이드](DEPLOYMENT_INSTRUCTIONS.md)**: 단계별 배포 설명
+- **[배포 체크리스트](DEPLOYMENT_CHECKLIST.md)**: 체크하면서 배포하기
+
+### 빠른 배포 요약
+
+1. **Koyeb**: PostgreSQL + 백엔드 2개 배포
+2. **Vercel**: 프론트엔드 배포
+3. **스크립트 실행**: CORS 업데이트 및 QR 코드 생성
+
+```bash
+# CORS 업데이트
+python scripts/update_cors.py <frontend_url> <web_backend_url>
+
+# 배포 상태 확인
+python scripts/check_deployment.py
+
+# QR 코드 생성
+python scripts/generate_qr.py <frontend_url>
+```
+
 ## 🏗️ 아키텍처
 
 ```
