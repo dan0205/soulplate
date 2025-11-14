@@ -166,3 +166,5 @@ def get_absa_service():
         _absa_service.load_model()
     return _absa_service
 
+
+

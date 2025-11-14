@@ -32,3 +32,5 @@ print(f"\n[OK] ABSA 컬럼 순서 저장: models/absa_columns.json")
 
 
 
+
+

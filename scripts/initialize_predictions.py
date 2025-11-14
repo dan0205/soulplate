@@ -103,3 +103,5 @@ if __name__ == "__main__":
         # 모든 사용자 초기화
         asyncio.run(initialize_all_predictions())
 
+
+

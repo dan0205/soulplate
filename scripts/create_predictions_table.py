@@ -67,3 +67,5 @@ def create_predictions_table():
 if __name__ == "__main__":
     create_predictions_table()
 
+
+
