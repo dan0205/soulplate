@@ -26,7 +26,7 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 # 토큰 서명에 사용할 해시 알고리즘 
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__ident="2b")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # passlib 라이브러리를 사용해서 비밀번호 해시 방식을 설정한다 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 # FastAPI의 보안 유틸리티로 클라이언트가 Authorization: Bearer <token> 헤더를 통해
