@@ -290,6 +290,10 @@ const HomePage = () => {
                       <div className="ai-prediction-inline">
                         🤖 AI 예상: {item.business.ai_prediction.deepfm_rating?.toFixed(1)} (DeepFM) / {item.business.ai_prediction.multitower_rating?.toFixed(1) || 'N/A'} (Multi-Tower)
                       </div>
+                    ) : user ? (
+                      <div className="ai-prediction-inline" style={{background: '#fff3cd', color: '#856404'}}>
+                        ⏳ AI 예측 계산 중... (백그라운드 처리)
+                      </div>
                     ) : (
                       <div className="ai-prediction-inline" style={{background: '#f0f0f0', color: '#666'}}>
                         ⚠️ AI 예측을 사용하려면 로그인이 필요합니다
