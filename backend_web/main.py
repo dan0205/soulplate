@@ -100,7 +100,7 @@ async def process_review_features(review_id: int, user_id: int, text: str, stars
     """
     백그라운드 작업: 리뷰 ABSA 분석, 프로필 업데이트, 예측 재계산
     """
-    from backend_web.prediction_cache import mark_predictions_stale, calculate_and_store_predictions
+    from prediction_cache import mark_predictions_stale, calculate_and_store_predictions
     
     db = SessionLocal()
     try:
@@ -288,7 +288,7 @@ async def register(
     db: Session = Depends(get_db)
 ):
     """회원가입"""
-    from backend_web.prediction_cache import calculate_and_store_predictions
+    from prediction_cache import calculate_and_store_predictions
     
     # 새 사용자를 생성한다
     # 사용자가 입력한 username 등을 받고, UserResponse 객체를 출력한다 
@@ -367,7 +367,7 @@ async def login(
     logger.info(f"User logged in: {user.username}")
     
     # 예측값 확인 및 생성
-    from backend_web.prediction_cache import check_predictions_exist, calculate_and_store_predictions
+    from prediction_cache import check_predictions_exist, calculate_and_store_predictions
     if not check_predictions_exist(user.id, db):
         logger.info(f"사용자 {user.username}의 예측값이 없어 백그라운드 생성 시작")
         if background_tasks:
@@ -396,7 +396,7 @@ def get_user_taste_test_info(user_id: int, db: Session):
         return False, None, None
     
     # MBTI 타입 계산
-    from backend_web.taste_test_questions import calculate_mbti_type
+    from taste_test_questions import calculate_mbti_type
     mbti_type = calculate_mbti_type(taste_test_review.absa_features) if taste_test_review.absa_features else None
     
     return True, taste_test_review.taste_test_type, mbti_type
@@ -499,7 +499,7 @@ async def get_businesses(
     background_tasks: BackgroundTasks = None
 ):
     """비즈니스 목록 조회 (캐시된 예측 사용, 정렬 지원, 검색 지원)"""
-    from backend_web.prediction_cache import check_predictions_exist, calculate_and_store_predictions
+    from prediction_cache import check_predictions_exist, calculate_and_store_predictions
     from sqlalchemy import and_, or_
     
     # 검색 필터 생성
@@ -926,7 +926,7 @@ async def submit_taste_test(
         background_tasks.add_task(update_user_profile, current_user.id, db)
         
         # 6. 예측 캐시 재계산 (백그라운드)
-        from backend_web.prediction_cache import mark_predictions_stale, calculate_and_store_predictions
+        from prediction_cache import mark_predictions_stale, calculate_and_store_predictions
         background_tasks.add_task(mark_predictions_stale, current_user.id, db)
         background_tasks.add_task(calculate_and_store_predictions, current_user.id, db)
         logger.info(f"Background tasks scheduled for user {current_user.id} predictions")
