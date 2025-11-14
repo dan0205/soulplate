@@ -5,9 +5,9 @@
 
 import torch
 import numpy as np
-from backend_model.models.deepfm_ranking import DeepFM
-from backend_model.models.multitower_ranking import MultiTowerModel
-from backend_model.utils.text_embedding import TextEmbeddingService
+from models.deepfm_ranking import DeepFM
+from models.multitower_ranking import MultiTowerModel
+from utils.text_embedding import TextEmbeddingService
 import pickle
 import json
 import os
