@@ -14,9 +14,11 @@ import httpx
 import logging
 import numpy as np
 
-from backend_web import models, schemas, auth
-from backend_web.database import engine, get_db, SessionLocal
-from backend_web.taste_test_questions import (
+import models
+import schemas
+import auth
+from database import engine, get_db, SessionLocal
+from taste_test_questions import (
     QUICK_TEST_QUESTIONS, 
     DEEP_TEST_QUESTIONS,
     answers_to_absa,
