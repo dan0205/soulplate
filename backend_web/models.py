@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime, timezone
 
-from backend_web.database import Base
+from database import Base
 
 # Base = 기본 클래스. 이 클래스는 데이터베이스 테이블과 연결됨을 인식하게 해줌 
 # __tablename__ = 디비에 생성될 실제 테이블의 이름 

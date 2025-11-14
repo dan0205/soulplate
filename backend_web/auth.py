@@ -13,8 +13,8 @@ from datetime import timezone
 from dotenv import load_dotenv
 import os
 
-from backend_web.database import get_db
-from backend_web import models
+from database import get_db
+import models
 
 # .env 파일 로드
 load_dotenv()
