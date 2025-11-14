@@ -9,6 +9,10 @@ from transformers import BertForSequenceClassification, BertTokenizer
 import numpy as np
 import os
 import json
+import logging
+from model_loader import ensure_absa_model
+
+logger = logging.getLogger(__name__)
 
 
 class ABSAService:
@@ -26,7 +30,7 @@ class ABSAService:
         self.device = None
         
     def load_model(self):
-        """ABSA 모델 및 토크나이저 로딩"""
+        """ABSA 모델 및 토크나이저 로딩 (HuggingFace Hub에서 자동 다운로드)"""
         print(f"[ABSA] 모델 로딩 중... ({self.model_path})")
         
         # 디바이스 설정
@@ -35,16 +39,26 @@ class ABSAService:
         if torch.cuda.is_available():
             print(f"[ABSA] GPU: {torch.cuda.get_device_name(0)}")
         
+        # HuggingFace에서 모델 다운로드 시도
+        logger.info("ABSA 모델 HuggingFace에서 다운로드 시도...")
+        hf_model_path = ensure_absa_model(self.model_path)
+        actual_model_path = hf_model_path if hf_model_path else self.model_path
+        
+        if not os.path.exists(actual_model_path):
+            raise FileNotFoundError(f"ABSA 모델 디렉토리를 찾을 수 없습니다: {actual_model_path}")
+        
+        print(f"[ABSA] 모델 경로: {actual_model_path}")
+        
         # 모델 로딩
-        self.model = BertForSequenceClassification.from_pretrained(self.model_path)
+        self.model = BertForSequenceClassification.from_pretrained(actual_model_path)
         self.model.to(self.device)
         self.model.eval()
         
         # 토크나이저 로딩
-        self.tokenizer = BertTokenizer.from_pretrained(self.model_path)
+        self.tokenizer = BertTokenizer.from_pretrained(actual_model_path)
         
         # Label 정보 로딩
-        config_path = os.path.join(self.model_path, "config.json")
+        config_path = os.path.join(actual_model_path, "config.json")
         with open(config_path, "r", encoding="utf-8") as f:
             config = json.load(f)
         self.id2label = config["id2label"]

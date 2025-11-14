@@ -8,9 +8,13 @@ import numpy as np
 from models.deepfm_ranking import DeepFM
 from models.multitower_ranking import MultiTowerModel
 from utils.text_embedding import TextEmbeddingService
+from model_loader import ensure_model_file
 import pickle
 import json
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class PredictionService:
     """예측 서비스 클래스"""
@@ -39,7 +43,14 @@ class PredictionService:
     def _load_scaler_params(self):
         """Scaler 파라미터 로딩 (mean, std)"""
         scaler_path = 'models/scaler_params.json'
-        if os.path.exists(scaler_path):
+        
+        # HuggingFace에서 다운로드 시도
+        hf_path = ensure_model_file("models/scaler_params.json", scaler_path)
+        
+        if hf_path and os.path.exists(hf_path):
+            with open(hf_path, 'r') as f:
+                self.scaler_params = json.load(f)
+        elif os.path.exists(scaler_path):
             with open(scaler_path, 'r') as f:
                 self.scaler_params = json.load(f)
         else:
@@ -74,18 +85,25 @@ class PredictionService:
                     user_scaler_path='models/user_scaler.pkl',
                     business_scaler_path='models/business_scaler.pkl',
                     vectorizer_path='models/tfidf_vectorizer.pkl'):
-        """모델 및 Scaler 로딩"""
+        """모델 및 Scaler 로딩 (HuggingFace Hub에서 자동 다운로드)"""
         print("모델 로딩 중...")
         
         deepfm_loaded = False
         multitower_loaded = False
         
         try:
-            # DeepFM 로딩
+            # DeepFM 로딩 - HuggingFace에서 다운로드 시도
+            logger.info("DeepFM 모델 로딩 시도...")
+            deepfm_hf_path = ensure_model_file("models/deepfm_ranking.pth", deepfm_path)
+            actual_deepfm_path = deepfm_hf_path if deepfm_hf_path else deepfm_path
+            
+            if not os.path.exists(actual_deepfm_path):
+                raise FileNotFoundError(f"DeepFM 모델 파일을 찾을 수 없습니다: {actual_deepfm_path}")
+            
             # 모델이 212차원으로 학습됨 (실제 데이터는 210이지만 모델 재학습 필요)
             input_dim = 212
             self.deepfm_model = DeepFM(input_dim=input_dim, embed_dim=16, hidden_dims=[256, 128, 64])
-            self.deepfm_model.load_state_dict(torch.load(deepfm_path, map_location=self.device))
+            self.deepfm_model.load_state_dict(torch.load(actual_deepfm_path, map_location=self.device))
             self.deepfm_model.to(self.device)
             self.deepfm_model.eval()
             print("  [OK] DeepFM 로딩 완료 (입력 차원: 212, 패딩 2개 추가 필요)")
@@ -95,12 +113,19 @@ class PredictionService:
             print(f"  [ERROR] DeepFM 로딩 실패: {e}")
         
         try:
-            # Multi-Tower 로딩
+            # Multi-Tower 로딩 - HuggingFace에서 다운로드 시도
+            logger.info("Multi-Tower 모델 로딩 시도...")
+            multitower_hf_path = ensure_model_file("models/multitower_ranking.pth", multitower_path)
+            actual_multitower_path = multitower_hf_path if multitower_hf_path else multitower_path
+            
+            if not os.path.exists(actual_multitower_path):
+                raise FileNotFoundError(f"Multi-Tower 모델 파일을 찾을 수 없습니다: {actual_multitower_path}")
+            
             # 모델이 106, 106으로 학습됨 (실제는 105, 105이지만 모델 재학습 필요)
             user_dim = 106
             business_dim = 106
             self.multitower_model = MultiTowerModel(user_dim, business_dim, tower_dims=[128, 64], interaction_dims=[64, 32])
-            self.multitower_model.load_state_dict(torch.load(multitower_path, map_location=self.device))
+            self.multitower_model.load_state_dict(torch.load(actual_multitower_path, map_location=self.device))
             self.multitower_model.to(self.device)
             self.multitower_model.eval()
             print("  [OK] Multi-Tower 로딩 완료 (User: 106차원, Business: 106차원, 패딩 1개씩 추가 필요)")
@@ -129,8 +154,12 @@ class PredictionService:
             self.business_scaler = None
         
         try:
-            # 텍스트 임베딩 서비스 로딩
-            self.text_embedding_service = TextEmbeddingService(vectorizer_path)
+            # 텍스트 임베딩 서비스 로딩 - HuggingFace에서 다운로드 시도
+            logger.info("텍스트 임베딩 서비스 로딩 시도...")
+            vectorizer_hf_path = ensure_model_file("models/tfidf_vectorizer.pkl", vectorizer_path)
+            actual_vectorizer_path = vectorizer_hf_path if vectorizer_hf_path else vectorizer_path
+            
+            self.text_embedding_service = TextEmbeddingService(actual_vectorizer_path)
             self.text_embedding_service.load_vectorizer()
             
         except Exception as e:
