@@ -21,6 +21,7 @@ from collections import defaultdict
 import httpx
 import logging
 import numpy as np
+import os
 
 import models
 import schemas
@@ -40,6 +41,9 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Model API URL
+MODEL_API_URL = os.getenv("MODEL_API_URL", "https://backendmodel-production-4594.up.railway.app")
 
 # ============================================================================
 # 프로필 업데이트 함수
@@ -117,7 +121,7 @@ async def process_review_features(review_id: int, user_id: int, text: str, stars
         # 1. backend_model API 호출 (ABSA + 텍스트 임베딩)
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                "http://localhost:8001/analyze_review",
+                f"{MODEL_API_URL}/analyze_review",
                 json={"text": text}
             )
             
@@ -204,7 +208,7 @@ async def get_ai_prediction(user: models.User, business: models.Business):
         # backend_model API 호출
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                "http://localhost:8001/predict_rating",
+                f"{MODEL_API_URL}/predict_rating",
                 json={
                     "user_data": {
                         "review_count": user.review_count,
@@ -266,10 +270,6 @@ app.add_middleware(
 # 이 미들웨어는 allow_origins=["*"] 에서 요청을 허용하도록 설정하여
 # 개발 환경에서 프론트엔드와 백엔드가 원할하게 통신할 수 있게 해준다
 # 프로덕션에서는 ["*"] 대신 실제 프론트엔드 도메인을 적어야한다 
-
-# Model API URL (별점 예측용)
-MODEL_API_URL = "http://localhost:8001"
-# 별점 예측 요청을 보낼 머신러닝 모델 API 서버의 주소를 저장한다 
 
 # Root
 @app.get("/")
