@@ -3,6 +3,14 @@ Tier 2: Web Backend Server
 사용자 인증, DB 관리, 모델 API 게이트웨이
 """
 
+import sys
+from pathlib import Path
+
+# 현재 디렉토리를 Python path에 추가
+current_dir = Path(__file__).parent
+if str(current_dir) not in sys.path:
+    sys.path.insert(0, str(current_dir))
+
 from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm

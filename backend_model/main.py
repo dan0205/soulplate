@@ -3,6 +3,14 @@ Tier 3: Model API Server
 DeepFM과 Multi-Tower 모델을 사용한 별점 예측 API
 """
 
+import sys
+from pathlib import Path
+
+# 현재 디렉토리를 Python path에 추가
+current_dir = Path(__file__).parent
+if str(current_dir) not in sys.path:
+    sys.path.insert(0, str(current_dir))
+
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 import logging
