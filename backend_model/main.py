@@ -78,7 +78,10 @@ app = FastAPI(
 # CORS 설정 (개발 환경용)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 프로덕션에서는 특정 도메인으로 제한
+    allow_origins=[
+        "http://localhost:8000",  # 로컬 Web Backend
+        "https://backendweb-production-7b6c.up.railway.app",  # 프로덕션
+    ],  # 프로덕션에서는 특정 도메인으로 제한
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
