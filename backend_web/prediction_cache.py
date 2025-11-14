@@ -4,16 +4,17 @@
 
 import logging
 import httpx
+import os
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
-from backend_web import models
+import models
 
 logger = logging.getLogger(__name__)
 
 # AI 모델 서버 URL
-MODEL_SERVER_URL = "http://localhost:8001"
+MODEL_SERVER_URL = os.getenv("MODEL_API_URL", "https://backendmodel-production-77a7.up.railway.app")
 
 
 async def calculate_and_store_predictions(user_id: int, db: Session):
