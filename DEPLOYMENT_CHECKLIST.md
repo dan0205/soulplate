@@ -9,47 +9,61 @@
 - [x] 프론트엔드 API URL 환경 변수 적용 완료
 - [x] 배포 가이드 문서 작성 완료
 
-## 1단계: Koyeb 백엔드 배포
+## 1단계: Railway에 백엔드 배포
 
-### A. PostgreSQL 데이터베이스
+Railway 한 곳에서 백엔드 2개 + PostgreSQL을 모두 관리합니다!
 
-- [ ] Koyeb 계정 생성/로그인
-- [ ] PostgreSQL 데이터베이스 생성 (무료 플랜)
-- [ ] DATABASE_URL 복사 (형식: `postgresql://user:password@host:port/dbname`)
-- [ ] URL 형식 확인 (`postgres://` → `postgresql://` 변경 필요 시)
+### A. Railway 프로젝트 생성
+
+- [ ] Railway 계정 생성/로그인 (https://railway.app)
+- [ ] GitHub 계정으로 로그인
+- [ ] "New Project" 클릭
+- [ ] "Deploy from GitHub repo" 선택
+- [ ] 저장소 선택: `dan0205/soulplate`
+
+### B. PostgreSQL 데이터베이스 추가
+
+- [ ] 프로젝트 대시보드에서 "+ New" 클릭
+- [ ] "Database" → "PostgreSQL" 선택
+- [ ] 자동 생성 대기 (1-2분)
+- [ ] PostgreSQL 서비스 클릭
+- [ ] "Variables" 탭 선택
+- [ ] DATABASE_URL 복사
 
 **DATABASE_URL**: _______________________________________________
 
-### B. Model Backend 배포
+### C. Model Backend 서비스 추가
 
-- [ ] Koyeb에서 새 앱 생성
-- [ ] GitHub 저장소 연결 (dan0205/soulplate)
-- [ ] Root directory: `backend_model` 설정
-- [ ] Build command: `pip install -r requirements.txt`
-- [ ] Run command: `uvicorn main:app --host 0.0.0.0 --port 8001`
-- [ ] Port: `8001` 설정
-- [ ] Deploy 클릭
-- [ ] 배포 완료 대기 (3-5분)
+- [ ] 프로젝트 대시보드에서 "+ New" 클릭
+- [ ] "GitHub Repo" 선택 → 같은 저장소
+- [ ] "Settings" → "Service Settings" 이동
+- [ ] **Root Directory** 설정: `backend_model`
+- [ ] **Start Command** 설정: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- [ ] "Deploy" 클릭
+- [ ] 배포 완료 대기 (2-3분)
+- [ ] "Settings" → "Networking" 이동
+- [ ] "Public Networking" 활성화
 - [ ] 배포 URL 복사
 
 **Model Backend URL**: _______________________________________________
 
-### C. Web Backend 배포
+### D. Web Backend 서비스 추가
 
-- [ ] Koyeb에서 새 앱 생성
-- [ ] 같은 GitHub 저장소 선택
-- [ ] Root directory: `backend_web` 설정
-- [ ] Build command: `pip install -r requirements.txt`
-- [ ] Run command: `uvicorn main:app --host 0.0.0.0 --port 8000`
-- [ ] Port: `8000` 설정
-- [ ] 환경 변수 설정:
-  - [ ] `DATABASE_URL`: (위에서 복사한 값)
-  - [ ] `SECRET_KEY`: (랜덤 생성, 아래 명령어 사용)
+- [ ] 프로젝트 대시보드에서 "+ New" 클릭
+- [ ] "GitHub Repo" 선택 → 같은 저장소
+- [ ] "Settings" → "Service Settings" 이동
+- [ ] **Root Directory** 설정: `backend_web`
+- [ ] **Start Command** 설정: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- [ ] "Variables" 탭에서 환경 변수 설정:
+  - [ ] `DATABASE_URL`: (B에서 복사한 값)
+  - [ ] `SECRET_KEY`: (아래 명령어로 생성)
   - [ ] `ALGORITHM`: `HS256`
   - [ ] `ACCESS_TOKEN_EXPIRE_MINUTES`: `30`
-  - [ ] `MODEL_API_URL`: (위에서 복사한 Model Backend URL)
-- [ ] Deploy 클릭
-- [ ] 배포 완료 대기 (3-5분)
+  - [ ] `MODEL_API_URL`: (C에서 복사한 Model Backend URL)
+- [ ] "Deploy" 클릭
+- [ ] 배포 완료 대기 (2-3분)
+- [ ] "Settings" → "Networking" 이동
+- [ ] "Public Networking" 활성화
 - [ ] 배포 URL 복사
 
 **Web Backend URL**: _______________________________________________
@@ -59,18 +73,27 @@
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-## 2단계: Vercel 프론트엔드 배포
+### E. Railway 배포 확인
 
-- [ ] Vercel 계정 생성/로그인
-- [ ] New Project 클릭
-- [ ] GitHub에서 dan0205/soulplate 저장소 Import
+- [ ] Railway 대시보드에서 3개 서비스 모두 "Active" 상태 확인
+  - [ ] PostgreSQL: Active
+  - [ ] backend_model: Deployed  
+  - [ ] backend_web: Deployed
+- [ ] 각 서비스 로그에서 에러 없는지 확인
+
+## 2단계: Vercel에 프론트엔드 배포
+
+- [ ] Vercel 계정 생성/로그인 (https://vercel.com)
+- [ ] GitHub 계정으로 로그인
+- [ ] "Add New" → "Project" 클릭
+- [ ] GitHub에서 `dan0205/soulplate` 저장소 Import
 - [ ] Framework: Create React App (자동 감지)
-- [ ] Root directory: `frontend` 설정
+- [ ] **Root Directory** 설정: `frontend`
 - [ ] Build/Output directory 확인 (자동 설정됨)
 - [ ] 환경 변수 추가:
   - [ ] Name: `REACT_APP_API_URL`
-  - [ ] Value: `<Web Backend URL>/api` (예: `https://restaurant-web-api-xxx.koyeb.app/api`)
-- [ ] Deploy 클릭
+  - [ ] Value: `<Web Backend URL>/api` (예: `https://backend-web-production-xxxx.up.railway.app/api`)
+- [ ] "Deploy" 클릭
 - [ ] 배포 완료 대기 (2-3분)
 - [ ] 배포 URL 확인
 
@@ -91,18 +114,19 @@ git commit -m "Update CORS with production URLs"
 git push origin master
 ```
 
-- [ ] 자동 재배포 대기 (2-3분)
+- [ ] Railway와 Vercel 자동 재배포 대기 (2-3분)
+- [ ] Railway 대시보드에서 재배포 완료 확인
 
 ## 4단계: 데이터베이스 마이그레이션
 
 옵션 1: 자동 (권장)
-- [ ] Web Backend가 시작되면 SQLAlchemy가 자동으로 테이블 생성
-- [ ] Koyeb 로그에서 테이블 생성 확인
+- [ ] Railway Web Backend가 시작되면 SQLAlchemy가 자동으로 테이블 생성
+- [ ] Railway Web Backend 로그에서 테이블 생성 확인
 
 옵션 2: 수동 마이그레이션
 - [ ] 로컬에서 환경 변수 설정:
 ```bash
-export DATABASE_URL="<Koyeb PostgreSQL URL>"
+export DATABASE_URL="<Railway PostgreSQL URL>"
 ```
 
 - [ ] 마이그레이션 실행:
@@ -178,7 +202,8 @@ python scripts/generate_qr.py <Frontend URL>
 
 ## 9단계: 모니터링 설정
 
-- [ ] Koyeb 대시보드에서 리소스 사용량 확인
+- [ ] Railway 대시보드에서 리소스 사용량 확인
+- [ ] Railway 크레딧 잔액 확인
 - [ ] Vercel 대시보드에서 트래픽 확인
 - [ ] 에러 로그 확인
 
@@ -199,7 +224,7 @@ python scripts/generate_qr.py <Frontend URL>
 | 프론트엔드 | _______________ |
 | Web Backend | _______________ |
 | Model Backend | _______________ |
-| Database | Koyeb PostgreSQL |
+| Database | Railway PostgreSQL |
 | GitHub | https://github.com/dan0205/soulplate |
 
 ### 다음 단계
@@ -213,9 +238,15 @@ python scripts/generate_qr.py <Frontend URL>
 
 이제 코드를 수정하고 `git push`하면 자동으로 재배포됩니다:
 - Vercel: 2-3분
-- Koyeb: 3-5분
+- Railway: 2-3분
+
+### Railway 크레딧 관리
+
+- Railway 대시보드에서 사용량 모니터링
+- 무료 $5 크레딧 소진 시:
+  - 불필요한 서비스 비활성화
+  - 또는 유료 플랜 업그레이드 ($5/월부터)
 
 ### 지원
 
-문제가 발생하면 `DEPLOYMENT_INSTRUCTIONS.md`의 문제 해결 섹션을 참고하세요.
-
+문제가 발생하면 `DEPLOYMENT_INSTRUCTIONS.md`의 "문제 해결" 섹션을 참고하세요.

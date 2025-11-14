@@ -1,4 +1,4 @@
-# 🎉 배포 준비 완료!
+# 🎉 배포 준비 완료! (Railway + Vercel)
 
 클라우드 배포를 위한 모든 코드 준비가 완료되었습니다.
 
@@ -26,43 +26,50 @@
 
 배포는 웹 UI에서 수동으로 진행해야 합니다. 다음 순서대로 진행하세요:
 
-### 1단계: Koyeb 배포 (백엔드)
+### 1단계: Railway 배포 (백엔드 + PostgreSQL)
 
-#### A. PostgreSQL 데이터베이스 생성
-1. https://www.koyeb.com 접속
-2. Databases → Create Database
-3. 무료 플랜 선택
-4. DATABASE_URL 복사
+Railway 한 곳에서 모든 백엔드를 관리합니다!
 
-#### B. Model Backend 배포
-1. Create App → GitHub 연결
-2. 저장소: `dan0205/soulplate`
-3. Root directory: `backend_model`
-4. Run: `uvicorn main:app --host 0.0.0.0 --port 8001`
-5. Port: 8001
-6. Deploy 클릭
+#### A. Railway 프로젝트 생성
+1. https://railway.app 접속 (GitHub 로그인)
+2. "New Project" 클릭
+3. "Deploy from GitHub repo" 선택
+4. 저장소: `dan0205/soulplate`
 
-#### C. Web Backend 배포
-1. Create App → 같은 저장소
-2. Root directory: `backend_web`
-3. Run: `uvicorn main:app --host 0.0.0.0 --port 8000`
-4. Port: 8000
-5. 환경 변수 설정:
-   - `DATABASE_URL`: (A에서 복사)
+#### B. PostgreSQL 추가
+1. "+ New" → "Database" → "PostgreSQL"
+2. 자동 생성 (1-2분)
+3. DATABASE_URL 복사
+
+#### C. Model Backend 서비스 추가
+1. "+ New" → "GitHub Repo" → 같은 저장소
+2. Root Directory: `backend_model`
+3. Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. Deploy → Public Networking 활성화
+5. 배포 URL 복사
+
+#### D. Web Backend 서비스 추가
+1. "+ New" → "GitHub Repo" → 같은 저장소
+2. Root Directory: `backend_web`
+3. Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. 환경 변수 설정:
+   - `DATABASE_URL`: (B에서 복사)
    - `SECRET_KEY`: 랜덤 생성
-   - `MODEL_API_URL`: (B에서 복사)
+   - `MODEL_API_URL`: (C에서 복사)
    - `ALGORITHM`: HS256
    - `ACCESS_TOKEN_EXPIRE_MINUTES`: 30
-6. Deploy 클릭
+5. Deploy → Public Networking 활성화
+6. 배포 URL 복사
 
 ### 2단계: Vercel 배포 (프론트엔드)
 
-1. https://vercel.com 접속
-2. New Project → Import `dan0205/soulplate`
-3. Root directory: `frontend`
-4. 환경 변수:
-   - `REACT_APP_API_URL`: `<Web Backend URL>/api`
-5. Deploy 클릭
+1. https://vercel.com 접속 (GitHub 로그인)
+2. "Add New" → "Project"
+3. Import `dan0205/soulplate`
+4. Root directory: `frontend`
+5. 환경 변수:
+   - `REACT_APP_API_URL`: `<Railway Web Backend URL>/api`
+6. Deploy 클릭
 
 ### 3단계: CORS 업데이트
 
@@ -72,13 +79,15 @@
 # CORS 설정 업데이트
 python scripts/update_cors.py \
     https://your-app.vercel.app \
-    https://your-backend.koyeb.app
+    https://backend-web-production-xxxx.up.railway.app
 
 # 커밋 및 푸시
 git add backend_web/main.py backend_model/main.py
 git commit -m "Update CORS with production URLs"
 git push origin master
 ```
+
+Railway와 Vercel이 자동으로 재배포합니다 (2-3분).
 
 ### 4단계: 배포 확인
 
@@ -125,15 +134,16 @@ python scripts/generate_qr.py https://your-app.vercel.app
 - ✅ QR 코드로 즉시 접근
 - ✅ Git push만으로 자동 업데이트
 - ✅ 월 10,000+ 방문자 처리 가능
-- ✅ 완전 무료
+- ✅ 완전 무료 (Railway $5 크레딧 + Vercel 무료)
 - ✅ HTTPS 자동 적용
+- ✅ 한 대시보드에서 모든 백엔드 관리
 
 ## ⏱️ 예상 소요 시간
 
-- Koyeb 설정 및 배포: 20분
+- Railway 설정 및 배포: 15분 (한 곳에서 모두 관리!)
 - Vercel 설정 및 배포: 10분
-- CORS 업데이트 및 테스트: 15분
-- **총 45분**
+- CORS 업데이트 및 테스트: 5분
+- **총 30분** (Koyeb보다 15분 빠름!)
 
 ## 🆘 문제 해결
 

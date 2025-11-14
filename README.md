@@ -2,16 +2,17 @@
 
 Yelp 데이터셋 기반의 실시간 개인화 추천 시스템입니다. Two-Tower 아키텍처를 사용하여 사용자와 비즈니스를 각각 임베딩하고, FAISS를 통해 빠른 유사도 검색을 수행합니다.
 
-## 🌐 배포 준비 완료!
+## 🌐 배포 준비 완료! (Railway + Vercel)
 
 코드가 배포 준비되었습니다! 다음 문서를 참고하여 배포하세요:
 
 - **[배포 가이드](DEPLOYMENT_INSTRUCTIONS.md)**: 단계별 배포 설명
 - **[배포 체크리스트](DEPLOYMENT_CHECKLIST.md)**: 체크하면서 배포하기
+- **[배포 준비 완료](DEPLOYMENT_READY.md)**: 빠른 시작 가이드
 
-### 빠른 배포 요약
+### 빠른 배포 요약 (30분 완료!)
 
-1. **Koyeb**: PostgreSQL + 백엔드 2개 배포
+1. **Railway**: PostgreSQL + 백엔드 2개 배포 (한 곳에서!)
 2. **Vercel**: 프론트엔드 배포
 3. **스크립트 실행**: CORS 업데이트 및 QR 코드 생성
 
@@ -25,6 +26,13 @@ python scripts/check_deployment.py
 # QR 코드 생성
 python scripts/generate_qr.py <frontend_url>
 ```
+
+### 왜 Railway + Vercel?
+
+- ✅ **완전 무료**: Railway $5 크레딧 + Vercel 무료
+- ✅ **간단함**: Koyeb보다 15분 빠름
+- ✅ **한 곳 관리**: Railway에서 모든 백엔드 관리
+- ✅ **자동 배포**: Git push만 하면 끝
 
 ## 🏗️ 아키텍처
 
