@@ -1,6 +1,60 @@
 /**
- * 글로벌 스타일
+ * 글로벌 스타일 - 모바일 우선 디자인
  */
+
+/* CSS 변수 시스템 */
+:root {
+  /* 브랜드 컬러 */
+  --primary: #667eea;
+  --primary-dark: #5568d3;
+  --primary-light: #8b9df7;
+  
+  /* 마커 컬러 */
+  --marker-excellent: #FF4444;
+  --marker-good: #FF8800;
+  --marker-ok: #FFD700;
+  --marker-normal: #CCCCCC;
+  
+  /* 텍스트 컬러 */
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-tertiary: #999;
+  
+  /* 배경 컬러 */
+  --bg-primary: #f5f7fa;
+  --bg-card: #ffffff;
+  
+  /* 기타 */
+  --border: #e0e0e0;
+  --shadow: rgba(0, 0, 0, 0.1);
+  
+  /* 폰트 크기 (모바일 기준) */
+  --font-h1: 24px;
+  --font-h2: 20px;
+  --font-h3: 18px;
+  --font-body: 15px;
+  --font-small: 13px;
+  --font-tiny: 11px;
+  
+  /* 간격 (8px 단위) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+}
+
+/* 데스크톱 폰트 크기 */
+@media (min-width: 1024px) {
+  :root {
+    --font-h1: 28px;
+    --font-h2: 24px;
+    --font-h3: 20px;
+    --font-body: 16px;
+    --font-small: 14px;
+    --font-tiny: 12px;
+  }
+}
 
 * {
   box-sizing: border-box;
@@ -10,10 +64,12 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    'Noto Sans KR', 'Malgun Gothic', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f5f7fa;
+  background: var(--bg-primary);
+  font-size: var(--font-body);
+  color: var(--text-primary);
 }
 
 code {
@@ -35,26 +91,40 @@ button {
   font-family: inherit;
 }
 
+/* 버튼 스타일 */
 .btn-primary {
-  background: #667eea;
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 5px;
-  font-size: 16px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: var(--font-body);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+  min-height: 44px; /* 모바일 터치 최소 크기 */
+  min-width: 44px;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #5568d3;
+  background: var(--primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn-primary:disabled {
   background: #ccc;
   cursor: not-allowed;
   transform: none;
+}
+
+/* 태블릿 이상 */
+@media (min-width: 768px) {
+  .btn-primary {
+    padding: 12px 24px;
+  }
 }

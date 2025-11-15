@@ -1,11 +1,11 @@
 /**
- * 프로필 페이지 스타일
+ * 프로필 페이지 스타일 - 모바일 우선
  */
 
 .profile-container {
   min-height: 100vh;
-  background: #f5f7fa;
-  padding: 20px 40px;
+  background: var(--bg-primary);
+  padding: 15px;
   max-width: 1000px;
   margin: 0 auto;
 }
@@ -13,74 +13,87 @@
 .profile-header-actions {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  gap: 10px;
 }
 
 .btn-back, .btn-logout {
-  background: #667eea;
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 10px 16px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: var(--font-body);
   transition: all 0.3s;
+  min-height: 44px;
 }
 
 .btn-back:hover, .btn-logout:hover {
-  background: #5568d3;
+  background: var(--primary-dark);
+}
+
+.btn-back:active, .btn-logout:active {
+  transform: scale(0.95);
 }
 
 .profile-header {
-  background: white;
-  padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  margin-bottom: 30px;
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px var(--shadow);
+  margin-bottom: 20px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 30px;
+  gap: 20px;
 }
 
 .profile-info h1 {
-  margin: 0 0 20px 0;
-  color: #333;
+  margin: 0 0 16px 0;
+  color: var(--text-primary);
+  font-size: var(--font-h2);
+  text-align: center;
 }
 
 .profile-stats {
   display: flex;
-  gap: 40px;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 80px;
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
-  color: #667eea;
+  color: var(--primary);
 }
 
 .stat-label {
-  font-size: 14px;
-  color: #666;
-  margin-top: 5px;
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  margin-top: 4px;
 }
 
 .absa-section {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  margin-bottom: 30px;
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px var(--shadow);
+  margin-bottom: 20px;
 }
 
 .absa-section h2 {
-  margin: 0 0 20px 0;
-  color: #333;
+  margin: 0 0 16px 0;
+  color: var(--text-primary);
+  font-size: var(--font-h3);
 }
 
 .absa-tags {
@@ -99,16 +112,17 @@
 }
 
 .taste-test-section {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  margin-bottom: 30px;
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px var(--shadow);
+  margin-bottom: 20px;
 }
 
 .taste-test-section h2 {
-  margin: 0 0 20px 0;
-  color: #333;
+  margin: 0 0 16px 0;
+  color: var(--text-primary);
+  font-size: var(--font-h3);
 }
 
 .taste-test-card {
@@ -187,19 +201,19 @@
   background: #ff6b6b;
   color: white;
   border: none;
-  padding: 12px 32px;
+  padding: 12px 28px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: var(--font-body);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  min-height: 44px;
 }
 
-.btn-start-test:hover,
-.btn-retest:hover {
+.btn-start-test:active,
+.btn-retest:active {
   background: #ff5252;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+  transform: scale(0.95);
 }
 
 .test-options {
@@ -213,21 +227,22 @@
   padding: 14px 20px;
   border: none;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: var(--font-body);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
+  min-height: 44px;
 }
 
 .test-option-btn.quick {
-  background: #667eea;
+  background: var(--primary);
   color: white;
 }
 
-.test-option-btn.quick:hover {
-  background: #5568d3;
-  transform: translateX(4px);
+.test-option-btn.quick:active {
+  background: var(--primary-dark);
+  transform: scale(0.98);
 }
 
 .test-option-btn.deep {
@@ -235,9 +250,9 @@
   color: white;
 }
 
-.test-option-btn.deep:hover {
+.test-option-btn.deep:active {
   background: #633991;
-  transform: translateX(4px);
+  transform: scale(0.98);
 }
 
 .test-option-btn.delete {
@@ -245,21 +260,22 @@
   color: white;
 }
 
-.test-option-btn.delete:hover {
+.test-option-btn.delete:active {
   background: #c0392b;
-  transform: translateX(4px);
+  transform: scale(0.98);
 }
 
 .reviews-section {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px var(--shadow);
 }
 
 .reviews-section h2 {
-  margin: 0 0 20px 0;
-  color: #333;
+  margin: 0 0 16px 0;
+  color: var(--text-primary);
+  font-size: var(--font-h3);
 }
 
 .no-reviews {
@@ -356,17 +372,18 @@
 
 .error-container button {
   margin-top: 20px;
-  background: #667eea;
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 12px 20px;
+  border-radius: 8px;
   cursor: pointer;
+  min-height: 44px;
 }
 
 .spinner {
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid var(--primary);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -376,5 +393,78 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* ========== 반응형 미디어 쿼리 ========== */
+
+/* 태블릿 (768px 이상) */
+@media (min-width: 768px) {
+  .profile-container {
+    padding: 25px;
+  }
+
+  .profile-header {
+    padding: 30px;
+    margin-bottom: 30px;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 30px;
+  }
+
+  .profile-info h1 {
+    font-size: var(--font-h1);
+    text-align: left;
+  }
+
+  .profile-stats {
+    gap: 40px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+
+  .absa-section,
+  .taste-test-section {
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+
+  .reviews-section {
+    padding: 30px;
+  }
+
+  .btn-start-test:hover,
+  .btn-retest:hover {
+    background: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+  }
+
+  .test-option-btn.quick:hover {
+    background: var(--primary-dark);
+    transform: translateX(4px);
+  }
+
+  .test-option-btn.deep:hover {
+    background: #633991;
+    transform: translateX(4px);
+  }
+
+  .test-option-btn.delete:hover {
+    background: #c0392b;
+    transform: translateX(4px);
+  }
+}
+
+/* 데스크톱 (1024px 이상) */
+@media (min-width: 1024px) {
+  .profile-container {
+    padding: 40px;
+  }
+
+  .profile-header {
+    padding: 40px;
+  }
 }
 

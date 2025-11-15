@@ -1,76 +1,77 @@
 /**
- * 홈 페이지 스타일
+ * 홈 페이지 스타일 - 모바일 우선
  */
 
 .home-container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--bg-primary);
 }
 
+/* 헤더 (모바일) */
 .home-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
   color: white;
-  padding: 20px 40px;
+  padding: 15px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px var(--shadow);
 }
 
 .home-header h1 {
   margin: 0;
-  font-size: 28px;
+  font-size: var(--font-h2);
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 8px;
 }
 
-.btn-profile {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  border: 1px solid white;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.3s;
+.user-info span {
+  display: none; /* 모바일에서 환영 메시지 숨김 */
 }
 
-.btn-profile:hover {
-  background: white;
-  color: #667eea;
-}
-
+.btn-profile,
 .btn-logout {
   background: rgba(255,255,255,0.2);
   color: white;
   border: 1px solid white;
-  padding: 8px 16px;
-  border-radius: 5px;
+  padding: 8px 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
+  font-size: var(--font-small);
+  min-height: 44px; /* 터치 최소 크기 */
 }
 
+.btn-profile:hover,
 .btn-logout:hover {
   background: white;
-  color: #667eea;
+  color: var(--primary);
 }
 
+.btn-profile:active,
+.btn-logout:active {
+  transform: scale(0.95);
+}
+
+/* 메인 영역 (모바일) */
 .home-main {
-  padding: 40px;
+  padding: 20px 15px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .recommendations-header {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .recommendations-header h2 {
-  margin: 0 0 15px 0;
-  color: #333;
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  font-size: var(--font-h2);
 }
 
 /* 검색창 스타일 */
@@ -185,25 +186,25 @@
   cursor: not-allowed;
 }
 
+/* 그리드 (모바일: 1열) */
 .recommendations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
 .business-card {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px var(--shadow);
   cursor: pointer;
   transition: all 0.3s;
   position: relative;
 }
 
-.business-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+.business-card:active {
+  transform: scale(0.98);
 }
 
 .card-rank {
@@ -390,5 +391,76 @@
   padding: 0 8px;
   font-size: 16px;
   font-weight: bold;
+}
+
+/* ========== 반응형 미디어 쿼리 ========== */
+
+/* 태블릿 (768px 이상) */
+@media (min-width: 768px) {
+  .home-header {
+    padding: 20px 30px;
+  }
+
+  .home-header h1 {
+    font-size: var(--font-h1);
+  }
+
+  .user-info {
+    gap: 15px;
+  }
+
+  .user-info span {
+    display: inline; /* 환영 메시지 표시 */
+  }
+
+  .btn-profile,
+  .btn-logout {
+    padding: 8px 16px;
+  }
+
+  .home-main {
+    padding: 30px 25px;
+  }
+
+  .recommendations-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .business-card {
+    padding: 20px;
+  }
+
+  .business-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+
+  .business-card:active {
+    transform: translateY(-5px) scale(0.98);
+  }
+}
+
+/* 데스크톱 (1024px 이상) */
+@media (min-width: 1024px) {
+  .home-header {
+    padding: 20px 40px;
+  }
+
+  .home-main {
+    padding: 40px;
+  }
+
+  .recommendations-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+/* 와이드 스크린 (1440px 이상) */
+@media (min-width: 1440px) {
+  .recommendations-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
