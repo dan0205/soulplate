@@ -74,11 +74,6 @@ const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
     };
   }, [restaurant]);
 
-  // initialSnap이 변경되면 snapIndex 업데이트
-  useEffect(() => {
-    setSnapIndex(initialSnap === 1.0 ? 1 : 0);
-  }, [initialSnap]);
-
   // 조건부 렌더링은 모든 Hook 호출 이후에
   if (!restaurant) return null;
 

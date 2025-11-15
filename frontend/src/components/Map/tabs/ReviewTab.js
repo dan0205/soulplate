@@ -18,7 +18,7 @@ const ReviewTab = ({ businessId }) => {
       const currentPage = loadMore ? page + 1 : 1;
       const response = await businessAPI.getReviews(businessId, {
         sort: sortBy,
-        offset: (currentPage - 1) * 10,
+        skip: (currentPage - 1) * 10,  // offset → skip (백엔드 파라미터명과 일치)
         limit: 10
       });
       
