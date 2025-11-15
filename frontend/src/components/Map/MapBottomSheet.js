@@ -20,13 +20,13 @@ const MapBottomSheet = ({ restaurant, onClose }) => {
     <BottomSheet
       open={!!restaurant}
       onDismiss={onClose}
-      defaultSnap={({ maxHeight }) => maxHeight * 0.3}
+      defaultSnap={({ maxHeight }) => maxHeight * 0.5}
       snapPoints={({ maxHeight }) => [
-        maxHeight * 0.1, // 최소화
-        maxHeight * 0.3, // 기본
-        maxHeight * 0.9, // 전체
+        maxHeight * 0.5, // 50% (기본)
+        maxHeight * 0.95, // 95% (거의 전체)
       ]}
       blocking={false}
+      expandOnContentDrag={true}
       className="map-bottom-sheet"
     >
       <div className="bottom-sheet-content">
@@ -82,9 +82,9 @@ const MapBottomSheet = ({ restaurant, onClose }) => {
             </button>
             <button 
               className="action-btn primary"
-              onClick={() => window.location.href = `/business/${restaurant.id}`}
+              onClick={() => window.open(`/business/${restaurant.id}`, '_blank')}
             >
-              📋 상세보기
+              📋 상세보기 (새 탭)
             </button>
           </div>
 

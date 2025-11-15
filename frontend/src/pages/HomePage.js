@@ -9,6 +9,7 @@ import { businessAPI, userAPI } from '../services/api';
 import TasteTestModal from '../components/TasteTestModal';
 import MapView from '../components/Map/MapView';
 import MapToggle from '../components/Map/MapToggle';
+import MapBottomSheet from '../components/Map/MapBottomSheet';
 import './Home.css';
 
 const HomePage = () => {
@@ -23,6 +24,7 @@ const HomePage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
   const [mapRestaurants, setMapRestaurants] = useState([]); // 지도용 레스토랑 데이터
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null); // 선택된 레스토랑 (하단 시트용)
   const itemsPerPage = 20;
   
   const { user, logout } = useAuth();
@@ -272,12 +274,18 @@ const HomePage = () => {
 
       {/* 지도 뷰 */}
       {viewMode === 'map' ? (
-        <MapView 
-          restaurants={restaurantsForMap}
-          onRestaurantSelect={(restaurant) => navigate(`/business/${restaurant.id}`)}
-          onLocationChange={handleMapLocationChange}
-          loading={loading}
-        />
+        <>
+          <MapView 
+            restaurants={restaurantsForMap}
+            onRestaurantSelect={setSelectedRestaurant}
+            onLocationChange={handleMapLocationChange}
+            loading={loading}
+          />
+          <MapBottomSheet 
+            restaurant={selectedRestaurant}
+            onClose={() => setSelectedRestaurant(null)}
+          />
+        </>
       ) : (
         <main className="home-main">
         <div className="recommendations-header">
