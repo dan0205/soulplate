@@ -22,7 +22,6 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
-  const [mapCenter, setMapCenter] = useState({ lat: 37.2809, lng: 127.0445 }); // 지도 중심 좌표
   const [mapRestaurants, setMapRestaurants] = useState([]); // 지도용 레스토랑 데이터
   const itemsPerPage = 20;
   
@@ -54,13 +53,7 @@ const HomePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, sortBy, debouncedSearch, viewMode]);
 
-  // 지도 뷰일 때 초기 데이터 로드
-  useEffect(() => {
-    if (viewMode === 'map') {
-      loadMapRestaurants(mapCenter.lat, mapCenter.lng);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode]);
+  // 지도 뷰일 때는 MapView 내부에서 초기 위치 기반으로 자동 로드됨
 
   useEffect(() => {
     checkUserStatus();
@@ -243,7 +236,6 @@ const HomePage = () => {
 
   // 지도 위치 변경 핸들러
   const handleMapLocationChange = (lat, lng) => {
-    setMapCenter({ lat, lng });
     loadMapRestaurants(lat, lng);
   };
 

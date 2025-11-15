@@ -674,6 +674,21 @@ async def get_businesses(
     
     # 각 비즈니스에 상위 ABSA 특징 추가
     result = []
+    
+    # N+1 쿼리 문제 해결: 모든 예측값을 한 번에 가져오기
+    predictions_map = {}
+    if current_user and businesses:
+        business_ids = [b.id for b in businesses]
+        cached_predictions = db.query(models.UserBusinessPrediction).filter(
+            and_(
+                models.UserBusinessPrediction.user_id == current_user.id,
+                models.UserBusinessPrediction.business_id.in_(business_ids)
+            )
+        ).all()
+        
+        # business_id를 키로 하는 딕셔너리로 변환
+        predictions_map = {pred.business_id: pred for pred in cached_predictions}
+    
     for business in businesses:
         # ABSA features 가져오기
         absa_dict = business.absa_features
@@ -693,25 +708,14 @@ async def get_businesses(
             "top_features": get_top_absa_features(absa_dict)
         }
         
-        # 로그인 사용자면 캐시된 AI 예측 추가
-        if current_user:
-            cached_pred = db.query(models.UserBusinessPrediction).filter(
-                and_(
-                    models.UserBusinessPrediction.user_id == current_user.id,
-                    models.UserBusinessPrediction.business_id == business.id
-                )
-            ).first()
-            
-            if cached_pred:
-                # 캐시된 예측값 사용
-                business_dict["ai_prediction"] = schemas.AIPrediction(
-                    deepfm_rating=cached_pred.deepfm_score,
-                    multitower_rating=cached_pred.multitower_score,
-                    ensemble_rating=(cached_pred.deepfm_score + (cached_pred.multitower_score or cached_pred.deepfm_score)) / 2
-                )
-            else:
-                # 예측값이 없으면 fallback (실시간 계산은 너무 느리므로 생략)
-                logger.debug(f"No cached prediction for user {current_user.id}, business {business.id}")
+        # 로그인 사용자면 캐시된 AI 예측 추가 (이미 가져온 데이터 사용)
+        if current_user and business.id in predictions_map:
+            cached_pred = predictions_map[business.id]
+            business_dict["ai_prediction"] = schemas.AIPrediction(
+                deepfm_rating=cached_pred.deepfm_score,
+                multitower_rating=cached_pred.multitower_score,
+                ensemble_rating=(cached_pred.deepfm_score + (cached_pred.multitower_score or cached_pred.deepfm_score)) / 2
+            )
         
         result.append(schemas.BusinessResponse(**business_dict))
     
