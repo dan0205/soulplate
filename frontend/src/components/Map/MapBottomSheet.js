@@ -11,7 +11,7 @@ import PhotoTab from './tabs/PhotoTab';
 
 const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
   // Hook은 항상 최상단에서 호출
-  const [snapIndex, setSnapIndex] = useState(0); // 0: 50%, 1: 100%
+  const [snapIndex, setSnapIndex] = useState(initialSnap === 1.0 ? 1 : 0); // 0: 50%, 1: 100%
 
   // 조건부 렌더링은 Hook 호출 이후에
   if (!restaurant) return null;
@@ -33,10 +33,16 @@ const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
         maxHeight, // 100% (전체 화면)
       ]}
       onSpringEnd={(event) => {
+        // 이벤트 디버깅
+        console.log('onSpringEnd event:', event);
         if (event.type === 'SNAP') {
-          // snapIndex 계산: 50%면 0, 100%면 1
-          const currentHeight = event.source;
-          setSnapIndex(currentHeight > 0.7 ? 1 : 0);
+          // spring의 현재 값으로 snap 상태 판단
+          const height = event.spring?.get();
+          console.log('Current height:', height);
+          // 높이가 70% 이상이면 100% snap으로 간주
+          if (height && typeof height === 'number') {
+            setSnapIndex(height > 0.7 ? 1 : 0);
+          }
         }
       }}
       blocking={false}
