@@ -10,9 +10,11 @@ import ReviewTab from './tabs/ReviewTab';
 import PhotoTab from './tabs/PhotoTab';
 
 const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
-  if (!restaurant) return null;
-
+  // Hook은 항상 최상단에서 호출
   const [snapIndex, setSnapIndex] = useState(0); // 0: 50%, 1: 100%
+
+  // 조건부 렌더링은 Hook 호출 이후에
+  if (!restaurant) return null;
 
   // DeepFM과 Multi-Tower 점수 추출
   const deepfmScore = restaurant.ai_prediction || restaurant.stars || 0;
