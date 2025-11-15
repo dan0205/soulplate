@@ -85,7 +85,6 @@ const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
       ]}
       blocking={false}
       expandOnContentDrag={true}
-      header={false} // 자동 헤더 비활성화
       className="map-bottom-sheet"
     >
       <div className={`bottom-sheet-content ${isHalfSnap ? 'snap-50' : 'snap-100'}`}>
