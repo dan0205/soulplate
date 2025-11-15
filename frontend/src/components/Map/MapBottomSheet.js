@@ -35,13 +35,28 @@ const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
       }
     });
 
-    // BottomSheet의 실제 DOM 요소 찾기
+    // BottomSheet의 실제 DOM 요소 찾기 (여러 선택자 시도)
     const findSheetElement = () => {
-      const sheetElement = document.querySelector('[data-rsbs-root]');
-      if (sheetElement) {
-        observer.observe(sheetElement);
-        return true;
+      const selectors = [
+        '[data-rsbs-overlay]',
+        '[data-rsbs-backdrop]',
+        '[data-rsbs-scroll]',
+        '[data-rsbs-root]',
+        '.rsbs-overlay',
+        '.map-bottom-sheet [role="dialog"]',
+      ];
+      
+      for (const selector of selectors) {
+        const element = document.querySelector(selector);
+        if (element && element.offsetHeight > 0) {
+          console.log('Found BottomSheet element with selector:', selector);
+          console.log('Element height:', element.offsetHeight);
+          observer.observe(element);
+          return true;
+        }
       }
+      
+      console.warn('Could not find BottomSheet element with any selector');
       return false;
     };
 
