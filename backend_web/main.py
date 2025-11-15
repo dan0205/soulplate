@@ -496,6 +496,98 @@ async def get_user_reviews(
 # Business Endpoints
 # ============================================================================
 
+@app.get("/api/businesses/map")
+async def get_businesses_for_map(
+    lat: Optional[float] = None,
+    lng: Optional[float] = None,
+    radius: Optional[float] = 10.0,  # km 단위
+    limit: int = 100,
+    korea_only: bool = True,  # 기본값: 한국 레스토랑만
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user_optional)
+):
+    """
+    지도용 레스토랑 목록 조회
+    lat, lng가 제공되면 해당 위치 주변 radius km 이내의 레스토랑 반환
+    제공되지 않으면 모든 레스토랑 반환 (최대 limit개)
+    latitude/longitude가 null인 레스토랑은 자동 제외
+    """
+    from sqlalchemy import and_
+    
+    query = db.query(models.Business)
+    
+    # latitude/longitude가 null인 데이터 제외 (필수)
+    query = query.filter(
+        and_(
+            models.Business.latitude.isnot(None),
+            models.Business.longitude.isnot(None)
+        )
+    )
+    
+    # 한국 레스토랑만 필터링 (옵션)
+    if korea_only:
+        query = query.filter(
+            and_(
+                models.Business.latitude.between(33, 43),  # 한국 위도 범위
+                models.Business.longitude.between(124, 132)  # 한국 경도 범위
+            )
+        )
+    
+    # 위치 기반 필터링
+    if lat is not None and lng is not None:
+        # 간단한 거리 계산 (하버사인 공식의 근사)
+        # 위도 1도 ≈ 111km, 경도 1도 ≈ 88km (한국 기준)
+        lat_delta = radius / 111.0
+        lng_delta = radius / 88.0
+        
+        query = query.filter(
+            and_(
+                models.Business.latitude.between(lat - lat_delta, lat + lat_delta),
+                models.Business.longitude.between(lng - lng_delta, lng + lng_delta)
+            )
+        )
+    
+    businesses = query.limit(limit).all()
+    
+    # 각 비즈니스를 지도용 포맷으로 변환
+    result = []
+    for business in businesses:
+        business_dict = {
+            "id": business.id,
+            "business_id": business.business_id,
+            "name": business.name,
+            "categories": business.categories,
+            "stars": business.stars,
+            "review_count": business.review_count,
+            "address": business.address,
+            "city": business.city,
+            "state": business.state,
+            "latitude": business.latitude,
+            "longitude": business.longitude,
+            "absa_food_avg": business.absa_features.get('음식_긍정', 0) if business.absa_features else 0,
+            "absa_service_avg": business.absa_features.get('서비스_긍정', 0) if business.absa_features else 0,
+            "absa_atmosphere_avg": business.absa_features.get('분위기_긍정', 0) if business.absa_features else 0,
+        }
+        
+        # 로그인 사용자면 캐시된 AI 예측 추가
+        if current_user:
+            cached_pred = db.query(models.UserBusinessPrediction).filter(
+                and_(
+                    models.UserBusinessPrediction.user_id == current_user.id,
+                    models.UserBusinessPrediction.business_id == business.id
+                )
+            ).first()
+            
+            if cached_pred:
+                business_dict["ai_prediction"] = {
+                    "deepfm_rating": cached_pred.deepfm_score,
+                    "multitower_rating": cached_pred.multitower_score,
+                }
+        
+        result.append(business_dict)
+    
+    return {"businesses": result, "count": len(result)}
+
 @app.get("/api/businesses", response_model=schemas.BusinessListResponse)
 async def get_businesses(
     skip: int = 0,

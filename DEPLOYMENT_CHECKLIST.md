@@ -15,58 +15,58 @@ Railway 한 곳에서 백엔드 2개 + PostgreSQL을 모두 관리합니다!
 
 ### A. Railway 프로젝트 생성
 
-- [ ] Railway 계정 생성/로그인 (https://railway.app)
-- [ ] GitHub 계정으로 로그인
-- [ ] "New Project" 클릭
-- [ ] "Deploy from GitHub repo" 선택
-- [ ] 저장소 선택: `dan0205/soulplate`
+- [ o] Railway 계정 생성/로그인 (https://railway.app)
+- [o ] GitHub 계정으로 로그인
+- [o ] "New Project" 클릭
+- [o ] "Deploy from GitHub repo" 선택
+- [o ] 저장소 선택: `dan0205/soulplate`
 
 ### B. PostgreSQL 데이터베이스 추가
 
-- [ ] 프로젝트 대시보드에서 "+ New" 클릭
-- [ ] "Database" → "PostgreSQL" 선택
-- [ ] 자동 생성 대기 (1-2분)
-- [ ] PostgreSQL 서비스 클릭
-- [ ] "Variables" 탭 선택
-- [ ] DATABASE_URL 복사
+- [o ] 프로젝트 대시보드에서 "+ New" 클릭
+- [o ] "Database" → "PostgreSQL" 선택
+- [ o] 자동 생성 대기 (1-2분)
+- [ o] PostgreSQL 서비스 클릭
+- [ o] "Variables" 탭 선택
+- [o ] DATABASE_URL 복사
 
-**DATABASE_URL**: _______________________________________________
+**DATABASE_URL**: postgresql://postgres:fYHkhuVDnSfOqBOmpAEqigXEsqlRIDEX@postgres.railway.internal:5432/railway
 
 ### C. Model Backend 서비스 추가
 
-- [ ] 프로젝트 대시보드에서 "+ New" 클릭
-- [ ] "GitHub Repo" 선택 → 같은 저장소
-- [ ] "Settings" → "Service Settings" 이동
-- [ ] **Root Directory** 설정: `backend_model`
-- [ ] **Start Command** 설정: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- [ ] "Deploy" 클릭
-- [ ] 배포 완료 대기 (2-3분)
-- [ ] "Settings" → "Networking" 이동
-- [ ] "Public Networking" 활성화
-- [ ] 배포 URL 복사
+- [o ] 프로젝트 대시보드에서 "+ New" 클릭
+- [o ] "GitHub Repo" 선택 → 같은 저장소
+- [o ] "Settings" → "Service Settings" 이동
+- [o ] **Root Directory** 설정: `backend_model`
+- [o ] **Start Command** 설정: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- [o ] "Deploy" 클릭
+- [o ] 배포 완료 대기 (2-3분)
+- [o ] "Settings" → "Networking" 이동
+- [o ] "Public Networking" 활성화
+- [o ] 배포 URL 복사
 
-**Model Backend URL**: _______________________________________________
+**Model Backend URL**: backendmodel-production-77a7.up.railway.app
 
 ### D. Web Backend 서비스 추가
 
-- [ ] 프로젝트 대시보드에서 "+ New" 클릭
-- [ ] "GitHub Repo" 선택 → 같은 저장소
-- [ ] "Settings" → "Service Settings" 이동
-- [ ] **Root Directory** 설정: `backend_web`
-- [ ] **Start Command** 설정: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- [o ] 프로젝트 대시보드에서 "+ New" 클릭
+- [o ] "GitHub Repo" 선택 → 같은 저장소
+- [o ] "Settings" → "Service Settings" 이동
+- [o ] **Root Directory** 설정: `backend_web`
+- [o ] **Start Command** 설정: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 - [ ] "Variables" 탭에서 환경 변수 설정:
-  - [ ] `DATABASE_URL`: (B에서 복사한 값)
-  - [ ] `SECRET_KEY`: (아래 명령어로 생성)
-  - [ ] `ALGORITHM`: `HS256`
-  - [ ] `ACCESS_TOKEN_EXPIRE_MINUTES`: `30`
-  - [ ] `MODEL_API_URL`: (C에서 복사한 Model Backend URL)
-- [ ] "Deploy" 클릭
-- [ ] 배포 완료 대기 (2-3분)
-- [ ] "Settings" → "Networking" 이동
-- [ ] "Public Networking" 활성화
-- [ ] 배포 URL 복사
+  - [o ] `DATABASE_URL`: (B에서 복사한 값)
+  - [o ] `SECRET_KEY`: (아래 명령어로 생성)
+  - [o ] `ALGORITHM`: `HS256`
+  - [o ] `ACCESS_TOKEN_EXPIRE_MINUTES`: `30`
+  - [o ] `MODEL_API_URL`: (C에서 복사한 Model Backend URL)
+- [o ] "Deploy" 클릭
+- [o ] 배포 완료 대기 (2-3분)
+- [o ] "Settings" → "Networking" 이동
+- [o ] "Public Networking" 활성화
+- [o ] 배포 URL 복사
 
-**Web Backend URL**: _______________________________________________
+**Web Backend URL**: backendweb-production-7b6c.up.railway.app
 
 **SECRET_KEY 생성**:
 ```bash
@@ -83,21 +83,21 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 
 ## 2단계: Vercel에 프론트엔드 배포
 
-- [ ] Vercel 계정 생성/로그인 (https://vercel.com)
-- [ ] GitHub 계정으로 로그인
-- [ ] "Add New" → "Project" 클릭
-- [ ] GitHub에서 `dan0205/soulplate` 저장소 Import
-- [ ] Framework: Create React App (자동 감지)
-- [ ] **Root Directory** 설정: `frontend`
-- [ ] Build/Output directory 확인 (자동 설정됨)
-- [ ] 환경 변수 추가:
-  - [ ] Name: `REACT_APP_API_URL`
-  - [ ] Value: `<Web Backend URL>/api` (예: `https://backend-web-production-xxxx.up.railway.app/api`)
-- [ ] "Deploy" 클릭
-- [ ] 배포 완료 대기 (2-3분)
-- [ ] 배포 URL 확인
+- [o ] Vercel 계정 생성/로그인 (https://vercel.com)
+- [o ] GitHub 계정으로 로그인
+- [o ] "Add New" → "Project" 클릭
+- [o ] GitHub에서 `dan0205/soulplate` 저장소 Import
+- [o ] Framework: Create React App (자동 감지)
+- [o ] **Root Directory** 설정: `frontend`
+- [o ] Build/Output directory 확인 (자동 설정됨)
+- [o ] 환경 변수 추가:
+  - [o ] Name: `REACT_APP_API_URL`
+  - [x] Value: `https://backendweb-production-7b6c.up.railway.app/api`
+- [x] "Deploy" 클릭
+- [x] 배포 완료 대기 (2-3분)
+- [x] 배포 URL 확인
 
-**Frontend URL**: _______________________________________________
+**Frontend URL**: https://soulplate.vercel.app
 
 ## 3단계: CORS 설정 업데이트
 

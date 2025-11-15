@@ -14,8 +14,15 @@ import MyProfilePage from './pages/MyProfilePage';
 import UserProfilePage from './pages/UserProfilePage';
 import TasteTestPage from './pages/TasteTestPage';
 import TasteTestResultPage from './pages/TasteTestResultPage';
+import { useKakaoLoader } from 'react-kakao-maps-sdk';
 
 function App() {
+  // 카카오맵 SDK 로드
+  useKakaoLoader({
+    appkey: process.env.REACT_APP_KAKAO_MAP_KEY || '',
+    libraries: ['services', 'clusterer'],
+  });
+
   return (
     <Router>
       <AuthProvider>

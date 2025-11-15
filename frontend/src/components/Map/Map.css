@@ -1,0 +1,285 @@
+/* 지도 컨테이너 */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 지도 로딩 오버레이 */
+.map-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.map-loading-overlay .spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 지도/리스트 토글 버튼 */
+.map-toggle-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+  background: white;
+  padding: 8px;
+  border-radius: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 24px;
+  background: white;
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+}
+
+.toggle-btn.active {
+  background: #667eea;
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.toggle-btn:hover:not(.active) {
+  background: #f5f7fa;
+}
+
+/* 하단 시트 스타일 */
+.map-bottom-sheet {
+  z-index: 999;
+}
+
+.bottom-sheet-content {
+  padding: 20px;
+  background: white;
+}
+
+.bottom-sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.bottom-sheet-header {
+  margin-bottom: 20px;
+}
+
+.bottom-sheet-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.restaurant-badges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ai-score-badge,
+.stars-badge {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+
+.stars-badge {
+  background: #FFD700;
+  color: #333;
+}
+
+/* 레스토랑 정보 */
+.restaurant-info {
+  margin-bottom: 20px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #666;
+  flex: 1;
+}
+
+/* 액션 버튼 */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 14px 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: white;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: #f5f7fa;
+  border-color: #667eea;
+}
+
+.action-btn.primary {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.action-btn.primary:hover {
+  background: #5568d3;
+}
+
+/* ABSA 특징 */
+.absa-features {
+  margin-top: 20px;
+}
+
+.absa-features h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.feature-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feature-label {
+  font-size: 13px;
+  color: #666;
+  min-width: 60px;
+}
+
+.feature-progress {
+  flex: 1;
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.feature-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #8b9df7);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.feature-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #667eea;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 767px) {
+  .map-toggle-container {
+    bottom: 10px;
+  }
+
+  .toggle-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+    min-width: 90px;
+  }
+
+  .bottom-sheet-content {
+    padding: 15px;
+  }
+
+  .bottom-sheet-header h2 {
+    font-size: 20px;
+  }
+
+  .action-btn {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+}
+
+/* 태블릿 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .toggle-btn {
+    min-width: 110px;
+  }
+}
+
+/* 데스크톱 */
+@media (min-width: 1024px) {
+  .map-toggle-container {
+    bottom: 30px;
+  }
+
+  .toggle-btn {
+    padding: 14px 28px;
+    font-size: 15px;
+    min-width: 120px;
+  }
+}
+

@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import csv
 import json
+from dotenv import load_dotenv
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "backend_web"))
@@ -18,11 +19,17 @@ from models import Review
 import logging
 from tqdm import tqdm
 
+# .env 파일 로드
+load_dotenv(project_root / ".env")
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-LOCAL_URL = "postgresql://two_tower_user:twotower2024@localhost:5432/two_tower_db"
-RAILWAY_URL = "postgresql://postgres:fYHkhuVDnSfOqBOmpAEqigXEsqlRIDEX@crossover.proxy.rlwy.net:47399/railway"
+LOCAL_URL = os.getenv("LOCAL_DATABASE_URL")
+RAILWAY_URL = os.getenv("RAILWAY_DATABASE_URL")
+
+if not LOCAL_URL or not RAILWAY_URL:
+    raise ValueError("환경 변수 LOCAL_DATABASE_URL 및 RAILWAY_DATABASE_URL이 설정되지 않았습니다.")
 
 
 def export_reviews():

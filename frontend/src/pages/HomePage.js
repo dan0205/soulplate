@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { businessAPI, userAPI } from '../services/api';
 import TasteTestModal from '../components/TasteTestModal';
+import MapView from '../components/Map/MapView';
+import MapToggle from '../components/Map/MapToggle';
 import './Home.css';
 
 const HomePage = () => {
@@ -19,6 +21,9 @@ const HomePage = () => {
   const [showTasteTestModal, setShowTasteTestModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
+  const [mapCenter, setMapCenter] = useState({ lat: 37.2809, lng: 127.0445 }); // 지도 중심 좌표
+  const [mapRestaurants, setMapRestaurants] = useState([]); // 지도용 레스토랑 데이터
   const itemsPerPage = 20;
   
   const { user, logout } = useAuth();
@@ -43,9 +48,19 @@ const HomePage = () => {
 
   // 검색어 또는 페이지, 정렬 변경 시 데이터 로드
   useEffect(() => {
-    loadRecommendations();
+    if (viewMode === 'list') {
+      loadRecommendations();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, sortBy, debouncedSearch]);
+  }, [currentPage, sortBy, debouncedSearch, viewMode]);
+
+  // 지도 뷰일 때 초기 데이터 로드
+  useEffect(() => {
+    if (viewMode === 'map') {
+      loadMapRestaurants(mapCenter.lat, mapCenter.lng);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]);
 
   useEffect(() => {
     checkUserStatus();
@@ -101,6 +116,42 @@ const HomePage = () => {
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to load businesses');
       console.error('Error loading businesses:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 지도용 레스토랑 로드
+  const loadMapRestaurants = async (lat, lng) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await businessAPI.getForMap({
+        lat,
+        lng,
+        radius: 10, // 10km 반경
+        limit: 100
+      });
+      
+      const { businesses } = response.data;
+      
+      // 위도/경도가 null인 레스토랑 필터링
+      const validBusinesses = businesses.filter(
+        b => b.latitude !== null && b.longitude !== null
+      );
+      
+      // 지도용 데이터로 변환
+      const mapData = validBusinesses.map(business => ({
+        business: business,
+        score: null,
+        prediction: business.ai_prediction || null
+      }));
+      
+      setMapRestaurants(mapData);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to load map restaurants');
+      console.error('Error loading map restaurants:', err);
     } finally {
       setLoading(false);
     }
@@ -190,10 +241,33 @@ const HomePage = () => {
     setDebouncedSearch('');
   };
 
+  // 지도 위치 변경 핸들러
+  const handleMapLocationChange = (lat, lng) => {
+    setMapCenter({ lat, lng });
+    loadMapRestaurants(lat, lng);
+  };
+
+  // 지도용 레스토랑 데이터 변환
+  const dataToUse = viewMode === 'map' ? mapRestaurants : recommendations;
+  const restaurantsForMap = dataToUse.map(item => ({
+    id: item.business.business_id,
+    name: item.business.name,
+    latitude: item.business.latitude,
+    longitude: item.business.longitude,
+    stars: item.business.stars,
+    ai_prediction: item.business.ai_prediction?.deepfm_rating || item.business.stars,
+    categories: item.business.categories,
+    address: item.business.address || `${item.business.city}, ${item.business.state}`,
+    review_count: item.business.review_count,
+    absa_food_avg: item.business.absa_food_avg,
+    absa_service_avg: item.business.absa_service_avg,
+    absa_atmosphere_avg: item.business.absa_atmosphere_avg,
+  }));
+
   return (
     <div className="home-container">
       <header className="home-header">
-        <h1>Souplate</h1>
+        <h1>SoulPlate</h1>
         <div className="user-info">
           <button onClick={() => navigate('/my-profile')} className="btn-profile">My Profile</button>
           <span>Welcome, {user?.username}!</span>
@@ -201,7 +275,19 @@ const HomePage = () => {
         </div>
       </header>
 
-      <main className="home-main">
+      {/* 지도/리스트 토글 버튼 */}
+      <MapToggle viewMode={viewMode} onToggle={setViewMode} />
+
+      {/* 지도 뷰 */}
+      {viewMode === 'map' ? (
+        <MapView 
+          restaurants={restaurantsForMap}
+          onRestaurantSelect={(restaurant) => navigate(`/business/${restaurant.id}`)}
+          onLocationChange={handleMapLocationChange}
+          loading={loading}
+        />
+      ) : (
+        <main className="home-main">
         <div className="recommendations-header">
           <h2>🏪 Restaurant List</h2>
           
@@ -338,7 +424,8 @@ const HomePage = () => {
             )}
           </>
         )}
-      </main>
+        </main>
+      )}
 
       {showTasteTestModal && (
         <TasteTestModal onClose={() => setShowTasteTestModal(false)} />

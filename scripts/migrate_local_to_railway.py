@@ -7,10 +7,14 @@
 import sys
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # 프로젝트 루트를 Python path에 추가
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "backend_web"))
+
+# .env 파일 로드
+load_dotenv(project_root / ".env")
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -26,10 +30,13 @@ logger = logging.getLogger(__name__)
 
 
 # 로컬 PostgreSQL 연결 정보
-LOCAL_DATABASE_URL = "postgresql://two_tower_user:twotower2024@localhost:5432/two_tower_db"
+LOCAL_DATABASE_URL = os.getenv("LOCAL_DATABASE_URL")
 
 # Railway PostgreSQL 연결 정보 (외부 접속)
-RAILWAY_DATABASE_URL = "postgresql://postgres:fYHkhuVDnSfOqBOmpAEqigXEsqlRIDEX@crossover.proxy.rlwy.net:47399/railway?connect_timeout=30&keepalives=1&keepalives_idle=30&keepalives_interval=10&keepalives_count=5"
+RAILWAY_DATABASE_URL = os.getenv("RAILWAY_DATABASE_URL")
+
+if not LOCAL_DATABASE_URL or not RAILWAY_DATABASE_URL:
+    raise ValueError("환경 변수 LOCAL_DATABASE_URL 및 RAILWAY_DATABASE_URL이 설정되지 않았습니다.")
 
 
 def test_connection(db_url, name):
