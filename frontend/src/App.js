@@ -9,7 +9,6 @@ import PrivateRoute from './components/PrivateRoute';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
-import BusinessDetailPage from './pages/BusinessDetailPage';
 import MyProfilePage from './pages/MyProfilePage';
 import UserProfilePage from './pages/UserProfilePage';
 import TasteTestPage from './pages/TasteTestPage';
@@ -34,14 +33,6 @@ function App() {
             element={
               <PrivateRoute>
                 <HomePage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/business/:businessId"
-            element={
-              <PrivateRoute>
-                <BusinessDetailPage />
               </PrivateRoute>
             }
           />

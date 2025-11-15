@@ -219,8 +219,27 @@ const HomePage = () => {
     return pages;
   };
 
-  const handleBusinessClick = (businessId) => {
-    navigate(`/business/${businessId}`);
+  const handleBusinessClick = (business) => {
+    // 레스토랑 데이터를 맵 마커 형식으로 변환
+    const restaurantData = {
+      id: business.business_id,
+      name: business.name,
+      latitude: business.latitude,
+      longitude: business.longitude,
+      stars: business.stars,
+      ai_prediction: business.ai_prediction?.deepfm_rating || business.stars,
+      multitower_rating: business.ai_prediction?.multitower_rating || business.ai_prediction?.deepfm_rating || business.stars,
+      categories: business.categories,
+      address: business.address || `${business.city}, ${business.state}`,
+      review_count: business.review_count,
+      absa_food_avg: business.absa_food_avg,
+      absa_service_avg: business.absa_service_avg,
+      absa_atmosphere_avg: business.absa_atmosphere_avg,
+    };
+    
+    // 지도 뷰로 전환하고 하단 시트 표시
+    setSelectedRestaurant(restaurantData);
+    setViewMode('map');
   };
 
   const handleSortChange = (newSortBy) => {
@@ -360,7 +379,7 @@ const HomePage = () => {
                   <div
                     key={item.business.business_id}
                     className="business-card"
-                    onClick={() => handleBusinessClick(item.business.business_id)}
+                    onClick={() => handleBusinessClick(item.business)}
                   >
                     <div className="card-rank">#{(currentPage - 1) * itemsPerPage + index + 1}</div>
                     <h3>{item.business.name}</h3>

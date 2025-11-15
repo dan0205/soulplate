@@ -1,10 +1,20 @@
 import React from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-spring-bottom-sheet/dist/style.css';
+import 'react-tabs/style/react-tabs.css';
 import './Map.css';
+import HomeTab from './tabs/HomeTab';
+import MenuTab from './tabs/MenuTab';
+import ReviewTab from './tabs/ReviewTab';
+import PhotoTab from './tabs/PhotoTab';
 
 const MapBottomSheet = ({ restaurant, onClose }) => {
   if (!restaurant) return null;
+
+  // DeepFM과 Multi-Tower 점수 추출
+  const deepfmScore = restaurant.ai_prediction || restaurant.stars || 0;
+  const multitowerScore = restaurant.multitower_rating || deepfmScore;
 
   const getMarkerColor = (aiScore) => {
     if (aiScore >= 4.5) return '#FF4444';
@@ -12,9 +22,6 @@ const MapBottomSheet = ({ restaurant, onClose }) => {
     if (aiScore >= 3.5) return '#FFD700';
     return '#CCCCCC';
   };
-
-  const aiScore = restaurant.ai_prediction || restaurant.stars || 0;
-  const markerColor = getMarkerColor(aiScore);
 
   return (
     <BottomSheet
@@ -33,46 +40,43 @@ const MapBottomSheet = ({ restaurant, onClose }) => {
         {/* 드래그 핸들 */}
         <div className="bottom-sheet-handle" />
 
-        {/* 레스토랑 정보 */}
-        <div className="bottom-sheet-header">
-          <h2>{restaurant.name}</h2>
-          <div className="restaurant-badges">
-            <span 
-              className="ai-score-badge" 
-              style={{ backgroundColor: markerColor }}
-            >
-              AI {aiScore.toFixed(1)}
+        {/* 고정 헤더: 음식점 이름 */}
+        <div className="sheet-header-fixed">
+          <div className="restaurant-name">
+            <h2>{restaurant.name}</h2>
+          </div>
+
+          {/* AI 점수 표시 */}
+          <div className="ai-scores">
+            <span className="score-badge deepfm">
+              DeepFM {deepfmScore.toFixed(1)}
             </span>
-            <span className="stars-badge">
-              ⭐ {(restaurant.stars || 0).toFixed(1)}
+            <span className="score-badge multitower">
+              Multi {multitowerScore.toFixed(1)}
             </span>
           </div>
-        </div>
 
-        <div className="bottom-sheet-body">
-          {/* 기본 정보 */}
-          <div className="restaurant-info">
-            {restaurant.address && (
-              <div className="info-row">
-                <span className="info-icon">📍</span>
-                <span className="info-text">{restaurant.address}</span>
-              </div>
-            )}
-            {restaurant.categories && (
-              <div className="info-row">
-                <span className="info-icon">🍽️</span>
-                <span className="info-text">{restaurant.categories}</span>
-              </div>
-            )}
+          {/* 카테고리 + 리뷰 수 */}
+          <div className="restaurant-meta">
+            <span className="category">{restaurant.categories}</span>
             {restaurant.review_count && (
-              <div className="info-row">
-                <span className="info-icon">💬</span>
-                <span className="info-text">리뷰 {restaurant.review_count}개</span>
-              </div>
+              <span className="review-count"> · 리뷰 {restaurant.review_count}개</span>
             )}
           </div>
 
-          {/* 액션 버튼 */}
+          {/* 주소 */}
+          {restaurant.address && (
+            <div className="restaurant-address">
+              📍 {restaurant.address}
+            </div>
+          )}
+
+          {/* 빈 사진 영역 */}
+          <div className="photo-placeholder">
+            사진 없음
+          </div>
+
+          {/* 액션 버튼 (50% 상태용) */}
           <div className="action-buttons">
             <button 
               className="action-btn"
@@ -81,57 +85,40 @@ const MapBottomSheet = ({ restaurant, onClose }) => {
               🚗 길찾기
             </button>
             <button 
-              className="action-btn primary"
-              onClick={() => window.open(`/business/${restaurant.id}`, '_blank')}
+              className="action-btn"
+              onClick={() => alert('전화번호 준비 중입니다')}
             >
-              📋 상세보기 (새 탭)
+              📞 전화
             </button>
           </div>
+        </div>
 
-          {/* ABSA 특징 (있는 경우) */}
-          {(restaurant.absa_food_avg || restaurant.absa_service_avg || restaurant.absa_atmosphere_avg) && (
-            <div className="absa-features">
-              <h3>리뷰 분석</h3>
-              <div className="feature-bars">
-                {restaurant.absa_food_avg && (
-                  <div className="feature-bar">
-                    <span className="feature-label">음식 맛</span>
-                    <div className="feature-progress">
-                      <div 
-                        className="feature-fill" 
-                        style={{ width: `${(restaurant.absa_food_avg + 1) * 50}%` }}
-                      />
-                    </div>
-                    <span className="feature-value">{restaurant.absa_food_avg.toFixed(1)}</span>
-                  </div>
-                )}
-                {restaurant.absa_service_avg && (
-                  <div className="feature-bar">
-                    <span className="feature-label">서비스</span>
-                    <div className="feature-progress">
-                      <div 
-                        className="feature-fill" 
-                        style={{ width: `${(restaurant.absa_service_avg + 1) * 50}%` }}
-                      />
-                    </div>
-                    <span className="feature-value">{restaurant.absa_service_avg.toFixed(1)}</span>
-                  </div>
-                )}
-                {restaurant.absa_atmosphere_avg && (
-                  <div className="feature-bar">
-                    <span className="feature-label">분위기</span>
-                    <div className="feature-progress">
-                      <div 
-                        className="feature-fill" 
-                        style={{ width: `${(restaurant.absa_atmosphere_avg + 1) * 50}%` }}
-                      />
-                    </div>
-                    <span className="feature-value">{restaurant.absa_atmosphere_avg.toFixed(1)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+        {/* 100% 카드: 탭 구조 */}
+        <div className="sheet-content-scroll">
+          <Tabs>
+            <TabList>
+              <Tab>홈</Tab>
+              <Tab>메뉴</Tab>
+              <Tab>리뷰</Tab>
+              <Tab>사진</Tab>
+            </TabList>
+
+            <TabPanel>
+              <HomeTab restaurant={restaurant} />
+            </TabPanel>
+
+            <TabPanel>
+              <MenuTab />
+            </TabPanel>
+
+            <TabPanel>
+              <ReviewTab businessId={restaurant.id} />
+            </TabPanel>
+
+            <TabPanel>
+              <PhotoTab />
+            </TabPanel>
+          </Tabs>
         </div>
       </div>
     </BottomSheet>

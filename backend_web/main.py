@@ -784,9 +784,10 @@ async def get_reviews(
     business_id: str,
     skip: int = 0,
     limit: int = 20,
+    sort: str = 'latest',  # 'latest' 또는 'useful'
     db: Session = Depends(get_db)
 ):
-    """비즈니스 리뷰 목록 조회"""
+    """비즈니스 리뷰 목록 조회 (정렬, 사용자 리뷰 수, ABSA 감정 포함)"""
     business = db.query(models.Business).filter(
         models.Business.business_id == business_id
     ).first()
@@ -795,13 +796,52 @@ async def get_reviews(
         raise HTTPException(status_code=404, detail="Business not found")
     
     # User 정보를 함께 로드 (username 포함)
-    reviews = db.query(models.Review).join(models.User).filter(
+    query = db.query(models.Review).join(models.User).filter(
         models.Review.business_id == business.id
-    ).order_by(models.Review.created_at.desc()).offset(skip).limit(limit).all()
+    )
     
-    # 각 리뷰에 username과 useful 추가
+    # 정렬 옵션
+    if sort == 'useful':
+        query = query.order_by(models.Review.useful.desc())
+    else:  # 'latest'
+        query = query.order_by(models.Review.created_at.desc())
+    
+    reviews = query.offset(skip).limit(limit).all()
+    
+    # 각 리뷰에 추가 정보 포함
     result = []
     for review in reviews:
+        # 사용자의 총 리뷰 수 계산
+        user_review_count = db.query(models.Review).filter(
+            models.Review.user_id == review.user_id
+        ).count()
+        
+        # ABSA 감정 점수 계산 (긍정: +2, 중립: 0, 부정: -1)
+        absa_sentiment = {}
+        if hasattr(review, 'absa_food') and review.absa_food is not None:
+            if review.absa_food > 0.3:
+                absa_sentiment['food'] = 2
+            elif review.absa_food > -0.3:
+                absa_sentiment['food'] = 0
+            else:
+                absa_sentiment['food'] = -1
+        
+        if hasattr(review, 'absa_service') and review.absa_service is not None:
+            if review.absa_service > 0.3:
+                absa_sentiment['service'] = 2
+            elif review.absa_service > -0.3:
+                absa_sentiment['service'] = 0
+            else:
+                absa_sentiment['service'] = -1
+        
+        if hasattr(review, 'absa_atmosphere') and review.absa_atmosphere is not None:
+            if review.absa_atmosphere > 0.3:
+                absa_sentiment['atmosphere'] = 2
+            elif review.absa_atmosphere > -0.3:
+                absa_sentiment['atmosphere'] = 0
+            else:
+                absa_sentiment['atmosphere'] = -1
+        
         review_dict = {
             "id": review.id,
             "user_id": review.user_id,
@@ -809,8 +849,10 @@ async def get_reviews(
             "stars": review.stars,
             "text": review.text,
             "created_at": review.created_at,
-            "username": review.user.username,  # User relationship을 통해 username 추가
-            "useful": review.useful or 0  # useful 값 추가
+            "username": review.user.username,
+            "useful": review.useful or 0,
+            "user_total_reviews": user_review_count,
+            "absa_sentiment": absa_sentiment if absa_sentiment else None
         }
         result.append(review_dict)
     
