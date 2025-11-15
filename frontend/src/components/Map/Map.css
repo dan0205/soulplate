@@ -92,20 +92,34 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
 }
 
-.bottom-sheet-handle {
-  width: 40px;
-  height: 4px;
-  background: #e0e0e0;
-  border-radius: 2px;
-  margin: 12px auto 0;
-}
-
-/* 고정 헤더 (50% 카드 전용) */
-.sheet-header-fixed {
+/* 50% 카드 스타일 */
+.sheet-50-content {
   padding: 20px;
+  overflow-y: auto;
+}
+
+/* 100% 카드 스타일 */
+.sheet-100-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sheet-header-minimal {
+  padding: 20px 20px 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
+}
+
+.sheet-header-minimal h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
 }
 
 .restaurant-name h2 {
@@ -290,32 +304,31 @@
   text-align: right;
 }
 
-/* 100% 카드: 탭 구조 */
-.sheet-content-scroll {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* React Tabs 스타일 */
-.react-tabs {
+/* React Tabs 스타일 (100% 카드 내부) */
+.sheet-100-content .react-tabs {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  overflow: hidden;
 }
 
-.react-tabs__tab-list {
+.sheet-100-content .react-tabs__tab-list {
   display: flex;
   border-bottom: 2px solid #e0e0e0;
   margin: 0;
   padding: 0 20px;
   background: white;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  flex-shrink: 0;
 }
 
-.react-tabs__tab {
+.sheet-100-content .react-tabs__tab-panel {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sheet-100-content .react-tabs__tab {
   flex: 1;
   padding: 12px;
   text-align: center;
@@ -331,32 +344,14 @@
   margin-bottom: -2px;
 }
 
-.react-tabs__tab:hover {
+.sheet-100-content .react-tabs__tab:hover {
   color: var(--primary);
 }
 
-.react-tabs__tab--selected {
+.sheet-100-content .react-tabs__tab--selected {
   color: var(--primary);
   border-bottom-color: var(--primary);
   font-weight: 600;
-}
-
-.react-tabs__tab-panel {
-  padding: 20px;
-  animation: slideIn 0.3s ease-out;
-  flex: 1;
-  overflow-y: auto;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 /* 홈 탭 스타일 */

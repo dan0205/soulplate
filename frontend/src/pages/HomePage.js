@@ -237,9 +237,9 @@ const HomePage = () => {
       absa_atmosphere_avg: business.absa_atmosphere_avg,
     };
     
-    // 지도 뷰로 전환하고 하단 시트 표시
+    // 리스트 뷰에서 클릭 시 하단 시트만 표시 (지도 전환 없음)
     setSelectedRestaurant(restaurantData);
-    setViewMode('map');
+    // setViewMode('map') 제거: 리스트 뷰 유지
   };
 
   const handleSortChange = (newSortBy) => {
@@ -288,18 +288,12 @@ const HomePage = () => {
 
       {/* 지도 뷰 */}
       {viewMode === 'map' ? (
-        <>
-          <MapView 
-            restaurants={restaurantsForMap}
-            onRestaurantSelect={setSelectedRestaurant}
-            onLocationChange={handleMapLocationChange}
-            loading={loading}
-          />
-          <MapBottomSheet 
-            restaurant={selectedRestaurant}
-            onClose={() => setSelectedRestaurant(null)}
-          />
-        </>
+        <MapView 
+          restaurants={restaurantsForMap}
+          onRestaurantSelect={setSelectedRestaurant}
+          onLocationChange={handleMapLocationChange}
+          loading={loading}
+        />
       ) : (
         <main className="home-main">
         <div className="recommendations-header">
@@ -440,6 +434,13 @@ const HomePage = () => {
         )}
         </main>
       )}
+
+      {/* 하단 시트: 지도/리스트 모두에서 표시 */}
+      <MapBottomSheet 
+        restaurant={selectedRestaurant}
+        onClose={() => setSelectedRestaurant(null)}
+        initialSnap={viewMode === 'list' ? 1.0 : 0.5} // 리스트 뷰에서는 100%로 시작
+      />
 
       {showTasteTestModal && (
         <TasteTestModal onClose={() => setShowTasteTestModal(false)} />

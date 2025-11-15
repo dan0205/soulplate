@@ -22,17 +22,22 @@ const ReviewTab = ({ businessId }) => {
         limit: 10
       });
       
+      // API 응답이 배열로 직접 오는 경우 처리
+      const reviewsData = Array.isArray(response.data) ? response.data : (response.data.reviews || []);
+      
       if (loadMore) {
-        setReviews([...reviews, ...response.data.reviews]);
+        setReviews([...reviews, ...reviewsData]);
         setPage(currentPage);
       } else {
-        setReviews(response.data.reviews);
+        setReviews(reviewsData);
         setPage(1);
       }
       
-      setHasMore(response.data.reviews.length === 10);
+      setHasMore(reviewsData.length === 10);
     } catch (error) {
       console.error('리뷰 로드 실패:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      setReviews([]); // 에러 시 빈 배열로 설정
     } finally {
       setLoading(false);
     }
@@ -64,13 +69,13 @@ const ReviewTab = ({ businessId }) => {
         <>
           <div className="reviews-list">
             {reviews.map((review) => (
-              <div key={review.review_id} className="review-item">
+              <div key={review.id || review.review_id} className="review-item">
                 <div className="review-header">
                   <div className="user-avatar">
-                    {review.user_name ? review.user_name.charAt(0).toUpperCase() : 'U'}
+                    {review.username ? review.username.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div className="user-info">
-                    <span className="user-name">{review.user_name || '익명'}</span>
+                    <span className="user-name">{review.username || '익명'}</span>
                     <span className="user-stats">리뷰 {review.user_total_reviews || 0}개</span>
                   </div>
                 </div>
@@ -82,17 +87,17 @@ const ReviewTab = ({ businessId }) => {
                 {/* ABSA 감정 표시 */}
                 {review.absa_sentiment && (
                   <div className="absa-sentiment">
-                    {review.absa_sentiment.food && (
+                    {review.absa_sentiment.food !== undefined && (
                       <span className="sentiment-tag">
                         🍜{review.absa_sentiment.food > 0 ? '+' : ''}{review.absa_sentiment.food}
                       </span>
                     )}
-                    {review.absa_sentiment.service && (
+                    {review.absa_sentiment.service !== undefined && (
                       <span className="sentiment-tag">
                         👨‍🍳{review.absa_sentiment.service > 0 ? '+' : ''}{review.absa_sentiment.service}
                       </span>
                     )}
-                    {review.absa_sentiment.atmosphere && (
+                    {review.absa_sentiment.atmosphere !== undefined && (
                       <span className="sentiment-tag">
                         🏠{review.absa_sentiment.atmosphere > 0 ? '+' : ''}{review.absa_sentiment.atmosphere}
                       </span>
@@ -104,7 +109,7 @@ const ReviewTab = ({ businessId }) => {
                 
                 <div className="review-footer">
                   <span>👍 {review.useful || 0}</span>
-                  <span>{new Date(review.date).toLocaleDateString()}</span>
+                  <span>{new Date(review.created_at || review.date).toLocaleDateString()}</span>
                 </div>
               </div>
             ))}
