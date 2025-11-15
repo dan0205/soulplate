@@ -22,7 +22,7 @@
 
 .map-loading-overlay .spinner {
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid var(--primary);
   border-radius: 50%;
   width: 50px;
   height: 50px;
@@ -54,22 +54,27 @@
   border: none;
   border-radius: 24px;
   background: white;
-  color: #666;
-  font-size: 14px;
+  color: var(--text-secondary);
+  font-size: var(--font-small);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 100px;
+  min-height: 44px;
 }
 
 .toggle-btn.active {
-  background: #667eea;
+  background: var(--primary);
   color: white;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .toggle-btn:hover:not(.active) {
-  background: #f5f7fa;
+  background: var(--bg-primary);
+}
+
+.toggle-btn:active {
+  transform: scale(0.95);
 }
 
 /* 하단 시트 스타일 */
@@ -95,9 +100,9 @@
 }
 
 .bottom-sheet-header h2 {
-  font-size: 22px;
+  font-size: var(--font-h2);
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 12px 0;
 }
 
@@ -144,8 +149,8 @@
 }
 
 .info-text {
-  font-size: 14px;
-  color: #666;
+  font-size: var(--font-small);
+  color: var(--text-secondary);
   flex: 1;
 }
 
@@ -159,29 +164,38 @@
 .action-btn {
   flex: 1;
   padding: 14px 20px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   border-radius: 12px;
   background: white;
-  color: #333;
-  font-size: 14px;
+  color: var(--text-primary);
+  font-size: var(--font-small);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  min-height: 44px;
 }
 
 .action-btn:hover {
-  background: #f5f7fa;
-  border-color: #667eea;
+  background: var(--bg-primary);
+  border-color: var(--primary);
+}
+
+.action-btn:active {
+  transform: scale(0.98);
 }
 
 .action-btn.primary {
-  background: #667eea;
+  background: var(--primary);
   color: white;
-  border-color: #667eea;
+  border-color: var(--primary);
 }
 
 .action-btn.primary:hover {
-  background: #5568d3;
+  background: var(--primary-dark);
+}
+
+.action-btn.primary:active {
+  transform: scale(0.98);
 }
 
 /* ABSA 특징 */
@@ -190,9 +204,9 @@
 }
 
 .absa-features h3 {
-  font-size: 16px;
+  font-size: var(--font-h3);
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 15px;
 }
 
@@ -209,8 +223,8 @@
 }
 
 .feature-label {
-  font-size: 13px;
-  color: #666;
+  font-size: var(--font-small);
+  color: var(--text-secondary);
   min-width: 60px;
 }
 
@@ -224,15 +238,15 @@
 
 .feature-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #8b9df7);
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
   border-radius: 4px;
   transition: width 0.3s ease;
 }
 
 .feature-value {
-  font-size: 13px;
+  font-size: var(--font-small);
   font-weight: 600;
-  color: #667eea;
+  color: var(--primary);
   min-width: 30px;
   text-align: right;
 }
