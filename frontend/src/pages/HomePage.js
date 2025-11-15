@@ -283,8 +283,8 @@ const HomePage = () => {
       {/* 플로팅 프로필 버튼 */}
       <FloatingProfileButton username={user?.username} onLogout={logout} />
 
-      {/* 지도/리스트 토글 버튼 */}
-      <MapToggle viewMode={viewMode} onToggle={setViewMode} />
+      {/* 지도/리스트 토글 버튼 - BottomSheet가 열려있지 않을 때만 표시 */}
+      {!selectedRestaurant && <MapToggle viewMode={viewMode} onToggle={setViewMode} />}
 
       {/* 지도 뷰 */}
       {viewMode === 'map' ? (

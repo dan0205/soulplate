@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { businessAPI } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 
 const ReviewTab = ({ businessId }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState('latest');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  
+  // 리뷰 작성 폼 상태
+  const [isWriting, setIsWriting] = useState(false);
+  const [newReview, setNewReview] = useState({ stars: 5, text: '' });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadReviews();
@@ -43,12 +53,52 @@ const ReviewTab = ({ businessId }) => {
     }
   };
 
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    
+    if (!newReview.text.trim()) {
+      alert('리뷰 내용을 입력해주세요.');
+      return;
+    }
+    
+    try {
+      setSubmitting(true);
+      await businessAPI.createReview(businessId, {
+        stars: newReview.stars,
+        text: newReview.text
+      });
+      
+      // 폼 초기화
+      setNewReview({ stars: 5, text: '' });
+      setIsWriting(false);
+      
+      // 리뷰 목록 새로고침
+      loadReviews();
+      
+      alert('리뷰가 성공적으로 작성되었습니다!');
+    } catch (error) {
+      console.error('리뷰 작성 실패:', error);
+      alert(error.response?.data?.detail || '리뷰 작성에 실패했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUserClick = (userId) => {
+    if (userId) {
+      navigate(`/profile/${userId}`);
+    }
+  };
+
   return (
     <div className="review-tab">
       {/* 상단 헤더 */}
       <div className="review-header">
-        <button className="btn-write-review">
-          ✍️ 리뷰 작성
+        <button 
+          className="btn-write-review"
+          onClick={() => setIsWriting(!isWriting)}
+        >
+          {isWriting ? '✖ 취소' : '✍️ 리뷰 작성'}
         </button>
         <select 
           className="review-sort"
@@ -59,6 +109,57 @@ const ReviewTab = ({ businessId }) => {
           <option value="useful">추천순</option>
         </select>
       </div>
+
+      {/* 리뷰 작성 폼 */}
+      {isWriting && (
+        <form className="review-write-form" onSubmit={handleSubmitReview}>
+          <div className="form-group">
+            <label>별점 선택</label>
+            <div className="star-rating">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={`star-btn ${star <= newReview.stars ? 'active' : ''}`}
+                  onClick={() => setNewReview({ ...newReview, stars: star })}
+                >
+                  ⭐
+                </button>
+              ))}
+              <span className="star-value">{newReview.stars}.0</span>
+            </div>
+          </div>
+          
+          <div className="form-group">
+            <label>리뷰 내용</label>
+            <textarea
+              className="review-textarea"
+              placeholder="이 음식점에 대한 솔직한 리뷰를 작성해주세요..."
+              value={newReview.text}
+              onChange={(e) => setNewReview({ ...newReview, text: e.target.value })}
+              rows={5}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>사진 업로드</label>
+            <div className="photo-upload-placeholder">
+              📷 사진 업로드 기능은 준비중입니다
+            </div>
+          </div>
+          
+          <div className="form-actions">
+            <button 
+              type="submit" 
+              className="btn-submit-review"
+              disabled={submitting || !newReview.text.trim()}
+            >
+              {submitting ? '작성 중...' : '리뷰 등록'}
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* 리뷰 리스트 */}
       {loading && reviews.length === 0 ? (
@@ -71,11 +172,19 @@ const ReviewTab = ({ businessId }) => {
             {reviews.map((review) => (
               <div key={review.id || review.review_id} className="review-item">
                 <div className="review-header">
-                  <div className="user-avatar">
+                  <div 
+                    className="user-avatar clickable"
+                    onClick={() => handleUserClick(review.user_id)}
+                  >
                     {review.username ? review.username.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div className="user-info">
-                    <span className="user-name">{review.username || '익명'}</span>
+                    <span 
+                      className="user-name clickable"
+                      onClick={() => handleUserClick(review.user_id)}
+                    >
+                      {review.username || '익명'}
+                    </span>
                     <span className="user-stats">리뷰 {review.user_total_reviews || 0}개</span>
                   </div>
                 </div>

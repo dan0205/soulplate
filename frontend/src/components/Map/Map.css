@@ -428,6 +428,115 @@
   background: var(--primary-dark);
 }
 
+/* 리뷰 작성 폼 */
+.review-write-form {
+  background: #f8f9fa;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.review-write-form .form-group {
+  margin-bottom: 16px;
+}
+
+.review-write-form label {
+  display: block;
+  font-size: var(--font-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+  opacity: 0.3;
+}
+
+.star-btn.active {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.star-btn:hover {
+  transform: scale(1.2);
+}
+
+.star-value {
+  margin-left: 8px;
+  font-size: var(--font-body);
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.review-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: var(--font-small);
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.review-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.photo-upload-placeholder {
+  padding: 40px 20px;
+  background: white;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--font-small);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-submit-review {
+  padding: 12px 24px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit-review:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-submit-review:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .review-sort {
   padding: 8px 12px;
   border: 1px solid var(--border);
@@ -471,6 +580,16 @@
   flex-shrink: 0;
 }
 
+.user-avatar.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-avatar.clickable:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
 .user-info {
   display: flex;
   flex-direction: column;
@@ -481,6 +600,16 @@
   font-size: var(--font-small);
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.user-name.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-name.clickable:hover {
+  color: var(--primary);
+  text-decoration: underline;
 }
 
 .user-stats {
