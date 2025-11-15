@@ -14,18 +14,10 @@ const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
   const [snapIndex, setSnapIndex] = useState(initialSnap === 1.0 ? 1 : 0); // 0: 50%, 1: 100%
   const sheetRef = useRef(null);
 
-  // 조건부 렌더링은 Hook 호출 이후에
-  if (!restaurant) return null;
-
-  // DeepFM과 Multi-Tower 점수 추출
-  const deepfmScore = restaurant.ai_prediction || restaurant.stars || 0;
-  const multitowerScore = restaurant.multitower_rating || deepfmScore;
-
-  // 50% 상태인지 확인
-  const isHalfSnap = snapIndex === 0;
-
   // ResizeObserver로 실제 높이 감지
   useEffect(() => {
+    if (!restaurant) return;
+    
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const height = entry.contentRect.height;
@@ -71,6 +63,16 @@ const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
   useEffect(() => {
     setSnapIndex(initialSnap === 1.0 ? 1 : 0);
   }, [initialSnap]);
+
+  // 조건부 렌더링은 모든 Hook 호출 이후에
+  if (!restaurant) return null;
+
+  // DeepFM과 Multi-Tower 점수 추출
+  const deepfmScore = restaurant.ai_prediction || restaurant.stars || 0;
+  const multitowerScore = restaurant.multitower_rating || deepfmScore;
+
+  // 50% 상태인지 확인
+  const isHalfSnap = snapIndex === 0;
 
   return (
     <BottomSheet
