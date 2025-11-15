@@ -1,0 +1,135 @@
+/* 플로팅 프로필 버튼 컨테이너 */
+.floating-profile-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1002;
+}
+
+/* 프로필 버튼 */
+.floating-profile-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid var(--primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.floating-profile-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.floating-profile-btn:active {
+  transform: scale(0.95);
+}
+
+.profile-initial {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* 프로필 메뉴 팝업 */
+.profile-menu-popup {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  padding: 8px;
+  min-width: 180px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 메뉴 헤더 */
+.profile-menu-header {
+  padding: 12px 16px;
+}
+
+.profile-menu-username {
+  font-size: var(--font-body);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 구분선 */
+.profile-menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+/* 메뉴 아이템 */
+.profile-menu-item {
+  width: 100%;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: var(--font-body);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.profile-menu-item:hover {
+  background: var(--bg-primary);
+}
+
+.profile-menu-item:active {
+  transform: scale(0.98);
+}
+
+.profile-menu-item.logout {
+  color: #e74c3c;
+}
+
+.profile-menu-item.logout:hover {
+  background: #fee;
+}
+
+.menu-icon {
+  font-size: 18px;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 767px) {
+  .floating-profile-container {
+    top: 15px;
+    right: 15px;
+  }
+
+  .floating-profile-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .profile-initial {
+    font-size: 18px;
+  }
+}
+

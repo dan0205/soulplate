@@ -23,7 +23,7 @@ const MapBottomSheet = ({ restaurant, onClose }) => {
       defaultSnap={({ maxHeight }) => maxHeight * 0.5}
       snapPoints={({ maxHeight }) => [
         maxHeight * 0.5, // 50% (기본)
-        maxHeight * 0.95, // 95% (거의 전체)
+        maxHeight, // 100% (전체 화면)
       ]}
       blocking={false}
       expandOnContentDrag={true}

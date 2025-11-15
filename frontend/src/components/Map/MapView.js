@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
-import MapBottomSheet from './MapBottomSheet';
 import './Map.css';
 
 const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading }) => {
   const [center, setCenter] = useState({ lat: 37.5665, lng: 126.9780 }); // 서울 중심 기본 위치
   const [userLocation, setUserLocation] = useState(null);
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [mapLevel, setMapLevel] = useState(3);
   const debounceTimerRef = useRef(null);
   const initialLoadRef = useRef(false);
 
-  // 사용자 위치 가져오기 및 초기 API 호출
+  // 사용자 위치 가져오기 및 초기 API 호출 (한 번만 실행)
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -24,8 +22,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
           setCenter(userPos);
           
           // 초기 로드: 사용자 위치 기준으로 마커 로드
-          if (onLocationChange && !initialLoadRef.current) {
-            initialLoadRef.current = true;
+          if (onLocationChange) {
             onLocationChange(userPos.lat, userPos.lng);
           }
         },
@@ -33,20 +30,19 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
           console.log('위치 권한 거부 또는 오류:', error);
           
           // 폴백: 서울 중심으로 마커 로드
-          if (onLocationChange && !initialLoadRef.current) {
-            initialLoadRef.current = true;
+          if (onLocationChange) {
             onLocationChange(center.lat, center.lng);
           }
         }
       );
     } else {
       // geolocation 미지원: 서울 중심으로 마커 로드
-      if (onLocationChange && !initialLoadRef.current) {
-        initialLoadRef.current = true;
+      if (onLocationChange) {
         onLocationChange(center.lat, center.lng);
       }
     }
-  }, [onLocationChange, center.lat, center.lng]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 빈 배열: 초기 한 번만 실행
 
   // AI 점수에 따른 마커 색상
   const getMarkerColor = (aiScore) => {
@@ -58,8 +54,6 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
 
   // 마커 클릭 핸들러
   const handleMarkerClick = (restaurant) => {
-    setSelectedRestaurant(restaurant);
-    setCenter({ lat: restaurant.latitude, lng: restaurant.longitude });
     if (onRestaurantSelect) {
       onRestaurantSelect(restaurant);
     }
@@ -161,12 +155,6 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
           </CustomOverlayMap>
         ))}
       </Map>
-
-      {/* 하단 카드 슬라이드 */}
-      <MapBottomSheet
-        restaurant={selectedRestaurant}
-        onClose={() => setSelectedRestaurant(null)}
-      />
     </div>
   );
 };

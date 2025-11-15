@@ -10,6 +10,7 @@ import TasteTestModal from '../components/TasteTestModal';
 import MapView from '../components/Map/MapView';
 import MapToggle from '../components/Map/MapToggle';
 import MapBottomSheet from '../components/Map/MapBottomSheet';
+import FloatingProfileButton from '../components/FloatingProfileButton';
 import './Home.css';
 
 const HomePage = () => {
@@ -260,14 +261,8 @@ const HomePage = () => {
 
   return (
     <div className="home-container">
-      <header className="home-header">
-        <h1>SoulPlate</h1>
-        <div className="user-info">
-          <button onClick={() => navigate('/my-profile')} className="btn-profile">My Profile</button>
-          <span>Welcome, {user?.username}!</span>
-          <button onClick={logout} className="btn-logout">Logout</button>
-        </div>
-      </header>
+      {/* 플로팅 프로필 버튼 */}
+      <FloatingProfileButton username={user?.username} onLogout={logout} />
 
       {/* 지도/리스트 토글 버튼 */}
       <MapToggle viewMode={viewMode} onToggle={setViewMode} />
