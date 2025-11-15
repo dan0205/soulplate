@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Map, MapMarker } from 'react-kakao-maps-sdk';
+import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
 import MapBottomSheet from './MapBottomSheet';
 import './Map.css';
 
@@ -93,31 +93,36 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
     };
   }, []);
 
-  // 커스텀 마커 이미지 생성
-  const createMarkerContent = (restaurant) => {
+  // 커스텀 마커 컴포넌트
+  const CustomMarker = ({ restaurant }) => {
     const color = getMarkerColor(restaurant.ai_prediction || restaurant.stars);
     const score = (restaurant.ai_prediction || restaurant.stars).toFixed(1);
     
-    return `
-      <div style="
-        background-color: ${color};
-        color: white;
-        border: 3px solid white;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 14px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        cursor: pointer;
-        transition: transform 0.2s;
-      ">
-        ${score}
+    return (
+      <div
+        style={{
+          backgroundColor: color,
+          color: 'white',
+          border: '3px solid white',
+          borderRadius: '50%',
+          width: '50px',
+          height: '50px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 'bold',
+          fontSize: '14px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s',
+        }}
+        onClick={() => handleMarkerClick(restaurant)}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        {score}
       </div>
-    `;
+    );
   };
 
   return (
@@ -147,16 +152,13 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
 
         {/* 레스토랑 마커들 */}
         {restaurants && restaurants.map((restaurant) => (
-          <MapMarker
+          <CustomOverlayMap
             key={restaurant.id}
             position={{ lat: restaurant.latitude, lng: restaurant.longitude }}
-            onClick={() => handleMarkerClick(restaurant)}
-            title={restaurant.name}
-            image={{
-              content: createMarkerContent(restaurant),
-              size: { width: 50, height: 50 },
-            }}
-          />
+            yAnchor={0.5}
+          >
+            <CustomMarker restaurant={restaurant} />
+          </CustomOverlayMap>
         ))}
       </Map>
 
