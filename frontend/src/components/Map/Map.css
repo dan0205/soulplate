@@ -95,38 +95,51 @@
   overflow: hidden;
 }
 
-/* 50% 카드 스타일 */
-.sheet-50-content {
-  padding: 20px;
-  overflow-y: auto;
-}
-
-/* 100% 카드 스타일 */
-.sheet-100-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.sheet-header-minimal {
+/* 공통 헤더: 가게 이름 + AI 점수 */
+.sheet-header-common {
   padding: 20px 20px 16px 20px;
-  border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
 }
 
-.sheet-header-minimal h2 {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
-}
-
-.restaurant-name h2 {
+.sheet-header-common h2 {
   font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0 0 8px 0;
+}
+
+/* 50% 상태: 헤더 아래 여백 */
+.snap-50 .sheet-header-common {
+  padding-bottom: 12px;
+}
+
+/* 100% 상태: 헤더 아래 구분선 */
+.snap-100 .sheet-header-common {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 16px;
+}
+
+/* 50% 전용 콘텐츠 */
+.content-50-only {
+  padding: 0 20px 20px 20px;
+  overflow-y: auto;
+}
+
+/* 100% 전용 콘텐츠 */
+.content-100-only {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* CSS로 표시/숨김 제어 */
+.snap-50 .content-100-only {
+  display: none;
+}
+
+.snap-100 .content-50-only {
+  display: none;
 }
 
 /* AI 점수 배지 */
@@ -304,15 +317,15 @@
   text-align: right;
 }
 
-/* React Tabs 스타일 (100% 카드 내부) */
-.sheet-100-content .react-tabs {
+/* React Tabs 스타일 (100% 전용 콘텐츠 내부) */
+.content-100-only .react-tabs {
   display: flex;
   flex-direction: column;
   flex: 1;
   overflow: hidden;
 }
 
-.sheet-100-content .react-tabs__tab-list {
+.content-100-only .react-tabs__tab-list {
   display: flex;
   border-bottom: 2px solid #e0e0e0;
   margin: 0;
@@ -321,14 +334,14 @@
   flex-shrink: 0;
 }
 
-.sheet-100-content .react-tabs__tab-panel {
+.content-100-only .react-tabs__tab-panel {
   padding: 20px;
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.sheet-100-content .react-tabs__tab {
+.content-100-only .react-tabs__tab {
   flex: 1;
   padding: 12px;
   text-align: center;
@@ -344,11 +357,11 @@
   margin-bottom: -2px;
 }
 
-.sheet-100-content .react-tabs__tab:hover {
+.content-100-only .react-tabs__tab:hover {
   color: var(--primary);
 }
 
-.sheet-100-content .react-tabs__tab--selected {
+.content-100-only .react-tabs__tab--selected {
   color: var(--primary);
   border-bottom-color: var(--primary);
   font-weight: 600;

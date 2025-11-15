@@ -44,96 +44,82 @@ const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
       header={false} // 자동 헤더 비활성화
       className="map-bottom-sheet"
     >
-      <div className="bottom-sheet-content">
-        {isHalfSnap ? (
-          /* 50% 카드: 전체 정보 표시 */
-          <div className="sheet-50-content">
-            <div className="restaurant-name">
-              <h2>{restaurant.name}</h2>
-            </div>
+      <div className={`bottom-sheet-content ${isHalfSnap ? 'snap-50' : 'snap-100'}`}>
+        {/* 공통 헤더: 가게 이름 + AI 점수 (항상 표시) */}
+        <div className="sheet-header-common">
+          <h2>{restaurant.name}</h2>
+          <div className="ai-scores">
+            <span className="score-badge deepfm">
+              DeepFM {deepfmScore.toFixed(1)}
+            </span>
+            <span className="score-badge multitower">
+              Multi {multitowerScore.toFixed(1)}
+            </span>
+          </div>
+        </div>
 
-            <div className="ai-scores">
-              <span className="score-badge deepfm">
-                DeepFM {deepfmScore.toFixed(1)}
-              </span>
-              <span className="score-badge multitower">
-                Multi {multitowerScore.toFixed(1)}
-              </span>
-            </div>
-
-            <div className="restaurant-meta">
-              <span className="category">{restaurant.categories}</span>
-              {restaurant.review_count && (
-                <span className="review-count"> · 리뷰 {restaurant.review_count}개</span>
-              )}
-            </div>
-
-            {restaurant.address && (
-              <div className="restaurant-address">
-                📍 {restaurant.address}
-              </div>
+        {/* 50% 전용 콘텐츠 */}
+        <div className="content-50-only">
+          <div className="restaurant-meta">
+            <span className="category">{restaurant.categories}</span>
+            {restaurant.review_count && (
+              <span className="review-count"> · 리뷰 {restaurant.review_count}개</span>
             )}
-
-            <div className="photo-placeholder">
-              사진 없음
-            </div>
-
-            <div className="action-buttons">
-              <button 
-                className="action-btn"
-                onClick={() => window.open(`https://map.kakao.com/link/to/${restaurant.name},${restaurant.latitude},${restaurant.longitude}`, '_blank')}
-              >
-                🚗 길찾기
-              </button>
-              <button 
-                className="action-btn"
-                onClick={() => alert('전화번호 준비 중입니다')}
-              >
-                📞 전화
-              </button>
-            </div>
           </div>
-        ) : (
-          /* 100% 카드: 간소화된 헤더 + 탭 */
-          <div className="sheet-100-content">
-            <div className="sheet-header-minimal">
-              <h2>{restaurant.name}</h2>
-              <div className="ai-scores">
-                <span className="score-badge deepfm">
-                  DeepFM {deepfmScore.toFixed(1)}
-                </span>
-                <span className="score-badge multitower">
-                  Multi {multitowerScore.toFixed(1)}
-                </span>
-              </div>
+
+          {restaurant.address && (
+            <div className="restaurant-address">
+              📍 {restaurant.address}
             </div>
+          )}
 
-            <Tabs>
-              <TabList>
-                <Tab>홈</Tab>
-                <Tab>메뉴</Tab>
-                <Tab>리뷰</Tab>
-                <Tab>사진</Tab>
-              </TabList>
-
-              <TabPanel>
-                <HomeTab restaurant={restaurant} />
-              </TabPanel>
-
-              <TabPanel>
-                <MenuTab />
-              </TabPanel>
-
-              <TabPanel>
-                <ReviewTab businessId={restaurant.id} />
-              </TabPanel>
-
-              <TabPanel>
-                <PhotoTab />
-              </TabPanel>
-            </Tabs>
+          <div className="photo-placeholder">
+            사진 없음
           </div>
-        )}
+
+          <div className="action-buttons">
+            <button 
+              className="action-btn"
+              onClick={() => window.open(`https://map.kakao.com/link/to/${restaurant.name},${restaurant.latitude},${restaurant.longitude}`, '_blank')}
+            >
+              🚗 길찾기
+            </button>
+            <button 
+              className="action-btn"
+              onClick={() => alert('전화번호 준비 중입니다')}
+            >
+              📞 전화
+            </button>
+          </div>
+        </div>
+
+        {/* 100% 전용 콘텐츠: 탭 */}
+        <div className="content-100-only">
+          <Tabs>
+            <TabList>
+              <Tab>홈</Tab>
+              <Tab>메뉴</Tab>
+              <Tab>리뷰</Tab>
+              <Tab>사진</Tab>
+            </TabList>
+
+            <TabPanel>
+              <HomeTab restaurant={restaurant} />
+            </TabPanel>
+
+            <TabPanel>
+              <MenuTab />
+            </TabPanel>
+
+            <TabPanel>
+              <ReviewTab businessId={restaurant.id} />
+            </TabPanel>
+
+            <TabPanel>
+              <PhotoTab />
+            </TabPanel>
+          </Tabs>
+        </div>
       </div>
     </BottomSheet>
   );
