@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-spring-bottom-sheet/dist/style.css';
@@ -12,6 +12,7 @@ import PhotoTab from './tabs/PhotoTab';
 const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
   // Hook은 항상 최상단에서 호출
   const [snapIndex, setSnapIndex] = useState(initialSnap === 1.0 ? 1 : 0); // 0: 50%, 1: 100%
+  const sheetRef = useRef(null);
 
   // 조건부 렌더링은 Hook 호출 이후에
   if (!restaurant) return null;
@@ -23,6 +24,54 @@ const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
   // 50% 상태인지 확인
   const isHalfSnap = snapIndex === 0;
 
+  // ResizeObserver로 실제 높이 감지
+  useEffect(() => {
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const height = entry.contentRect.height;
+        const windowHeight = window.innerHeight;
+        const ratio = height / windowHeight;
+        
+        console.log('BottomSheet height ratio:', ratio);
+        
+        // 70% 이상이면 100% snap으로 간주
+        if (ratio > 0.7) {
+          setSnapIndex(1);
+        } else {
+          setSnapIndex(0);
+        }
+      }
+    });
+
+    // BottomSheet의 실제 DOM 요소 찾기
+    const findSheetElement = () => {
+      const sheetElement = document.querySelector('[data-rsbs-root]');
+      if (sheetElement) {
+        observer.observe(sheetElement);
+        return true;
+      }
+      return false;
+    };
+
+    // 약간의 지연 후 요소 찾기 (DOM 렌더링 대기)
+    const timeout = setTimeout(() => {
+      if (!findSheetElement()) {
+        // 첫 시도 실패 시 재시도
+        setTimeout(findSheetElement, 100);
+      }
+    }, 50);
+
+    return () => {
+      clearTimeout(timeout);
+      observer.disconnect();
+    };
+  }, [restaurant]);
+
+  // initialSnap이 변경되면 snapIndex 업데이트
+  useEffect(() => {
+    setSnapIndex(initialSnap === 1.0 ? 1 : 0);
+  }, [initialSnap]);
+
   return (
     <BottomSheet
       open={!!restaurant}
@@ -32,19 +81,6 @@ const MapBottomSheet = ({ restaurant, onClose, initialSnap = 0.5 }) => {
         maxHeight * 0.5, // 50% (기본)
         maxHeight, // 100% (전체 화면)
       ]}
-      onSpringEnd={(event) => {
-        // 이벤트 디버깅
-        console.log('onSpringEnd event:', event);
-        if (event.type === 'SNAP') {
-          // spring의 현재 값으로 snap 상태 판단
-          const height = event.spring?.get();
-          console.log('Current height:', height);
-          // 높이가 70% 이상이면 100% snap으로 간주
-          if (height && typeof height === 'number') {
-            setSnapIndex(height > 0.7 ? 1 : 0);
-          }
-        }
-      }}
       blocking={false}
       expandOnContentDrag={true}
       header={false} // 자동 헤더 비활성화
