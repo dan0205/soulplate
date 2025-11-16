@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
 import './Map.css';
 
-const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading }) => {
+const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading, isInitialLoading }) => {
   const [center, setCenter] = useState({ lat: 37.5665, lng: 126.9780 }); // 서울 중심 기본 위치
   const [userLocation, setUserLocation] = useState(null);
   const [mapLevel, setMapLevel] = useState(3);
@@ -145,11 +145,20 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
 
   return (
     <div className="map-container">
-      {loading && (
+      {/* 초기 로딩: 전체 화면 오버레이 + 스피너 */}
+      {loading && isInitialLoading && (
         <div className="map-loading-overlay">
           <div className="spinner"></div>
         </div>
       )}
+      
+      {/* 재로딩: 상단 프로그레스 바만 표시 */}
+      {loading && !isInitialLoading && (
+        <div className="map-progress-bar">
+          <div className="progress-bar-fill"></div>
+        </div>
+      )}
+      
       <Map
         center={center}
         style={{ width: '100%', height: '100vh' }}

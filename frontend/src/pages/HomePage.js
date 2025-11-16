@@ -16,6 +16,7 @@ import './Home.css';
 const HomePage = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // 초기 로딩 상태
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -145,6 +146,11 @@ const HomePage = () => {
       }));
       
       setMapRestaurants(mapData);
+      
+      // 초기 로딩 완료 후 플래그 변경
+      if (isInitialLoading) {
+        setIsInitialLoading(false);
+      }
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to load map restaurants');
       console.error('Error loading map restaurants:', err);
@@ -293,6 +299,7 @@ const HomePage = () => {
           onRestaurantSelect={setSelectedRestaurant}
           onLocationChange={handleMapLocationChange}
           loading={loading}
+          isInitialLoading={isInitialLoading}
         />
       ) : (
         <main className="home-main">
