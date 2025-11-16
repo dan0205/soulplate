@@ -8,6 +8,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
   const [mapLevel, setMapLevel] = useState(3);
   const debounceTimerRef = useRef(null);
   const initialLoadRef = useRef(false);
+  const mapRef = useRef(null); // Map 객체 저장용 ref
 
   // 사용자 위치 가져오기 및 초기 API 호출 (한 번만 실행)
   useEffect(() => {
@@ -121,10 +122,11 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
 
   // 내 위치로 이동하는 핸들러
   const handleGoToMyLocation = () => {
-    if (userLocation) {
-      // 새 객체를 생성하여 강제로 리렌더링 유도
-      setCenter({ ...userLocation });
-    } else {
+    if (mapRef.current && userLocation) {
+      // Kakao Map의 panTo() 메서드를 사용하여 부드럽게 이동
+      const moveLatLon = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
+      mapRef.current.panTo(moveLatLon);
+    } else if (!userLocation) {
       alert('위치 정보를 가져올 수 없습니다.');
     }
   };
@@ -140,6 +142,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
         center={center}
         style={{ width: '100%', height: '100vh' }}
         level={mapLevel}
+        onCreate={(map) => { mapRef.current = map; }}
         onZoomChanged={(map) => setMapLevel(map.getLevel())}
         onCenterChanged={handleMapCenterChanged}
       >
