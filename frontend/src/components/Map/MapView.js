@@ -70,7 +70,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading, i
       clearTimeout(debounceTimerRef.current);
     }
 
-    // 1초 후 새 데이터 로드 (로딩 속도 개선으로 디바운싱 단축)
+    // 0.5초 후 새 데이터 로드 (상단 프로그레스 바로 빠른 업데이트 가능)
     debounceTimerRef.current = setTimeout(() => {
       const newCenter = map.getCenter();
       const lat = newCenter.getLat();
@@ -79,7 +79,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading, i
       if (onLocationChange) {
         onLocationChange(lat, lng);
       }
-    }, 1000);
+    }, 500);
   }, [onLocationChange]);
 
   // 컴포넌트 언마운트 시 타이머 정리
