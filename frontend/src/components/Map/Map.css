@@ -11,6 +11,35 @@
   z-index: 1;
 }
 
+/* 아주대학교 바로가기 버튼 */
+.ajou-university-btn {
+  position: fixed;
+  bottom: 150px;
+  right: 20px;
+  z-index: 1000;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.ajou-university-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.ajou-university-btn:active {
+  transform: scale(0.95);
+}
+
 /* 내 위치 버튼 */
 .my-location-btn {
   position: fixed;

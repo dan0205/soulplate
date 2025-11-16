@@ -9,6 +9,9 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
   const debounceTimerRef = useRef(null);
   const initialLoadRef = useRef(false);
   const mapRef = useRef(null); // Map 객체 저장용 ref
+  
+  // 아주대학교 좌표
+  const AJOU_UNIVERSITY = { lat: 37.2809, lng: 127.0447 };
 
   // 사용자 위치 가져오기 및 초기 API 호출 (한 번만 실행)
   useEffect(() => {
@@ -131,6 +134,15 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
     }
   };
 
+  // 아주대학교로 이동하는 핸들러
+  const handleGoToAjouUniversity = () => {
+    if (mapRef.current) {
+      // Kakao Map의 panTo() 메서드를 사용하여 부드럽게 이동
+      const moveLatLon = new window.kakao.maps.LatLng(AJOU_UNIVERSITY.lat, AJOU_UNIVERSITY.lng);
+      mapRef.current.panTo(moveLatLon);
+    }
+  };
+
   return (
     <div className="map-container">
       {loading && (
@@ -168,6 +180,11 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
           </CustomOverlayMap>
         ))}
       </Map>
+      
+      {/* 아주대학교 바로가기 버튼 */}
+      <button className="ajou-university-btn" onClick={handleGoToAjouUniversity} title="아주대학교로 이동">
+        🏫
+      </button>
       
       {/* 내 위치 버튼 */}
       {userLocation && (
