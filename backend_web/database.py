@@ -2,12 +2,18 @@
 데이터베이스 설정
 """
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 import os
+import time
+import logging
 from pathlib import Path
+
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # .env 파일 로드
 env_path = Path(__file__).parent / ".env"
@@ -34,6 +40,38 @@ engine = create_engine(
     # 5개가 모두 사용 중일때, 추가로 10개의 커넥션을 더 만들수있다 
 )
 # postgre는 여러 사용자가 동시에 접속하기 때문에, 커넥션 풀 관리가 매우 중요하다
+
+
+# DB 쿼리 성능 모니터링 - 쿼리 실행 전
+@event.listens_for(engine, "before_cursor_execute")
+def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    """쿼리 실행 시작 시간 기록"""
+    conn.info.setdefault('query_start_time', []).append(time.time())
+    conn.info.setdefault('query_count', 0)
+    conn.info['query_count'] += 1
+
+
+# DB 쿼리 성능 모니터링 - 쿼리 실행 후
+@event.listens_for(engine, "after_cursor_execute")
+def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    """쿼리 실행 시간 측정 및 로깅"""
+    total = time.time() - conn.info['query_start_time'].pop(-1)
+    
+    # 100ms 이상 걸린 쿼리만 로깅 (슬로우 쿼리)
+    if total > 0.1:
+        # 쿼리 문자열을 200자로 제한 (너무 길면 로그가 복잡함)
+        query_preview = statement[:200].replace('\n', ' ')
+        logger.warning(f"🐌 SLOW QUERY ({total:.3f}s): {query_preview}")
+        
+        # 파라미터도 출력 (디버깅용)
+        if parameters:
+            logger.warning(f"   Parameters: {parameters}")
+    
+    # 모든 쿼리 실행 시간 로깅 (개발 환경용)
+    # 프로덕션에서는 주석 처리하거나 환경변수로 제어
+    elif os.getenv("DEBUG_SQL", "false").lower() == "true":
+        query_preview = statement[:100].replace('\n', ' ')
+        logger.debug(f"⚡ Query ({total:.3f}s): {query_preview}")
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

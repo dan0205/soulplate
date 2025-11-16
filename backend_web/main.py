@@ -11,7 +11,7 @@ current_dir = Path(__file__).parent
 if str(current_dir) not in sys.path:
     sys.path.insert(0, str(current_dir))
 
-from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -22,6 +22,7 @@ import httpx
 import logging
 import numpy as np
 import os
+import time
 
 import models
 import schemas
@@ -269,7 +270,38 @@ app.add_middleware(
 # 브라우저 보안 정책상 기본적으로 localhost:3000에서 localhost:8000으로 API를 호출할수없다
 # 이 미들웨어는 allow_origins=["*"] 에서 요청을 허용하도록 설정하여
 # 개발 환경에서 프론트엔드와 백엔드가 원할하게 통신할 수 있게 해준다
-# 프로덕션에서는 ["*"] 대신 실제 프론트엔드 도메인을 적어야한다 
+# 프로덕션에서는 ["*"] 대신 실제 프론트엔드 도메인을 적어야한다
+
+
+# API 성능 모니터링 미들웨어
+@app.middleware("http")
+async def log_request_time(request: Request, call_next):
+    """모든 API 요청의 응답 시간을 측정하고 로깅"""
+    start_time = time.time()
+    
+    # 요청 처리
+    response = await call_next(request)
+    
+    # 응답 시간 계산
+    duration = time.time() - start_time
+    
+    # 기본 로깅 (모든 요청)
+    logger.info(
+        f"📊 {request.method} {request.url.path} "
+        f"[{response.status_code}] {duration:.3f}s"
+    )
+    
+    # 1초 이상 걸린 요청은 경고 (SLOW API)
+    if duration > 1.0:
+        logger.warning(
+            f"🐢 SLOW API ({duration:.3f}s): "
+            f"{request.method} {request.url.path}"
+        )
+    
+    # 응답 헤더에 실행 시간 추가 (디버깅용)
+    response.headers["X-Process-Time"] = f"{duration:.3f}"
+    
+    return response 
 
 # Root
 @app.get("/")
@@ -514,6 +546,12 @@ async def get_businesses_for_map(
     """
     from sqlalchemy import and_
     
+    # 성능 로깅 시작
+    func_start = time.time()
+    logger.info(f"🗺️  지도 API 시작: lat={lat}, lng={lng}, radius={radius}km, limit={limit}")
+    
+    # Step 1: 쿼리 구성 및 실행
+    step1_start = time.time()
     query = db.query(models.Business)
     
     # latitude/longitude가 null인 데이터 제외 (필수)
@@ -548,9 +586,14 @@ async def get_businesses_for_map(
         )
     
     businesses = query.limit(limit).all()
+    logger.info(f"  ⏱️  Step 1 (비즈니스 쿼리): {time.time() - step1_start:.3f}s, 조회: {len(businesses)}개")
     
-    # 각 비즈니스를 지도용 포맷으로 변환
+    # Step 2: 데이터 변환
+    step2_start = time.time()
     result = []
+    ai_cache_queries = 0
+    ai_cache_start = time.time()
+    
     for business in businesses:
         business_dict = {
             "id": business.id,
@@ -571,6 +614,7 @@ async def get_businesses_for_map(
         
         # 로그인 사용자면 캐시된 AI 예측 추가
         if current_user:
+            ai_cache_queries += 1
             cached_pred = db.query(models.UserBusinessPrediction).filter(
                 and_(
                     models.UserBusinessPrediction.user_id == current_user.id,
@@ -585,6 +629,16 @@ async def get_businesses_for_map(
                 }
         
         result.append(business_dict)
+    
+    if ai_cache_queries > 0:
+        ai_cache_time = time.time() - ai_cache_start
+        logger.info(f"  ⏱️  Step 2 (데이터 변환 + AI 캐시): {time.time() - step2_start:.3f}s")
+        logger.info(f"    - AI 캐시 쿼리: {ai_cache_queries}번, {ai_cache_time:.3f}s")
+    else:
+        logger.info(f"  ⏱️  Step 2 (데이터 변환): {time.time() - step2_start:.3f}s")
+    
+    total_time = time.time() - func_start
+    logger.info(f"✅ 지도 API 완료: {total_time:.3f}s")
     
     return {"businesses": result, "count": len(result)}
 
@@ -602,6 +656,10 @@ async def get_businesses(
     from prediction_cache import check_predictions_exist, calculate_and_store_predictions
     from sqlalchemy import and_, or_
     
+    # 성능 로깅 시작
+    func_start = time.time()
+    logger.info(f"📋 목록 API 시작: skip={skip}, limit={limit}, sort={sort_by}, search={search}")
+    
     # 검색 필터 생성
     search_filter = None
     if search:
@@ -612,13 +670,16 @@ async def get_businesses(
             models.Business.city.ilike(search_pattern)
         )
     
-    # 총 개수 조회 (검색 필터 적용)
+    # Step 1: 총 개수 조회 (검색 필터 적용)
+    step1_start = time.time()
     total_query = db.query(models.Business)
     if search_filter is not None:
         total_query = total_query.filter(search_filter)
     total = total_query.count()
+    logger.info(f"  ⏱️  Step 1 (총 개수 조회): {time.time() - step1_start:.3f}s, 총 {total}개")
     
-    # 정렬에 따라 다른 쿼리 사용
+    # Step 2: 비즈니스 조회 (정렬에 따라 다른 쿼리)
+    step2_start = time.time()
     if sort_by == "review_count":
         # 리뷰 개수 내림차순
         query = db.query(models.Business)
@@ -672,7 +733,10 @@ async def get_businesses(
             query = query.filter(search_filter)
         businesses = query.offset(skip).limit(limit).all()
     
-    # 각 비즈니스에 상위 ABSA 특징 추가
+    logger.info(f"  ⏱️  Step 2 (비즈니스 조회): {time.time() - step2_start:.3f}s, 조회: {len(businesses)}개")
+    
+    # Step 3: 각 비즈니스에 상위 ABSA 특징 추가
+    step3_start = time.time()
     result = []
     
     # N+1 쿼리 문제 해결: 모든 예측값을 한 번에 가져오기
@@ -721,6 +785,11 @@ async def get_businesses(
             )
         
         result.append(schemas.BusinessResponse(**business_dict))
+    
+    logger.info(f"  ⏱️  Step 3 (데이터 변환): {time.time() - step3_start:.3f}s")
+    
+    total_time = time.time() - func_start
+    logger.info(f"✅ 목록 API 완료: {total_time:.3f}s")
     
     # 페이지네이션 정보와 함께 반환
     return schemas.BusinessListResponse(
@@ -791,14 +860,22 @@ async def get_reviews(
     db: Session = Depends(get_db)
 ):
     """비즈니스 리뷰 목록 조회 (정렬, 사용자 리뷰 수, ABSA 감정 포함)"""
+    # 성능 로깅 시작
+    func_start = time.time()
+    logger.info(f"🔍 리뷰 조회 시작: business_id={business_id}, skip={skip}, limit={limit}, sort={sort}")
+    
+    # Step 1: 비즈니스 조회
+    step1_start = time.time()
     business = db.query(models.Business).filter(
         models.Business.business_id == business_id
     ).first()
+    logger.info(f"  ⏱️  Step 1 (비즈니스 조회): {time.time() - step1_start:.3f}s")
     
     if not business:
         raise HTTPException(status_code=404, detail="Business not found")
     
-    # User 정보를 함께 로드 (username 포함)
+    # Step 2: 리뷰 조회 (User 정보를 함께 로드)
+    step2_start = time.time()
     query = db.query(models.Review).join(models.User).filter(
         models.Review.business_id == business.id
     )
@@ -810,14 +887,22 @@ async def get_reviews(
         query = query.order_by(models.Review.created_at.desc())
     
     reviews = query.offset(skip).limit(limit).all()
+    logger.info(f"  ⏱️  Step 2 (리뷰 조회): {time.time() - step2_start:.3f}s, 조회된 리뷰: {len(reviews)}개")
     
-    # 각 리뷰에 추가 정보 포함
+    # Step 3: 각 리뷰에 추가 정보 포함
+    step3_start = time.time()
     result = []
-    for review in reviews:
-        # 사용자의 총 리뷰 수 계산
+    n_plus_1_start = time.time()
+    for idx, review in enumerate(reviews):
+        # ⚠️ N+1 문제 발생 지점 - 각 리뷰마다 별도 쿼리 실행
+        query_start = time.time()
         user_review_count = db.query(models.Review).filter(
             models.Review.user_id == review.user_id
         ).count()
+        query_time = time.time() - query_start
+        
+        if query_time > 0.05:  # 50ms 이상
+            logger.warning(f"    🐌 N+1 Query #{idx+1} ({query_time:.3f}s): user_id={review.user_id}")
         
         # ABSA 감정 점수 계산 (긍정: +2, 중립: 0, 부정: -1)
         absa_sentiment = {}
@@ -858,6 +943,14 @@ async def get_reviews(
             "absa_sentiment": absa_sentiment if absa_sentiment else None
         }
         result.append(review_dict)
+    
+    n_plus_1_total = time.time() - n_plus_1_start
+    logger.info(f"  ⏱️  Step 3 (N+1 쿼리 포함): {time.time() - step3_start:.3f}s")
+    if len(reviews) > 0:
+        logger.warning(f"  ⚠️  N+1 문제: {len(reviews)}개 리뷰 = {len(reviews)}번 추가 쿼리 실행, 총 {n_plus_1_total:.3f}s")
+    
+    total_time = time.time() - func_start
+    logger.info(f"✅ 리뷰 조회 완료: {total_time:.3f}s")
     
     return result
     # app.get으로 가게에 작성된 리뷰를 가져오고, 각 리뷰에 작성자의 username을 포함한다 

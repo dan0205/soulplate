@@ -1,28 +1,19 @@
 """
-한국 레스토랑 데이터 추가 스크립트
-CSV 파일에서 레스토랑 정보를 읽어 DB에 삽입합니다.
-
-사용법:
-    python scripts/add_korean_restaurants.py restaurants.csv
-
-CSV 형식:
-    name,address,category,phone,latitude,longitude
-    아주반점,경기도 수원시 영통구 월드컵로 206,중식,031-123-4567,37.2809,127.0445
-    
-주의: latitude, longitude가 비어있으면 자동으로 Kakao API로 변환합니다.
+클라우드 Railway PostgreSQL에 음식점 추가 스크립트
 """
 
 import sys
 import csv
 import os
 from pathlib import Path
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 # 프로젝트 루트를 Python path에 추가
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "backend_web"))
 sys.path.insert(0, str(project_root / "scripts"))
 
-from database import SessionLocal
 import models
 import logging
 from geocoding_utils import get_coordinates
@@ -79,7 +70,6 @@ def parse_csv(csv_path):
 
 def extract_city_state(address):
     """주소에서 시/도 추출"""
-    # 간단한 파싱 (더 정교하게 개선 가능)
     parts = address.split()
     
     if len(parts) >= 2:
@@ -95,9 +85,13 @@ def extract_city_state(address):
     return city, state
 
 
-def add_restaurants_to_db(restaurants):
-    """레스토랑을 DB에 추가"""
-    db = SessionLocal()
+def add_restaurants_to_cloud(restaurants, database_url):
+    """레스토랑을 클라우드 DB에 추가"""
+    # Railway DB 연결
+    engine = create_engine(database_url)
+    Session = sessionmaker(bind=engine)
+    db = Session()
+    
     added_count = 0
     skipped_count = 0
     
@@ -117,8 +111,10 @@ def add_restaurants_to_db(restaurants):
             # 시/도 추출
             city, state = extract_city_state(rest['address'])
             
-            # business_id 생성 (이름 기반)
-            business_id = f"KR_{rest['name'].replace(' ', '_')}_{added_count}"
+            # business_id 생성 (이름 기반 + 타임스탬프)
+            import time
+            timestamp = int(time.time() * 1000)
+            business_id = f"KR_{rest['name'].replace(' ', '_')}_{timestamp}"
             
             # DB 객체 생성
             db_business = models.Business(
@@ -137,14 +133,14 @@ def add_restaurants_to_db(restaurants):
             
             db.add(db_business)
             added_count += 1
-            logger.info(f"추가: {rest['name']} (위치: {rest['latitude']}, {rest['longitude']})")
+            logger.info(f"✅ 추가: {rest['name']} (위치: {rest['latitude']}, {rest['longitude']})")
         
         # 커밋
         db.commit()
-        logger.info(f"완료: {added_count}개 추가, {skipped_count}개 스킵")
+        logger.info(f"\n🎉 완료: {added_count}개 추가, {skipped_count}개 스킵")
         
     except Exception as e:
-        logger.error(f"에러 발생: {e}")
+        logger.error(f"❌ 에러 발생: {e}")
         db.rollback()
         raise
     finally:
@@ -152,24 +148,48 @@ def add_restaurants_to_db(restaurants):
 
 
 def main():
+    # 환경변수에서 설정 가져오기
+    database_url = os.getenv("RAILWAY_DATABASE_URL")
+    kakao_api_key = os.getenv("KAKAO_REST_API_KEY")
+    
+    if not database_url:
+        logger.error("❌ RAILWAY_DATABASE_URL 환경변수가 설정되지 않았습니다.")
+        sys.exit(1)
+    
+    if not kakao_api_key:
+        logger.error("❌ KAKAO_REST_API_KEY 환경변수가 설정되지 않았습니다.")
+        sys.exit(1)
+    
     if len(sys.argv) < 2:
-        print(__doc__)
+        logger.error("❌ CSV 파일 경로를 제공해주세요.")
+        logger.error("사용법: python scripts/add_restaurant_to_cloud.py data/restaurants_to_add.csv")
         sys.exit(1)
     
     csv_path = sys.argv[1]
     
     if not os.path.exists(csv_path):
-        print(f"파일을 찾을 수 없습니다: {csv_path}")
+        logger.error(f"❌ 파일을 찾을 수 없습니다: {csv_path}")
         sys.exit(1)
     
-    logger.info(f"CSV 파일 읽는 중: {csv_path}")
+    logger.info("=" * 60)
+    logger.info("🚀 클라우드 Railway DB에 음식점 추가")
+    logger.info("=" * 60)
+    logger.info(f"📁 CSV 파일: {csv_path}")
+    logger.info(f"🗄️  DB: {database_url.split('@')[1].split('/')[0]}")  # 호스트만 표시
+    logger.info("=" * 60)
+    
+    logger.info(f"\n📖 CSV 파일 읽는 중: {csv_path}")
     restaurants = parse_csv(csv_path)
-    logger.info(f"{len(restaurants)}개 레스토랑 발견")
+    logger.info(f"✅ {len(restaurants)}개 레스토랑 발견\n")
     
-    logger.info("DB에 추가 중...")
-    add_restaurants_to_db(restaurants)
+    if not restaurants:
+        logger.error("❌ 추가할 레스토랑이 없습니다.")
+        sys.exit(1)
     
-    logger.info("모든 작업 완료!")
+    logger.info("🔄 DB에 추가 중...")
+    add_restaurants_to_cloud(restaurants, database_url)
+    
+    logger.info("\n✅ 모든 작업 완료!")
 
 
 if __name__ == "__main__":
