@@ -590,10 +590,25 @@ async def get_businesses_for_map(
     
     # Step 2: 데이터 변환
     step2_start = time.time()
-    result = []
-    ai_cache_queries = 0
-    ai_cache_start = time.time()
     
+    # N+1 쿼리 해결: 모든 business의 AI 캐시를 한 번에 조회
+    ai_cache_start = time.time()
+    predictions_map = {}
+    if current_user and businesses:
+        business_ids = [b.id for b in businesses]
+        cached_predictions = db.query(models.UserBusinessPrediction).filter(
+            and_(
+                models.UserBusinessPrediction.user_id == current_user.id,
+                models.UserBusinessPrediction.business_id.in_(business_ids)
+            )
+        ).all()
+        
+        # 딕셔너리로 변환하여 빠른 조회
+        predictions_map = {pred.business_id: pred for pred in cached_predictions}
+        logger.info(f"  ⏱️  Step 2-1 (AI 캐시 일괄 조회): {time.time() - ai_cache_start:.3f}s, {len(cached_predictions)}개")
+    
+    # 데이터 변환
+    result = []
     for business in businesses:
         business_dict = {
             "id": business.id,
@@ -612,30 +627,17 @@ async def get_businesses_for_map(
             "absa_atmosphere_avg": business.absa_features.get('분위기_긍정', 0) if business.absa_features else 0,
         }
         
-        # 로그인 사용자면 캐시된 AI 예측 추가
-        if current_user:
-            ai_cache_queries += 1
-            cached_pred = db.query(models.UserBusinessPrediction).filter(
-                and_(
-                    models.UserBusinessPrediction.user_id == current_user.id,
-                    models.UserBusinessPrediction.business_id == business.id
-                )
-            ).first()
-            
-            if cached_pred:
-                business_dict["ai_prediction"] = {
-                    "deepfm_rating": cached_pred.deepfm_score,
-                    "multitower_rating": cached_pred.multitower_score,
-                }
+        # ✅ N+1 문제 해결: 딕셔너리에서 바로 조회 (쿼리 0번)
+        if current_user and business.id in predictions_map:
+            cached_pred = predictions_map[business.id]
+            business_dict["ai_prediction"] = {
+                "deepfm_rating": cached_pred.deepfm_score,
+                "multitower_rating": cached_pred.multitower_score,
+            }
         
         result.append(business_dict)
     
-    if ai_cache_queries > 0:
-        ai_cache_time = time.time() - ai_cache_start
-        logger.info(f"  ⏱️  Step 2 (데이터 변환 + AI 캐시): {time.time() - step2_start:.3f}s")
-        logger.info(f"    - AI 캐시 쿼리: {ai_cache_queries}번, {ai_cache_time:.3f}s")
-    else:
-        logger.info(f"  ⏱️  Step 2 (데이터 변환): {time.time() - step2_start:.3f}s")
+    logger.info(f"  ⏱️  Step 2 (데이터 변환 완료): {time.time() - step2_start:.3f}s")
     
     total_time = time.time() - func_start
     logger.info(f"✅ 지도 API 완료: {total_time:.3f}s")
@@ -876,7 +878,12 @@ async def get_reviews(
     
     # Step 2: 리뷰 조회 (User 정보를 함께 로드)
     step2_start = time.time()
-    query = db.query(models.Review).join(models.User).filter(
+    from sqlalchemy.orm import joinedload
+    
+    # N+1 쿼리 해결: joinedload로 user 정보를 미리 로드
+    query = db.query(models.Review).options(
+        joinedload(models.Review.user)  # user 정보를 함께 가져옴
+    ).filter(
         models.Review.business_id == business.id
     )
     
