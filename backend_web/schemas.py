@@ -118,6 +118,9 @@ class BusinessResponse(BusinessBase):
     longitude: Optional[float]
     absa_features: Optional[Dict[str, float]] = None  # 전체 ABSA 피처 (Detail용)
     top_features: Optional[List[ABSAFeature]] = None  # 상위 특징 (리스트용)
+    absa_food_avg: Optional[float] = None  # ABSA 음식 평균 점수
+    absa_service_avg: Optional[float] = None  # ABSA 서비스 평균 점수
+    absa_atmosphere_avg: Optional[float] = None  # ABSA 분위기 평균 점수
     ai_prediction: Optional[AIPrediction] = None  # AI 예측 (로그인 사용자)
     # 가게 정보를 클라이언트에 응답할 때 사용 
     

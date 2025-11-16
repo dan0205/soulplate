@@ -119,6 +119,15 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
     );
   };
 
+  // 내 위치로 이동하는 핸들러
+  const handleGoToMyLocation = () => {
+    if (userLocation) {
+      setCenter(userLocation);
+    } else {
+      alert('위치 정보를 가져올 수 없습니다.');
+    }
+  };
+
   return (
     <div className="map-container">
       {loading && (
@@ -155,6 +164,13 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
           </CustomOverlayMap>
         ))}
       </Map>
+      
+      {/* 내 위치 버튼 */}
+      {userLocation && (
+        <button className="my-location-btn" onClick={handleGoToMyLocation} title="내 위치로 이동">
+          📍
+        </button>
+      )}
     </div>
   );
 };

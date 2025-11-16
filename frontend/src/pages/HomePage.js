@@ -375,7 +375,6 @@ const HomePage = () => {
                     className="business-card"
                     onClick={() => handleBusinessClick(item.business)}
                   >
-                    <div className="card-rank">#{(currentPage - 1) * itemsPerPage + index + 1}</div>
                     <h3>{item.business.name}</h3>
                     <div className="card-info">
                       <span className="reviews">📝 {item.business.review_count} reviews</span>

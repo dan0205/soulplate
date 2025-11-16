@@ -705,7 +705,10 @@ async def get_businesses(
             "state": business.state,
             "latitude": business.latitude,
             "longitude": business.longitude,
-            "top_features": get_top_absa_features(absa_dict)
+            "top_features": get_top_absa_features(absa_dict),
+            "absa_food_avg": business.absa_food_avg,
+            "absa_service_avg": business.absa_service_avg,
+            "absa_atmosphere_avg": business.absa_atmosphere_avg
         }
         
         # 로그인 사용자면 캐시된 AI 예측 추가 (이미 가져온 데이터 사용)
