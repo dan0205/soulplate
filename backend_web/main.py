@@ -891,18 +891,31 @@ async def get_reviews(
     
     # Step 3: 각 리뷰에 추가 정보 포함
     step3_start = time.time()
-    result = []
-    n_plus_1_start = time.time()
-    for idx, review in enumerate(reviews):
-        # ⚠️ N+1 문제 발생 지점 - 각 리뷰마다 별도 쿼리 실행
-        query_start = time.time()
-        user_review_count = db.query(models.Review).filter(
-            models.Review.user_id == review.user_id
-        ).count()
-        query_time = time.time() - query_start
+    
+    # N+1 쿼리 해결: 모든 user의 리뷰 수를 한 번에 조회
+    user_review_counts_start = time.time()
+    from sqlalchemy import func
+    user_ids = list(set([r.user_id for r in reviews]))
+    
+    if user_ids:
+        user_review_counts_query = db.query(
+            models.Review.user_id,
+            func.count(models.Review.id).label('review_count')
+        ).filter(
+            models.Review.user_id.in_(user_ids)
+        ).group_by(models.Review.user_id).all()
         
-        if query_time > 0.05:  # 50ms 이상
-            logger.warning(f"    🐌 N+1 Query #{idx+1} ({query_time:.3f}s): user_id={review.user_id}")
+        # 딕셔너리로 변환하여 빠른 조회
+        user_review_counts_map = {user_id: count for user_id, count in user_review_counts_query}
+        logger.info(f"  ⏱️  Step 3-1 (user 리뷰 수 일괄 조회): {time.time() - user_review_counts_start:.3f}s, {len(user_ids)}명")
+    else:
+        user_review_counts_map = {}
+    
+    # 데이터 변환
+    result = []
+    for idx, review in enumerate(reviews):
+        # ✅ N+1 문제 해결: 딕셔너리에서 바로 조회 (쿼리 0번)
+        user_review_count = user_review_counts_map.get(review.user_id, 0)
         
         # ABSA 감정 점수 계산 (긍정: +2, 중립: 0, 부정: -1)
         absa_sentiment = {}
@@ -944,13 +957,10 @@ async def get_reviews(
         }
         result.append(review_dict)
     
-    n_plus_1_total = time.time() - n_plus_1_start
-    logger.info(f"  ⏱️  Step 3 (N+1 쿼리 포함): {time.time() - step3_start:.3f}s")
-    if len(reviews) > 0:
-        logger.warning(f"  ⚠️  N+1 문제: {len(reviews)}개 리뷰 = {len(reviews)}번 추가 쿼리 실행, 총 {n_plus_1_total:.3f}s")
+    logger.info(f"  ⏱️  Step 3 (데이터 변환 완료): {time.time() - step3_start:.3f}s")
     
     total_time = time.time() - func_start
-    logger.info(f"✅ 리뷰 조회 완료: {total_time:.3f}s")
+    logger.info(f"✅ 리뷰 조회 완료: {total_time:.3f}s (N+1 문제 해결됨)")
     
     return result
     # app.get으로 가게에 작성된 리뷰를 가져오고, 각 리뷰에 작성자의 username을 포함한다 
