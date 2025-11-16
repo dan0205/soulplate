@@ -109,6 +109,53 @@ def update_user_profile(user_id: int, db: Session):
     logger.info(f"User {user_id} profile updated: {real_review_count} reviews, {len(reviews)} total (with tests)")
 
 
+def update_business_profile(business_id: int, db: Session):
+    """
+    비즈니스 프로필 재계산
+    해당 비즈니스의 모든 리뷰로부터 ABSA 평균 계산
+    """
+    # 해당 비즈니스의 모든 리뷰 조회 (ABSA가 있는 것만)
+    reviews = db.query(models.Review).filter(
+        models.Review.business_id == business_id,
+        models.Review.absa_features.isnot(None)
+    ).all()
+    
+    if not reviews:
+        logger.info(f"Business {business_id}: No reviews with ABSA features")
+        return
+    
+    # ABSA 평균 계산
+    absa_sum = defaultdict(float)
+    total_stars = 0.0
+    
+    for review in reviews:
+        # ABSA 합산
+        for key, value in review.absa_features.items():
+            absa_sum[key] += value
+        
+        # 별점 합산
+        if review.stars:
+            total_stars += review.stars
+    
+    # Business 업데이트
+    business = db.query(models.Business).filter(models.Business.id == business_id).first()
+    if not business:
+        return
+    
+    # ABSA 평균 저장
+    business.absa_features = {
+        key: value / len(reviews) 
+        for key, value in absa_sum.items()
+    }
+    
+    # 별점 평균 및 리뷰 수 업데이트
+    business.stars = total_stars / len(reviews)
+    business.review_count = len(reviews)
+    
+    db.commit()
+    logger.info(f"Business {business_id} profile updated: {len(reviews)} reviews, avg stars: {business.stars:.2f}")
+
+
 async def process_review_features(review_id: int, user_id: int, text: str, stars: float):
     """
     백그라운드 작업: 리뷰 ABSA 분석, 프로필 업데이트, 예측 재계산
@@ -146,6 +193,11 @@ async def process_review_features(review_id: int, user_id: int, text: str, stars
         # 3. User 프로필 업데이트
         update_user_profile(user_id, db)
         logger.info(f"User {user_id} profile updated after review {review_id}")
+        
+        # 3-1. Business 프로필 업데이트
+        if review and review.business_id:
+            update_business_profile(review.business_id, db)
+            logger.info(f"Business {review.business_id} profile updated after review {review_id}")
         
         # 4. 예측 캐시 재계산
         # 먼저 stale로 표시 (빠름)

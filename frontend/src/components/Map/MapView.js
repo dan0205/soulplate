@@ -66,7 +66,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
       clearTimeout(debounceTimerRef.current);
     }
 
-    // 5초 후 새 데이터 로드 (로딩이 느려서 긴 디바운싱 적용)
+    // 1초 후 새 데이터 로드 (로딩 속도 개선으로 디바운싱 단축)
     debounceTimerRef.current = setTimeout(() => {
       const newCenter = map.getCenter();
       const lat = newCenter.getLat();
@@ -75,7 +75,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
       if (onLocationChange) {
         onLocationChange(lat, lng);
       }
-    }, 5000);
+    }, 1000);
   }, [onLocationChange]);
 
   // 컴포넌트 언마운트 시 타이머 정리
@@ -122,7 +122,8 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading })
   // 내 위치로 이동하는 핸들러
   const handleGoToMyLocation = () => {
     if (userLocation) {
-      setCenter(userLocation);
+      // 새 객체를 생성하여 강제로 리렌더링 유도
+      setCenter({ ...userLocation });
     } else {
       alert('위치 정보를 가져올 수 없습니다.');
     }
