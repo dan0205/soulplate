@@ -706,9 +706,9 @@ async def get_businesses(
             "latitude": business.latitude,
             "longitude": business.longitude,
             "top_features": get_top_absa_features(absa_dict),
-            "absa_food_avg": business.absa_food_avg,
-            "absa_service_avg": business.absa_service_avg,
-            "absa_atmosphere_avg": business.absa_atmosphere_avg
+            "absa_food_avg": absa_dict.get('음식_긍정', 0) if absa_dict else 0,
+            "absa_service_avg": absa_dict.get('서비스_긍정', 0) if absa_dict else 0,
+            "absa_atmosphere_avg": absa_dict.get('분위기_긍정', 0) if absa_dict else 0
         }
         
         # 로그인 사용자면 캐시된 AI 예측 추가 (이미 가져온 데이터 사용)
