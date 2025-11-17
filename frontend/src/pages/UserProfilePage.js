@@ -110,36 +110,27 @@ const UserProfilePage = () => {
     <div className="profile-container">
       <div className="profile-header-actions">
         <div className="profile-logo" onClick={() => navigate('/')}>
-          🍽️ Soulplate
+          Soulplate
         </div>
       </div>
       
       <div className="profile-header">
-        <Avatar username={profile.username} size="large" />
+        <Avatar username={profile.username} size="medium" />
         <div className="profile-info">
           <h1>{profile.username}</h1>
           <div className="profile-stats">
-            <div className="stat-item">
-              <span className="stat-value">{profile.review_count}</span>
-              <span className="stat-label">Reviews</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-value">{profile.useful}</span>
-              <span className="stat-label">Useful</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-value">{profile.fans}</span>
-              <span className="stat-label">Fans</span>
-            </div>
+            <span className="stat-inline">Reviews: {profile.review_count}</span>
+            <span className="stat-inline">Useful: {profile.useful}</span>
+            <span className="stat-inline">Fans: {profile.fans}</span>
           </div>
         </div>
       </div>
 
       {profile.taste_test_completed && mbtiInfo && (
         <div className="taste-test-section">
-          <h2>🍽️ 음식 취향</h2>
+          <h2>음식 취향</h2>
           <div className="taste-test-card">
-            <div className="mbti-box">
+            <div className="mbti-box-red">
               <div className="mbti-type-large">
                 {profile.taste_test_mbti_type}
               </div>

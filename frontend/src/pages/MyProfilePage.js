@@ -128,30 +128,50 @@ const MyProfilePage = () => {
     <div className="profile-container">
       <div className="profile-header-actions">
         <div className="profile-logo" onClick={() => navigate('/')}>
-          🍽️ Soulplate
+          Soulplate
         </div>
       </div>
       
       <div className="profile-header">
-        <Avatar username={profile.username} size="large" />
+        <Avatar username={profile.username} size="medium" />
         <div className="profile-info">
           <h1>{profile.username}</h1>
           <div className="profile-stats">
-            <div className="stat-item">
-              <span className="stat-value">{profile.review_count}</span>
-              <span className="stat-label">Reviews</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-value">{profile.useful}</span>
-              <span className="stat-label">Useful</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-value">{profile.fans}</span>
-              <span className="stat-label">Fans</span>
-            </div>
+            <span className="stat-inline">Reviews: {profile.review_count}</span>
+            <span className="stat-inline">Useful: {profile.useful}</span>
+            <span className="stat-inline">Fans: {profile.fans}</span>
           </div>
         </div>
       </div>
+
+      {profile.taste_test_completed && mbtiInfo && (
+        <div className="taste-test-section">
+          <h2>음식 취향</h2>
+          <div className="taste-test-card">
+            <div className="mbti-box-red">
+              <div className="mbti-type-large">
+                {profile.taste_test_mbti_type}
+              </div>
+              <div className="mbti-type-name">
+                {mbtiInfo.name}
+              </div>
+              <div className="mbti-description">
+                {mbtiInfo.description}
+              </div>
+              {mbtiInfo.recommendations && mbtiInfo.recommendations.length > 0 && (
+                <div className="mbti-recommendations">
+                  <div className="recommendations-title">📍 추천 장소</div>
+                  <ul>
+                    {mbtiInfo.recommendations.map((rec, idx) => (
+                      <li key={idx}>{rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="taste-test-section">
         <h2>🍽️ 음식 취향 테스트</h2>
@@ -160,36 +180,6 @@ const MyProfilePage = () => {
             <>
               <div className="test-completed-badge">
                 ✅ 취향 테스트 완료
-              </div>
-              
-              {mbtiInfo && (
-                <div className="mbti-box">
-                  <div className="mbti-type-large">
-                    {profile.taste_test_mbti_type}
-                  </div>
-                  <div className="mbti-type-name">
-                    {mbtiInfo.name}
-                  </div>
-                  <div className="mbti-description">
-                    {mbtiInfo.description}
-                  </div>
-                  {mbtiInfo.recommendations && mbtiInfo.recommendations.length > 0 && (
-                    <div className="mbti-recommendations">
-                      <div className="recommendations-title">📍 추천 장소</div>
-                      <ul>
-                        {mbtiInfo.recommendations.map((rec, idx) => (
-                          <li key={idx}>{rec}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              <div className="test-info">
-                <div className="test-type-label">
-                  {profile.taste_test_type === 'quick' ? '⚡ 간단 테스트' : '🔍 심화 테스트'}
-                </div>
               </div>
               {profile.review_count === 0 && (
                 <p className="taste-test-hint">
