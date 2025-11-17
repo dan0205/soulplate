@@ -60,7 +60,7 @@
   border-color: #667eea;
 }
 
-.btn-primary {
+.auth-box .btn-primary {
   width: 100%;
   padding: 12px;
   background: #667eea;
@@ -73,11 +73,11 @@
   transition: background 0.3s;
 }
 
-.btn-primary:hover:not(:disabled) {
+.auth-box .btn-primary:hover:not(:disabled) {
   background: #5568d3;
 }
 
-.btn-primary:disabled {
+.auth-box .btn-primary:disabled {
   background: #ccc;
   cursor: not-allowed;
 }

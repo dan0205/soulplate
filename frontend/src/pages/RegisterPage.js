@@ -51,8 +51,7 @@ const RegisterPage = () => {
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <h1>🚀 Two-Tower Recommendation</h1>
-        <h2>Register</h2>
+        <h1>SoulPlate</h1>
         
         {error && <div className="error-message">{error}</div>}
         
