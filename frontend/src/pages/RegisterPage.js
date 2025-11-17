@@ -40,7 +40,7 @@ const RegisterPage = () => {
       });
       // 회원가입 성공 시 자동 로그인 후 홈으로 이동
       alert('Registration successful!');
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed');
     } finally {

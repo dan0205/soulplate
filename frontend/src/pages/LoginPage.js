@@ -23,7 +23,7 @@ const LoginPage = () => {
 
     try {
       await login(username, password);
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed');
     } finally {

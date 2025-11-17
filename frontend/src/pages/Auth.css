@@ -7,7 +7,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
   padding: 20px;
 }
 
@@ -57,13 +57,13 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #ff6b6b;
 }
 
 .auth-box .btn-primary {
   width: 100%;
   padding: 12px;
-  background: #667eea;
+  background: #ff6b6b;
   color: white;
   border: none;
   border-radius: 5px;
@@ -74,7 +74,7 @@
 }
 
 .auth-box .btn-primary:hover:not(:disabled) {
-  background: #5568d3;
+  background: #ee5a52;
 }
 
 .auth-box .btn-primary:disabled {
@@ -98,7 +98,7 @@
 }
 
 .auth-link a {
-  color: #667eea;
+  color: #ff6b6b;
   text-decoration: none;
   font-weight: 600;
 }

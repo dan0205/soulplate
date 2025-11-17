@@ -20,6 +20,36 @@ function TasteTestPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testType]);
 
+  // 뒤로가기 및 페이지 이탈 방지
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (answers.some(a => a !== null)) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    const handlePopState = (e) => {
+      if (answers.some(a => a !== null)) {
+        const confirmLeave = window.confirm('테스트를 종료하시겠습니까? 입력한 답변이 저장되지 않습니다.');
+        if (!confirmLeave) {
+          window.history.pushState(null, '', window.location.pathname);
+        }
+      }
+    };
+
+    // 현재 페이지를 히스토리 스택에 추가 (뒤로가기 감지용)
+    window.history.pushState(null, '', window.location.pathname);
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [answers]);
+
   const loadQuestions = async () => {
     try {
       setLoading(true);
@@ -67,9 +97,10 @@ function TasteTestPage() {
         answers: answers
       });
       
-      // 결과 페이지로 이동
+      // 결과 페이지로 이동 (히스토리 스택에서 테스트 페이지 제거)
       navigate('/taste-test/result', { 
-        state: { result: response.data, testType } 
+        state: { result: response.data, testType },
+        replace: true
       });
     } catch (err) {
       console.error('테스트 제출 실패:', err);
@@ -191,6 +222,7 @@ function TasteTestPage() {
 }
 
 export default TasteTestPage;
+
 
 
 
