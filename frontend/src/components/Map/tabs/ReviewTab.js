@@ -308,16 +308,16 @@ const ReviewTab = ({ businessId }) => {
             {expandedReplies.has(review.id) ? '▼' : '▶'} 답글 {review.reply_count}개
           </button>
         )}
+        
+        {/* 답글 목록 (review-content 안으로 이동) */}
+        {!isReply && expandedReplies.has(review.id) && repliesData[review.id] && (
+          <div className="replies-list">
+            {repliesData[review.id].map(reply => (
+              <ReviewItem key={reply.id} review={reply} isReply={true} />
+            ))}
+          </div>
+        )}
       </div>
-      
-      {/* 답글 목록 */}
-      {!isReply && expandedReplies.has(review.id) && repliesData[review.id] && (
-        <div className="replies-list">
-          {repliesData[review.id].map(reply => (
-            <ReviewItem key={reply.id} review={reply} isReply={true} />
-          ))}
-        </div>
-      )}
     </div>
   );
 
