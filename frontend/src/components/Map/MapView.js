@@ -89,8 +89,9 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
 
   // 커스텀 마커 컴포넌트
   const CustomMarker = ({ restaurant }) => {
-    const color = getMarkerColor(restaurant.ai_prediction || restaurant.stars);
-    const score = (restaurant.ai_prediction || restaurant.stars).toFixed(1);
+    const aiScore = restaurant.ai_prediction?.deepfm_rating || restaurant.stars || 0;
+    const color = getMarkerColor(aiScore);
+    const score = aiScore.toFixed(1);
     
     return (
       <div
