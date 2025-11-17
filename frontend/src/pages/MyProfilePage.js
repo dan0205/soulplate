@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { userAPI, tasteTestAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
+import { getMBTIInfo } from '../utils/mbtiDescriptions';
 import './Profile.css';
 
 const MyProfilePage = () => {
@@ -69,24 +70,6 @@ const MyProfilePage = () => {
     }
   }, [user, loadingMore]);
 
-  const handleScroll = useCallback(() => {
-    if (loadingMore || !hasMore) return;
-    
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const windowHeight = window.innerHeight;
-    const documentHeight = document.documentElement.scrollHeight;
-    
-    if (scrollTop + windowHeight >= documentHeight - 200) {
-      loadReviews(reviewSkip, false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reviewSkip, hasMore, loadingMore]);
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
-
   const getTopABSAFeatures = (absaFeatures) => {
     if (!absaFeatures) return [];
     
@@ -139,13 +122,14 @@ const MyProfilePage = () => {
     );
   }
 
-  const topFeatures = getTopABSAFeatures(profile.absa_features);
+  const mbtiInfo = profile.taste_test_mbti_type ? getMBTIInfo(profile.taste_test_mbti_type) : null;
 
   return (
     <div className="profile-container">
       <div className="profile-header-actions">
-        <button className="btn-back" onClick={() => navigate('/')}>← Back to Home</button>
-        <button className="btn-logout" onClick={logout}>Logout</button>
+        <div className="profile-logo" onClick={() => navigate('/')}>
+          🍽️ Soulplate
+        </div>
       </div>
       
       <div className="profile-header">
@@ -169,19 +153,6 @@ const MyProfilePage = () => {
         </div>
       </div>
 
-      {topFeatures.length > 0 && (
-        <div className="absa-section">
-          <h2>내 리뷰 성향 분석</h2>
-          <div className="absa-tags">
-            {topFeatures.map((feature, idx) => (
-              <span key={idx} className="absa-tag">
-                {feature.key.replace('_', ' ')}: {(Math.abs(feature.value) * 100).toFixed(0)}%
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="taste-test-section">
         <h2>🍽️ 음식 취향 테스트</h2>
         <div className="taste-test-card">
@@ -190,16 +161,35 @@ const MyProfilePage = () => {
               <div className="test-completed-badge">
                 ✅ 취향 테스트 완료
               </div>
+              
+              {mbtiInfo && (
+                <div className="mbti-box">
+                  <div className="mbti-type-large">
+                    {profile.taste_test_mbti_type}
+                  </div>
+                  <div className="mbti-type-name">
+                    {mbtiInfo.name}
+                  </div>
+                  <div className="mbti-description">
+                    {mbtiInfo.description}
+                  </div>
+                  {mbtiInfo.recommendations && mbtiInfo.recommendations.length > 0 && (
+                    <div className="mbti-recommendations">
+                      <div className="recommendations-title">📍 추천 장소</div>
+                      <ul>
+                        {mbtiInfo.recommendations.map((rec, idx) => (
+                          <li key={idx}>{rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <div className="test-info">
                 <div className="test-type-label">
                   {profile.taste_test_type === 'quick' ? '⚡ 간단 테스트' : '🔍 심화 테스트'}
                 </div>
-                {profile.taste_test_mbti_type && (
-                  <div className="mbti-type-display">
-                    <span className="mbti-label">당신의 타입:</span>
-                    <span className="mbti-value">{profile.taste_test_mbti_type}</span>
-                  </div>
-                )}
               </div>
               {profile.review_count === 0 && (
                 <p className="taste-test-hint">
@@ -290,12 +280,22 @@ const MyProfilePage = () => {
             </div>
             {loadingMore && (
               <div className="loading-more">
-                <p>Loading more reviews...</p>
+                <p>리뷰를 불러오는 중...</p>
+              </div>
+            )}
+            {hasMore && !loadingMore && (
+              <div className="load-more-container">
+                <button 
+                  className="btn-load-more"
+                  onClick={() => loadReviews(reviewSkip, false)}
+                >
+                  더보기
+                </button>
               </div>
             )}
             {!hasMore && reviews.length > 0 && (
               <div className="no-more-reviews">
-                <p>No more reviews to load</p>
+                <p>모든 리뷰를 불러왔습니다</p>
               </div>
             )}
           </>
