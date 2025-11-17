@@ -160,56 +160,95 @@ async def process_review_features(review_id: int, user_id: int, text: str, stars
     """
     백그라운드 작업: 리뷰 ABSA 분석, 프로필 업데이트, 예측 재계산
     """
+    import time
     from prediction_cache import mark_predictions_stale, calculate_and_store_predictions
     
     db = SessionLocal()
+    task_start_time = time.time()
+    
     try:
-        logger.info(f"Background task started for review {review_id}")
+        logger.info(f"🚀 [Background Task] Started for review {review_id}")
         
         # 1. backend_model API 호출 (ABSA + 텍스트 임베딩)
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        step1_start = time.time()
+        logger.info(f"  📊 [Step 1/5] ABSA 분석 시작 (timeout=120s)...")
+        
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            api_call_start = time.time()
             response = await client.post(
                 f"{MODEL_API_URL}/analyze_review",
                 json={"text": text}
             )
+            api_call_time = time.time() - api_call_start
             
             if response.status_code != 200:
-                logger.error(f"ABSA analysis failed: {response.status_code}")
+                logger.error(f"  ❌ [Step 1/5] ABSA analysis failed: {response.status_code}")
                 return
             
             result = response.json()
             absa_features = result["absa_features"]
             text_embedding = result["text_embedding"]
         
-        logger.info(f"ABSA analysis completed for review {review_id}")
+        step1_time = time.time() - step1_start
+        logger.info(f"  ✅ [Step 1/5] ABSA 분석 완료 - API 호출: {api_call_time:.2f}s, 전체: {step1_time:.2f}s")
         
         # 2. Review에 ABSA 저장
+        step2_start = time.time()
+        logger.info(f"  💾 [Step 2/5] Review ABSA 저장 시작...")
+        
         review = db.query(models.Review).filter(models.Review.id == review_id).first()
         if review:
             review.absa_features = absa_features
             db.commit()
-            logger.info(f"Review {review_id} ABSA saved")
+        
+        step2_time = time.time() - step2_start
+        logger.info(f"  ✅ [Step 2/5] Review ABSA 저장 완료 - {step2_time:.2f}s")
         
         # 3. User 프로필 업데이트
+        step3_start = time.time()
+        logger.info(f"  👤 [Step 3/5] User 프로필 업데이트 시작...")
+        
         update_user_profile(user_id, db)
-        logger.info(f"User {user_id} profile updated after review {review_id}")
+        
+        step3_time = time.time() - step3_start
+        logger.info(f"  ✅ [Step 3/5] User 프로필 업데이트 완료 - {step3_time:.2f}s")
         
         # 3-1. Business 프로필 업데이트
+        step3_1_start = time.time()
+        logger.info(f"  🏪 [Step 3.5/5] Business 프로필 업데이트 시작...")
+        
         if review and review.business_id:
             update_business_profile(review.business_id, db)
-            logger.info(f"Business {review.business_id} profile updated after review {review_id}")
+        
+        step3_1_time = time.time() - step3_1_start
+        logger.info(f"  ✅ [Step 3.5/5] Business 프로필 업데이트 완료 - {step3_1_time:.2f}s")
         
         # 4. 예측 캐시 재계산
-        # 먼저 stale로 표시 (빠름)
-        mark_predictions_stale(user_id, db)
-        logger.info(f"Predictions marked as stale for user {user_id}")
+        step4_start = time.time()
+        logger.info(f"  🔄 [Step 4/5] 예측 캐시를 stale로 표시...")
         
-        # 그 다음 재계산 (시간 걸림)
+        mark_predictions_stale(user_id, db)
+        
+        step4_time = time.time() - step4_start
+        logger.info(f"  ✅ [Step 4/5] 예측 캐시 stale 표시 완료 - {step4_time:.2f}s")
+        
+        # 5. 예측 재계산 (시간 걸림)
+        step5_start = time.time()
+        logger.info(f"  🔮 [Step 5/5] 예측 재계산 시작 (timeout=120s, 모든 음식점)...")
+        
         await calculate_and_store_predictions(user_id, db)
-        logger.info(f"Predictions recalculated for user {user_id}")
+        
+        step5_time = time.time() - step5_start
+        logger.info(f"  ✅ [Step 5/5] 예측 재계산 완료 - {step5_time:.2f}s")
+        
+        # 전체 작업 완료
+        total_time = time.time() - task_start_time
+        logger.info(f"✅ [Background Task] 완료 (review {review_id}) - 총 소요시간: {total_time:.2f}s")
+        logger.info(f"   └─ 시간 분석: ABSA={step1_time:.1f}s, 저장={step2_time:.1f}s, User={step3_time:.1f}s, Business={step3_1_time:.1f}s, Stale={step4_time:.1f}s, 예측={step5_time:.1f}s")
         
     except Exception as e:
-        logger.error(f"Background task failed for review {review_id}: {e}")
+        total_time = time.time() - task_start_time
+        logger.error(f"❌ [Background Task] Failed for review {review_id} after {total_time:.2f}s: {e}")
         import traceback
         traceback.print_exc()
         db.rollback()
