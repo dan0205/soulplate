@@ -2,17 +2,23 @@
 .floating-search-bar {
   position: fixed;
   top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 20px;
+  right: 80px; /* 프로필 버튼 공간 확보 */
   z-index: 1001;
-  width: 90%;
   max-width: 500px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   display: flex;
   align-items: center;
-  position: relative;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+/* 100% 카드일 때 검색창 숨기기 */
+body:has(.snap-100) .floating-search-bar {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
 }
 
 .floating-search-bar input {
@@ -187,6 +193,11 @@
 /* 하단 시트 스타일 */
 .map-bottom-sheet {
   z-index: 999;
+}
+
+/* 100% 카드일 때 z-index 상승 */
+.map-bottom-sheet:has(.snap-100) {
+  z-index: 1003;
 }
 
 .bottom-sheet-content {
@@ -861,14 +872,7 @@
   margin: 0;
   font-size: 15px;
   color: #666;
-}
-
-.drag-handle {
-  width: 40px;
-  height: 4px;
-  background: #ddd;
-  border-radius: 2px;
-  margin: 0 auto 10px;
+  font-weight: 500;
 }
 
 /* 시트 헤더 (리스트 탭) */
@@ -1087,7 +1091,8 @@
   }
   
   .floating-search-bar {
-    width: 95%;
+    left: 15px;
+    right: 70px; /* 모바일에서도 프로필 버튼 공간 확보 */
     top: 15px;
   }
 }

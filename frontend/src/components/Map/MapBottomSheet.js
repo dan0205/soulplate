@@ -84,13 +84,21 @@ const MapBottomSheet = ({
         const windowHeight = window.innerHeight;
         const ratio = height / windowHeight;
         
+        let newSnapIndex;
         // snap index 업데이트
         if (ratio < 0.2) {
-          setSnapIndex(0); // 10%
+          newSnapIndex = 0; // 10%
         } else if (ratio < 0.7) {
-          setSnapIndex(1); // 50%
+          newSnapIndex = 1; // 50%
         } else {
-          setSnapIndex(2); // 100%
+          newSnapIndex = 2; // 100%
+        }
+        
+        setSnapIndex(newSnapIndex);
+        
+        // 🔥 snap이 50% 이상이고 hint 모드면 자동으로 list 모드로 전환
+        if (newSnapIndex >= 1 && sheetMode === 'hint') {
+          setSheetMode('list');
         }
       }
     });
@@ -122,7 +130,7 @@ const MapBottomSheet = ({
       clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [sheetMode]);
+  }, [sheetMode]); // sheetMode 변경 감지
 
   const handleHintClick = () => {
     setSheetMode('list');
@@ -184,7 +192,6 @@ const MapBottomSheet = ({
         {/* HINT 모드 (10%) */}
         {sheetMode === 'hint' && (
           <div className="sheet-hint" onClick={handleHintClick}>
-            <div className="drag-handle"></div>
             <p>⬆️ 주변 맛집 {restaurants.length}곳 보기</p>
           </div>
         )}
@@ -336,7 +343,7 @@ const MapBottomSheet = ({
                 </TabPanel>
 
                 <TabPanel>
-                  <ReviewTab businessId={selectedRestaurant.id} />
+                  <ReviewTab businessId={selectedRestaurant.business_id} />
                 </TabPanel>
 
                 <TabPanel>

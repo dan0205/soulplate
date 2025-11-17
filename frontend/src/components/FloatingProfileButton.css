@@ -4,6 +4,14 @@
   top: 20px;
   right: 20px;
   z-index: 1002;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+/* 100% 카드일 때 프로필 버튼 숨기기 */
+body:has(.snap-100) .floating-profile-container {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
 }
 
 /* 프로필 버튼 */
