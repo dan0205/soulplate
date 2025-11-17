@@ -40,6 +40,18 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     return '#CCCCCC'; // 회색 (보통)
   };
 
+  // 줌 레벨에 따른 마커 크기 계산
+  const getMarkerSize = (level) => {
+    const minSize = 30;
+    const maxSize = 60;
+    const minLevel = 1;
+    const maxLevel = 14;
+    
+    // 역비례 관계 (레벨이 낮을수록 = 확대할수록 마커 크게)
+    const size = maxSize - ((level - minLevel) / (maxLevel - minLevel)) * (maxSize - minSize);
+    return Math.max(minSize, Math.min(maxSize, size));
+  };
+
   // 마커 클릭 핸들러
   const handleMarkerClick = (restaurant) => {
     if (onRestaurantSelect) {
@@ -87,35 +99,41 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     };
   }, []);
 
-  // 커스텀 마커 컴포넌트
-  const CustomMarker = ({ restaurant }) => {
+  // 커스텀 마커 컴포넌트 (지도핀 모양)
+  const CustomMarker = ({ restaurant, mapLevel }) => {
     const aiScore = restaurant.ai_prediction?.deepfm_rating || restaurant.stars || 0;
     const color = getMarkerColor(aiScore);
-    const score = aiScore.toFixed(1);
+    const size = getMarkerSize(mapLevel);
     
     return (
       <div
         style={{
-          backgroundColor: color,
-          color: 'white',
-          border: '3px solid white',
-          borderRadius: '50%',
-          width: '50px',
-          height: '50px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 'bold',
-          fontSize: '14px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          width: `${size}px`,
+          height: `${size}px`,
           cursor: 'pointer',
-          transition: 'transform 0.2s',
+          transition: 'transform 0.2s ease',
         }}
         onClick={() => handleMarkerClick(restaurant)}
-        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
       >
-        {score}
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 40 50"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{
+            filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))',
+          }}
+        >
+          {/* 지도핀 모양 (물방울 형태) */}
+          <path
+            d="M20 0 C10 0, 2 8, 2 18 C2 28, 10 35, 20 50 C30 35, 38 28, 38 18 C38 8, 30 0, 20 0 Z"
+            fill={color}
+            stroke="white"
+            strokeWidth="2.5"
+          />
+        </svg>
       </div>
     );
   };
@@ -193,9 +211,9 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
           <CustomOverlayMap
             key={restaurant.id}
             position={{ lat: restaurant.latitude, lng: restaurant.longitude }}
-            yAnchor={0.5}
+            yAnchor={1}
           >
-            <CustomMarker restaurant={restaurant} />
+            <CustomMarker restaurant={restaurant} mapLevel={mapLevel} />
           </CustomOverlayMap>
         ))}
       </Map>
