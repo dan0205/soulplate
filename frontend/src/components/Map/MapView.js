@@ -47,14 +47,14 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     }
   };
 
-  // 지도 이동 핸들러 (디바운싱)
-  const handleMapCenterChanged = useCallback((map) => {
+  // 지도 bounds 변경 핸들러 (드래그 끝, 줌 변경 시)
+  const handleBoundsChange = useCallback((map) => {
     // 기존 타이머 취소
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // 0.5초 후 새 데이터 로드 (상단 프로그레스 바로 빠른 업데이트 가능)
+    // 0.5초 후 새 데이터 로드
     debounceTimerRef.current = setTimeout(() => {
       // Bounds 정보 추출
       const bounds = map.getBounds();
@@ -163,24 +163,18 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
           mapRef.current = map;
           // 지도 생성 후 초기 bounds 전달
           setTimeout(() => {
-            const bounds = map.getBounds();
-            const sw = bounds.getSouthWest();
-            const ne = bounds.getNorthEast();
-            
-            const boundsData = {
-              north: ne.getLat(),
-              south: sw.getLat(),
-              east: ne.getLng(),
-              west: sw.getLng()
-            };
-            
-            if (onBoundsChange) {
-              onBoundsChange(boundsData);
-            }
+            handleBoundsChange(map);
           }, 100);
         }}
-        onZoomChanged={(map) => setMapLevel(map.getLevel())}
-        onCenterChanged={handleMapCenterChanged}
+        onDragEnd={(map) => {
+          // 드래그가 끝났을 때만 호출
+          handleBoundsChange(map);
+        }}
+        onZoomChanged={(map) => {
+          setMapLevel(map.getLevel());
+          // 줌 변경이 끝났을 때만 호출
+          handleBoundsChange(map);
+        }}
       >
         {/* 사용자 위치 마커 */}
         {userLocation && (

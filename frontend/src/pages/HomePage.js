@@ -2,7 +2,7 @@
  * 홈 페이지 - 지도 기반 통합 UI
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { businessAPI, userAPI } from '../services/api';
 import TasteTestModal from '../components/TasteTestModal';
@@ -86,7 +86,7 @@ const HomePage = () => {
   };
 
   // 지도 범위 기반 레스토랑 로드
-  const loadMapRestaurants = async (bounds) => {
+  const loadMapRestaurants = useCallback(async (bounds) => {
     setLoading(true);
     setError('');
     setCurrentBounds(bounds);
@@ -123,12 +123,12 @@ const HomePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearch, userLocation, isInitialLoading]);
 
   // 지도 bounds 변경 핸들러
-  const handleMapBoundsChange = (bounds) => {
+  const handleMapBoundsChange = useCallback((bounds) => {
     loadMapRestaurants(bounds);
-  };
+  }, [loadMapRestaurants]);
 
   // 더보기 버튼 핸들러
   const handleLoadMore = () => {
