@@ -2,7 +2,10 @@
   max-width: 700px;
   margin: 0 auto;
   padding: 40px 20px;
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
 }
 
 .result-card {
@@ -248,6 +251,7 @@
     padding: 16px 20px 24px;
   }
 }
+
 
 
 

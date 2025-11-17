@@ -14,6 +14,9 @@ import models
 
 logger = logging.getLogger(__name__)
 
+# httpx 로그 레벨 상향 (정상 요청은 로그 안 남김)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 # AI 모델 서버 URL
 MODEL_SERVER_URL = os.getenv("MODEL_API_URL", "https://backendmodel-production-77a7.up.railway.app")
 
