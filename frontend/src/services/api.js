@@ -81,6 +81,10 @@ export const businessAPI = {
 
 export const reviewAPI = {
   incrementUseful: (reviewId) => api.put(`/reviews/${reviewId}/useful`),
+  update: (reviewId, data) => api.put(`/reviews/${reviewId}`, data),
+  delete: (reviewId) => api.delete(`/reviews/${reviewId}`),
+  createReply: (reviewId, data) => api.post(`/reviews/${reviewId}/replies`, data),
+  getReplies: (reviewId) => api.get(`/reviews/${reviewId}/replies`),
 };
 
 export const userAPI = {

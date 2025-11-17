@@ -129,21 +129,32 @@ class BusinessResponse(BusinessBase):
 
 # Review Schemas
 class ReviewBase(BaseModel):
-    stars: float = Field(..., ge=1.0, le=5.0)
+    stars: Optional[float] = Field(None, ge=1.0, le=5.0)  # 답글은 별점 없음 (nullable)
     text: str
 
 class ReviewCreate(ReviewBase):
-    pass
+    stars: float = Field(..., ge=1.0, le=5.0)  # 리뷰 작성 시에는 별점 필수
     # 사용자가 새 리뷰를 작성할 때 받는 데이터 형식 
+
+class ReviewUpdate(BaseModel):
+    """리뷰 수정 시 사용"""
+    stars: Optional[float] = Field(None, ge=1.0, le=5.0)
+    text: Optional[str] = None
+
+class ReplyCreate(BaseModel):
+    """답글 작성 시 사용 (별점 없음)"""
+    text: str
 
 class ReviewResponse(ReviewBase):
     id: int
     user_id: int
-    business_id: int
+    business_id: Optional[int]  # 답글의 경우 비즈니스 없을 수 있음
     created_at: datetime
     username: str  # 리뷰 작성자 이름
     useful: int = 0  # 유용성 점수
     absa_features: Optional[Dict[str, float]] = None  # ABSA 피처
+    parent_review_id: Optional[int] = None  # 답글인 경우 부모 리뷰 ID
+    reply_count: int = 0  # 이 리뷰에 달린 답글 개수
     # 작성된 리뷰 정보를 응답할 때 사용 
     
     class Config:

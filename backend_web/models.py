@@ -85,7 +85,7 @@ class Review(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     business_id = Column(Integer, ForeignKey("businesses.id"), nullable=True)  # 취향 테스트는 null
-    stars = Column(Float, nullable=True)  # 1-5 (취향 테스트는 null)
+    stars = Column(Float, nullable=True)  # 1-5 (취향 테스트는 null, 답글도 null)
     text = Column(Text, nullable=False)
     date = Column(DateTime, nullable=True)  # Yelp 리뷰 원본 날짜
     created_at = Column(DateTime, default=datetime.now(timezone.utc))  # DB 삽입 시간
@@ -101,9 +101,13 @@ class Review(Base):
     taste_test_type = Column(String, nullable=True)  # 'quick' or 'deep'
     taste_test_weight = Column(Float, default=1.0, nullable=False)  # 가중치 (0.7 or 1.0)
     
+    # 답글 기능
+    parent_review_id = Column(Integer, ForeignKey("reviews.id"), nullable=True, index=True)  # 답글인 경우 부모 리뷰 ID
+    
     # Relationships
     user = relationship("User", back_populates="reviews")
     business = relationship("Business", back_populates="reviews")
+    parent_review = relationship("Review", remote_side=[id], backref="replies")
     # 하나의 리뷰는 한 명의 유저에 속한다
     # my_review.user 코드로 user 객체 정보에 바로 접근 
     # 하나의 리뷰는 하나의 비즈니스에 속한다 

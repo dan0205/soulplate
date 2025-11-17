@@ -1049,7 +1049,7 @@ async def get_reviews(
     sort: str = 'latest',  # 'latest' 또는 'useful'
     db: Session = Depends(get_db)
 ):
-    """비즈니스 리뷰 목록 조회 (정렬, 사용자 리뷰 수, ABSA 감정 포함)"""
+    """비즈니스 리뷰 목록 조회 (정렬, 사용자 리뷰 수, ABSA 감정, 답글 개수 포함)"""
     # 성능 로깅 시작
     func_start = time.time()
     logger.info(f"🔍 리뷰 조회 시작: business_id={business_id}, skip={skip}, limit={limit}, sort={sort}")
@@ -1064,15 +1064,17 @@ async def get_reviews(
     if not business:
         raise HTTPException(status_code=404, detail="Business not found")
     
-    # Step 2: 리뷰 조회 (User 정보를 함께 로드)
+    # Step 2: 최상위 리뷰만 조회 (User 정보를 함께 로드, 답글 제외)
     step2_start = time.time()
     from sqlalchemy.orm import joinedload
     
     # N+1 쿼리 해결: joinedload로 user 정보를 미리 로드
+    # parent_review_id IS NULL: 최상위 리뷰만 조회 (답글 제외)
     query = db.query(models.Review).options(
         joinedload(models.Review.user)  # user 정보를 함께 가져옴
     ).filter(
-        models.Review.business_id == business.id
+        models.Review.business_id == business.id,
+        models.Review.parent_review_id.is_(None)  # 최상위 리뷰만
     )
     
     # 정렬 옵션
@@ -1106,11 +1108,29 @@ async def get_reviews(
     else:
         user_review_counts_map = {}
     
+    # 답글 개수 일괄 조회 (N+1 문제 해결)
+    reply_counts_start = time.time()
+    review_ids = [r.id for r in reviews]
+    
+    if review_ids:
+        reply_counts_query = db.query(
+            models.Review.parent_review_id,
+            func.count(models.Review.id).label('reply_count')
+        ).filter(
+            models.Review.parent_review_id.in_(review_ids)
+        ).group_by(models.Review.parent_review_id).all()
+        
+        reply_counts_map = {parent_id: count for parent_id, count in reply_counts_query}
+        logger.info(f"  ⏱️  Step 3-2 (답글 개수 일괄 조회): {time.time() - reply_counts_start:.3f}s")
+    else:
+        reply_counts_map = {}
+    
     # 데이터 변환
     result = []
     for idx, review in enumerate(reviews):
         # ✅ N+1 문제 해결: 딕셔너리에서 바로 조회 (쿼리 0번)
         user_review_count = user_review_counts_map.get(review.user_id, 0)
+        reply_count = reply_counts_map.get(review.id, 0)
         
         # ABSA 감정 점수 계산 (긍정: +2, 중립: 0, 부정: -1)
         absa_sentiment = {}
@@ -1148,7 +1168,9 @@ async def get_reviews(
             "username": review.user.username,
             "useful": review.useful or 0,
             "user_total_reviews": user_review_count,
-            "absa_sentiment": absa_sentiment if absa_sentiment else None
+            "absa_sentiment": absa_sentiment if absa_sentiment else None,
+            "parent_review_id": review.parent_review_id,
+            "reply_count": reply_count
         }
         result.append(review_dict)
     
@@ -1240,7 +1262,168 @@ async def increment_review_useful(
         "text": review.text,
         "created_at": review.created_at,
         "username": review.user.username,
-        "useful": review.useful or 0
+        "useful": review.useful or 0,
+        "parent_review_id": review.parent_review_id,
+        "reply_count": 0
+    }
+
+@app.put("/api/reviews/{review_id}", response_model=schemas.ReviewResponse)
+async def update_review(
+    review_id: int,
+    review_update: schemas.ReviewUpdate,
+    background_tasks: BackgroundTasks,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """리뷰 수정 (작성자만 가능)"""
+    # 1. 리뷰 조회
+    review = db.query(models.Review).filter(models.Review.id == review_id).first()
+    
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    
+    # 2. 작성자 확인
+    if review.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this review")
+    
+    # 3. 답글은 수정 불가 (별점이 있는 경우만 수정 가능)
+    if review.parent_review_id is not None:
+        # 답글인 경우 텍스트만 수정 가능
+        if review_update.text:
+            review.text = review_update.text
+    else:
+        # 리뷰인 경우 별점과 텍스트 모두 수정 가능
+        if review_update.stars is not None:
+            review.stars = review_update.stars
+        if review_update.text is not None:
+            review.text = review_update.text
+    
+    db.commit()
+    db.refresh(review)
+    
+    logger.info(f"Review {review_id} updated by user {current_user.username}")
+    
+    # 4. 백그라운드에서 ABSA 재분석 및 프로필 재계산
+    if review_update.text or review_update.stars:
+        background_tasks.add_task(
+            process_review_features,
+            review.id,
+            current_user.id,
+            review.text,
+            review.stars or 0.0
+        )
+        logger.info(f"Background task scheduled for review {review.id} re-analysis")
+    
+    # 답글 개수 조회
+    reply_count = db.query(models.Review).filter(
+        models.Review.parent_review_id == review.id
+    ).count()
+    
+    return {
+        "id": review.id,
+        "user_id": review.user_id,
+        "business_id": review.business_id,
+        "stars": review.stars,
+        "text": review.text,
+        "created_at": review.created_at,
+        "username": current_user.username,
+        "useful": review.useful or 0,
+        "parent_review_id": review.parent_review_id,
+        "reply_count": reply_count
+    }
+
+@app.delete("/api/reviews/{review_id}")
+async def delete_review(
+    review_id: int,
+    background_tasks: BackgroundTasks,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """리뷰 삭제 (작성자만 가능, 답글도 함께 삭제)"""
+    # 1. 리뷰 조회
+    review = db.query(models.Review).filter(models.Review.id == review_id).first()
+    
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    
+    # 2. 작성자 확인
+    if review.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this review")
+    
+    # 3. 답글 먼저 삭제 (CASCADE)
+    reply_count = db.query(models.Review).filter(
+        models.Review.parent_review_id == review_id
+    ).delete()
+    
+    # 4. 리뷰 삭제
+    business_id = review.business_id
+    db.delete(review)
+    db.commit()
+    
+    logger.info(f"Review {review_id} deleted by user {current_user.username} (with {reply_count} replies)")
+    
+    # 5. 백그라운드에서 프로필 재계산
+    background_tasks.add_task(update_user_profile, current_user.id, db)
+    if business_id:
+        background_tasks.add_task(update_business_profile, business_id, db)
+    
+    return {"message": "Review deleted successfully", "deleted_replies": reply_count}
+
+@app.post("/api/reviews/{review_id}/replies", response_model=schemas.ReviewResponse, status_code=status.HTTP_201_CREATED)
+async def create_reply(
+    review_id: int,
+    reply: schemas.ReplyCreate,
+    background_tasks: BackgroundTasks,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """답글 작성 (1단계만 허용, 별점 없음)"""
+    # 1. 부모 리뷰 존재 확인
+    parent_review = db.query(models.Review).filter(models.Review.id == review_id).first()
+    
+    if not parent_review:
+        raise HTTPException(status_code=404, detail="Parent review not found")
+    
+    # 2. 부모 리뷰가 이미 답글이면 거부 (1단계만 허용)
+    if parent_review.parent_review_id is not None:
+        raise HTTPException(status_code=400, detail="Cannot reply to a reply. Only one level of replies allowed.")
+    
+    # 3. 답글 생성 (별점 없음, business_id는 부모와 동일)
+    db_reply = models.Review(
+        user_id=current_user.id,
+        business_id=parent_review.business_id,  # 부모 리뷰와 같은 비즈니스
+        parent_review_id=review_id,
+        stars=None,  # 답글은 별점 없음
+        text=reply.text,
+        is_taste_test=False
+    )
+    db.add(db_reply)
+    db.commit()
+    db.refresh(db_reply)
+    
+    logger.info(f"Reply created by user {current_user.username} for review {review_id} (ID: {db_reply.id})")
+    
+    # 4. 백그라운드에서 ABSA 분석 (텍스트만)
+    background_tasks.add_task(
+        process_review_features,
+        db_reply.id,
+        current_user.id,
+        reply.text,
+        0.0  # 별점 없음
+    )
+    logger.info(f"Background task scheduled for reply {db_reply.id}")
+    
+    return {
+        "id": db_reply.id,
+        "user_id": db_reply.user_id,
+        "business_id": db_reply.business_id,
+        "stars": None,
+        "text": db_reply.text,
+        "created_at": db_reply.created_at,
+        "username": current_user.username,
+        "useful": 0,
+        "parent_review_id": db_reply.parent_review_id,
+        "reply_count": 0
     }
 
 # ============================================================================
