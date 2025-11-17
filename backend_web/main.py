@@ -789,13 +789,12 @@ async def get_businesses_in_bounds(
     
     # AI 예측 조회 (현재 사용자가 있을 경우)
     predictions_map = {}
-    if current_user:
-        from prediction_cache import PredictionCache
+    if current_user and businesses:
         business_ids = [b.id for b in businesses]
-        cached_predictions = db.query(PredictionCache).filter(
+        cached_predictions = db.query(models.UserBusinessPrediction).filter(
             and_(
-                PredictionCache.user_id == current_user.id,
-                PredictionCache.business_id.in_(business_ids)
+                models.UserBusinessPrediction.user_id == current_user.id,
+                models.UserBusinessPrediction.business_id.in_(business_ids)
             )
         ).all()
         predictions_map = {pred.business_id: pred for pred in cached_predictions}
@@ -814,9 +813,9 @@ async def get_businesses_in_bounds(
             "latitude": business.latitude,
             "longitude": business.longitude,
             "address": business.address,
-            "absa_food_avg": business.absa_food_avg,
-            "absa_service_avg": business.absa_service_avg,
-            "absa_atmosphere_avg": business.absa_atmosphere_avg,
+            "absa_food_avg": business.absa_features.get('음식_긍정', 0) if business.absa_features else 0,
+            "absa_service_avg": business.absa_features.get('서비스_긍정', 0) if business.absa_features else 0,
+            "absa_atmosphere_avg": business.absa_features.get('분위기_긍정', 0) if business.absa_features else 0,
         }
         
         # AI 예측 추가
