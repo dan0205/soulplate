@@ -6,6 +6,7 @@
 // 로그인/로그아웃 기능을 공유할 수 있게 해주는 전역 상태 관리자이다 
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
@@ -14,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   // AuthContext 상자에 실제 값들을 채워서 앱 전체(children)에 제공하는 컴포넌트 
   // 이 AuthProvider 컴포넌트로 App.js에서 전체 앱을 감싸주면, 앱 내의 모든 컴포넌트가
   // 이 상자 안의 내용물을 꺼내쓸수있다 
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   // 현재 로그인한 사용자의 정보를 저장 = 객체 있으면 로그인, null이면 로그아웃 
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('access_token');
     setUser(null);
-    window.location.href = '/login';
+    navigate('/login', { replace: true });
   };
 
   const value = {

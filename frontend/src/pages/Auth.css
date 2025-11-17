@@ -57,13 +57,13 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #ff6b6b;
+  border-color: #667eea;
 }
 
 .auth-box .btn-primary {
   width: 100%;
   padding: 12px;
-  background: #ff6b6b;
+  background: #667eea;
   color: white;
   border: none;
   border-radius: 5px;
@@ -74,7 +74,7 @@
 }
 
 .auth-box .btn-primary:hover:not(:disabled) {
-  background: #ee5a52;
+  background: #5568d3;
 }
 
 .auth-box .btn-primary:disabled {
@@ -98,7 +98,7 @@
 }
 
 .auth-link a {
-  color: #ff6b6b;
+  color: #667eea;
   text-decoration: none;
   font-weight: 600;
 }
