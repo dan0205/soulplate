@@ -1,3 +1,56 @@
+/* 플로팅 검색창 */
+.floating-search-bar {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  width: 90%;
+  max-width: 500px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.floating-search-bar input {
+  width: 100%;
+  padding: 12px 45px 12px 15px;
+  border: none;
+  font-size: 15px;
+  border-radius: 12px;
+  outline: none;
+}
+
+.floating-search-bar input:focus {
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) inset;
+}
+
+.floating-search-bar .clear-search-btn {
+  position: absolute;
+  right: 10px;
+  background: #e0e0e0;
+  color: #666;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.floating-search-bar .clear-search-btn:hover {
+  background: #667eea;
+  color: white;
+}
+
 /* 지도 컨테이너 */
 .map-container {
   position: fixed;
@@ -129,50 +182,6 @@
     transform: translateX(100%);
     background-position: 0% 50%;
   }
-}
-
-/* 지도/리스트 토글 버튼 */
-.map-toggle-container {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  display: flex;
-  gap: 10px;
-  background: white;
-  padding: 8px;
-  border-radius: 30px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.toggle-btn {
-  padding: 10px 28px;
-  border: none;
-  border-radius: 24px;
-  background: white;
-  color: var(--text-secondary);
-  font-size: var(--font-small);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 110px;
-  min-height: 40px;
-  white-space: nowrap;
-}
-
-.toggle-btn.active {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
-.toggle-btn:hover:not(.active) {
-  background: var(--bg-primary);
-}
-
-.toggle-btn:active {
-  transform: scale(0.95);
 }
 
 /* 하단 시트 스타일 */
@@ -779,6 +788,245 @@
   font-size: var(--font-small);
 }
 
+/* 정렬 드롭다운 */
+.sort-dropdown {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.sort-dropdown-button {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.sort-dropdown-button:hover {
+  border-color: var(--primary);
+}
+
+.sort-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.sort-dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+.sort-dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.sort-dropdown-item.active {
+  color: var(--primary);
+  font-weight: 600;
+  background: #f5f7ff;
+}
+
+/* 시트 힌트 (10%) */
+.sheet-hint {
+  padding: 15px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sheet-hint:active {
+  background: #f5f5f5;
+}
+
+.sheet-hint p {
+  margin: 0;
+  font-size: 15px;
+  color: #666;
+}
+
+.drag-handle {
+  width: 40px;
+  height: 4px;
+  background: #ddd;
+  border-radius: 2px;
+  margin: 0 auto 10px;
+}
+
+/* 시트 헤더 (리스트 탭) */
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.header-left h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.region-info {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+/* 레스토랑 리스트 */
+.restaurant-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0;
+}
+
+/* 레스토랑 리스트 아이템 */
+.restaurant-list-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  gap: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.restaurant-list-item:hover {
+  background: #f8f9fa;
+}
+
+.restaurant-list-item:active {
+  background: #e9ecef;
+}
+
+.list-item-marker {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.list-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.list-item-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-item-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.badge-deepfm {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.list-item-meta {
+  font-size: 13px;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.restaurant-distance {
+  font-size: 13px;
+  color: #666;
+  margin: 8px 0;
+}
+
+/* 리스트 끝 메시지 */
+.list-end-message {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 탭 헤더 (선택 매장 모드) */
+.sheet-tabs {
+  display: flex;
+  border-bottom: 2px solid #e0e0e0;
+  background: white;
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
 /* EmptyState 스타일 */
 .empty-state {
   display: flex;
@@ -825,17 +1073,6 @@
 
 /* 모바일 최적화 */
 @media (max-width: 767px) {
-  .map-toggle-container {
-    bottom: 10px;
-  }
-
-  .toggle-btn {
-    padding: 8px 24px;
-    font-size: 13px;
-    min-width: 100px;
-    min-height: 36px;
-  }
-
   .bottom-sheet-content {
     padding: 15px;
   }
@@ -848,25 +1085,20 @@
     padding: 12px 16px;
     font-size: 13px;
   }
+  
+  .floating-search-bar {
+    width: 95%;
+    top: 15px;
+  }
 }
 
 /* 태블릿 */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .toggle-btn {
-    min-width: 110px;
-  }
+  /* 태블릿 전용 스타일 */
 }
 
 /* 데스크톱 */
 @media (min-width: 1024px) {
-  .map-toggle-container {
-    bottom: 30px;
-  }
-
-  .toggle-btn {
-    padding: 14px 28px;
-    font-size: 15px;
-    min-width: 120px;
-  }
+  /* 데스크톱 전용 스타일 */
 }
 

@@ -71,6 +71,7 @@ export const authAPI = {
 export const businessAPI = {
   list: (params) => api.get('/businesses', { params }),
   getForMap: (params) => api.get('/businesses/map', { params }),
+  getInBounds: (params) => api.get('/businesses/in-bounds', { params }),
   get: (businessId) => api.get(`/businesses/${businessId}`),
   getReviews: (businessId, params) =>
     api.get(`/businesses/${businessId}/reviews`, { params }),

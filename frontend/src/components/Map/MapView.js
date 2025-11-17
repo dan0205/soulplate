@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
 import './Map.css';
 
-const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading, isInitialLoading }) => {
+const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationChange, loading, isInitialLoading }) => {
   const [center, setCenter] = useState({ lat: 37.5665, lng: 126.9780 }); // 서울 중심 기본 위치
   const [userLocation, setUserLocation] = useState(null);
   const [mapLevel, setMapLevel] = useState(3);
@@ -13,7 +13,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading, i
   // 아주대학교 좌표
   const AJOU_UNIVERSITY = { lat: 37.2809, lng: 127.0447 };
 
-  // 사용자 위치 가져오기 및 초기 API 호출 (한 번만 실행)
+  // 사용자 위치 가져오기 (위치만 설정, API 호출은 지도 생성 후 자동)
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -24,29 +24,13 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading, i
           };
           setUserLocation(userPos);
           setCenter(userPos);
-          
-          // 초기 로드: 사용자 위치 기준으로 마커 로드
-          if (onLocationChange) {
-            onLocationChange(userPos.lat, userPos.lng);
-          }
         },
         (error) => {
           console.log('위치 권한 거부 또는 오류:', error);
-          
-          // 폴백: 서울 중심으로 마커 로드
-          if (onLocationChange) {
-            onLocationChange(center.lat, center.lng);
-          }
         }
       );
-    } else {
-      // geolocation 미지원: 서울 중심으로 마커 로드
-      if (onLocationChange) {
-        onLocationChange(center.lat, center.lng);
-      }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 빈 배열: 초기 한 번만 실행
+  }, [])
 
   // AI 점수에 따른 마커 색상
   const getMarkerColor = (aiScore) => {
@@ -72,15 +56,27 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading, i
 
     // 0.5초 후 새 데이터 로드 (상단 프로그레스 바로 빠른 업데이트 가능)
     debounceTimerRef.current = setTimeout(() => {
-      const newCenter = map.getCenter();
-      const lat = newCenter.getLat();
-      const lng = newCenter.getLng();
+      // Bounds 정보 추출
+      const bounds = map.getBounds();
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
       
-      if (onLocationChange) {
-        onLocationChange(lat, lng);
+      const boundsData = {
+        north: ne.getLat(),
+        south: sw.getLat(),
+        east: ne.getLng(),
+        west: sw.getLng()
+      };
+      
+      if (onBoundsChange) {
+        onBoundsChange(boundsData);
+      } else if (onLocationChange) {
+        // 호환성을 위해 onLocationChange도 지원
+        const newCenter = map.getCenter();
+        onLocationChange(newCenter.getLat(), newCenter.getLng());
       }
     }, 500);
-  }, [onLocationChange]);
+  }, [onBoundsChange, onLocationChange]);
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
@@ -163,7 +159,26 @@ const MapView = ({ restaurants, onRestaurantSelect, onLocationChange, loading, i
         center={center}
         style={{ width: '100%', height: '100vh' }}
         level={mapLevel}
-        onCreate={(map) => { mapRef.current = map; }}
+        onCreate={(map) => { 
+          mapRef.current = map;
+          // 지도 생성 후 초기 bounds 전달
+          setTimeout(() => {
+            const bounds = map.getBounds();
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+            
+            const boundsData = {
+              north: ne.getLat(),
+              south: sw.getLat(),
+              east: ne.getLng(),
+              west: sw.getLng()
+            };
+            
+            if (onBoundsChange) {
+              onBoundsChange(boundsData);
+            }
+          }, 100);
+        }}
         onZoomChanged={(map) => setMapLevel(map.getLevel())}
         onCenterChanged={handleMapCenterChanged}
       >

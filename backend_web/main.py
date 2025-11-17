@@ -735,6 +735,104 @@ async def get_businesses_for_map(
     
     return {"businesses": result, "count": len(result)}
 
+@app.get("/api/businesses/in-bounds")
+async def get_businesses_in_bounds(
+    north: float,
+    south: float,
+    east: float,
+    west: float,
+    limit: int = 200,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user_optional)
+):
+    """
+    지도 범위(bounds) 내 레스토랑 조회
+    north, south, east, west로 정의된 사각형 영역 내의 레스토랑을 반환
+    """
+    from sqlalchemy import and_, or_
+    
+    logger.info(f"🗺️  Bounds API: north={north}, south={south}, east={east}, west={west}, limit={limit}")
+    
+    # 쿼리 구성
+    query = db.query(models.Business)
+    
+    # latitude/longitude가 null인 데이터 제외
+    query = query.filter(
+        and_(
+            models.Business.latitude.isnot(None),
+            models.Business.longitude.isnot(None)
+        )
+    )
+    
+    # Bounds 필터링
+    query = query.filter(
+        and_(
+            models.Business.latitude.between(south, north),
+            models.Business.longitude.between(west, east)
+        )
+    )
+    
+    # 검색 필터링
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            or_(
+                models.Business.name.ilike(search_pattern),
+                models.Business.categories.ilike(search_pattern),
+                models.Business.city.ilike(search_pattern)
+            )
+        )
+    
+    # 결과 조회
+    businesses = query.limit(limit).all()
+    
+    # AI 예측 조회 (현재 사용자가 있을 경우)
+    predictions_map = {}
+    if current_user:
+        from prediction_cache import PredictionCache
+        business_ids = [b.id for b in businesses]
+        cached_predictions = db.query(PredictionCache).filter(
+            and_(
+                PredictionCache.user_id == current_user.id,
+                PredictionCache.business_id.in_(business_ids)
+            )
+        ).all()
+        predictions_map = {pred.business_id: pred for pred in cached_predictions}
+    
+    # 결과 변환
+    result = []
+    for business in businesses:
+        business_dict = {
+            "business_id": business.business_id,
+            "name": business.name,
+            "city": business.city,
+            "state": business.state,
+            "stars": business.stars,
+            "review_count": business.review_count,
+            "categories": business.categories,
+            "latitude": business.latitude,
+            "longitude": business.longitude,
+            "address": business.address,
+            "absa_food_avg": business.absa_food_avg,
+            "absa_service_avg": business.absa_service_avg,
+            "absa_atmosphere_avg": business.absa_atmosphere_avg,
+        }
+        
+        # AI 예측 추가
+        if current_user and business.id in predictions_map:
+            cached_pred = predictions_map[business.id]
+            business_dict["ai_prediction"] = {
+                "deepfm_rating": cached_pred.deepfm_score,
+                "multitower_rating": cached_pred.multitower_score,
+            }
+        
+        result.append(business_dict)
+    
+    logger.info(f"✅ Bounds API 완료: {len(result)}개 레스토랑")
+    
+    return {"businesses": result, "total": len(result)}
+
 @app.get("/api/businesses", response_model=schemas.BusinessListResponse)
 async def get_businesses(
     skip: int = 0,
