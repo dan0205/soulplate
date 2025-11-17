@@ -160,33 +160,52 @@ async def analyze_review(request: AnalyzeReviewRequest):
     - ABSA: 51개 aspect-sentiment 확률 (예: 맛_긍정, 서비스_부정 등)
     - 텍스트 임베딩: TF-IDF 기반 100차원 벡터
     """
-    logger.info(f"Review analysis request: {len(request.text)} chars")
+    import time
+    
+    endpoint_start = time.time()
+    text_sample = request.text[:50] + "..." if len(request.text) > 50 else request.text
+    logger.info(f"📥 [ABSA Endpoint] 요청 시작 (텍스트 길이: {len(request.text)}자)")
+    logger.info(f"   텍스트 샘플: \"{text_sample}\"")
     
     try:
         absa_service = get_absa_service()
         pred_service = get_prediction_service()
         
-        # ABSA 분석
+        # Step 1: ABSA 분석
+        step1_start = time.time()
         absa_features = absa_service.analyze_review(request.text)
-        logger.info(f"ABSA analysis completed: {len(absa_features)} features")
+        step1_time = time.time() - step1_start
+        logger.info(f"  ⏱️  Step 1: ABSA 분석 - {step1_time:.2f}s ({len(absa_features)} features)")
         
-        # 텍스트 임베딩
+        # Step 2: 텍스트 임베딩
+        step2_start = time.time()
         if pred_service.text_embedding_service is not None:
             text_embedding = pred_service.text_embedding_service.transform_text(request.text)
             text_embedding_list = text_embedding.tolist()
         else:
             # 텍스트 임베딩 서비스 없으면 0 벡터
             text_embedding_list = [0.0] * 100
+        step2_time = time.time() - step2_start
+        logger.info(f"  ⏱️  Step 2: 텍스트 임베딩 - {step2_time:.3f}s ({len(text_embedding_list)} dims)")
         
-        logger.info(f"Text embedding completed: {len(text_embedding_list)} dims")
-        
-        return AnalyzeReviewResponse(
+        # Step 3: 응답 생성
+        step3_start = time.time()
+        response = AnalyzeReviewResponse(
             absa_features=absa_features,
             text_embedding=text_embedding_list
         )
+        step3_time = time.time() - step3_start
+        logger.info(f"  ⏱️  Step 3: 응답 생성 - {step3_time:.3f}s")
+        
+        # 전체 소요 시간
+        total_time = time.time() - endpoint_start
+        logger.info(f"✅ [ABSA Endpoint] 완료 - 총 소요: {total_time:.2f}s")
+        
+        return response
         
     except Exception as e:
-        logger.error(f"Error in review analysis: {e}")
+        total_time = time.time() - endpoint_start
+        logger.error(f"❌ [ABSA Endpoint] 실패 after {total_time:.2f}s: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to analyze review: {str(e)}"

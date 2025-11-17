@@ -77,14 +77,22 @@ class ABSAService:
             dict: aspect-sentiment별 확률값
                 예: {"맛_긍정": 0.95, "맛_부정": 0.02, "맛_중립": 0.03, ...}
         """
+        import time
+        
+        service_start = time.time()
+        text_sample = text[:30] + "..." if len(text) > 30 else text
+        logger.info(f"🔍 [ABSA Service] 분석 시작 (텍스트: \"{text_sample}\")")
+        
         if self.model is None or self.tokenizer is None:
             raise ValueError("모델이 로딩되지 않았습니다. load_model()을 먼저 호출하세요.")
         
         # 텍스트가 비어있으면 중립 값 반환
         if not text or text.strip() == '':
+            logger.info(f"  ⚠️  빈 텍스트 - 중립값 반환")
             return self._get_neutral_absa()
         
-        # 토크나이징
+        # 단계 1: 토크나이징
+        tokenize_start = time.time()
         inputs = self.tokenizer(
             text,
             return_tensors="pt",
@@ -92,20 +100,37 @@ class ABSAService:
             truncation=True,
             padding=True
         ).to(self.device)
+        tokenize_time = time.time() - tokenize_start
+        logger.info(f"  ⏱️  토크나이징: {tokenize_time:.3f}s")
         
-        # 추론
+        # 단계 2: 모델 추론 (BERT) - 가장 중요한 측정 지점!
+        inference_start = time.time()
         with torch.no_grad():
             outputs = self.model(**inputs)
             logits = outputs.logits
-            probs = torch.sigmoid(logits)  # Multi-label classification
+        inference_time = time.time() - inference_start
+        logger.info(f"  ⏱️  모델 추론 (BERT): {inference_time:.3f}s ⚠️ 핵심 지점!")
         
-        # 결과를 dict로 변환
+        # 단계 3: 후처리 (sigmoid)
+        postprocess_start = time.time()
+        probs = torch.sigmoid(logits)
+        postprocess_time = time.time() - postprocess_start
+        logger.info(f"  ⏱️  후처리 (sigmoid): {postprocess_time:.3f}s")
+        
+        # 단계 4: 결과 변환 (dict)
+        convert_start = time.time()
         probs_array = probs.cpu().numpy()[0]
         absa_dict = {}
         
         for i, prob in enumerate(probs_array):
             label = self.id2label[str(i)]
             absa_dict[label] = float(prob)
+        convert_time = time.time() - convert_start
+        logger.info(f"  ⏱️  결과 변환 (dict): {convert_time:.3f}s")
+        
+        # 전체 소요 시간
+        total_time = time.time() - service_start
+        logger.info(f"✅ [ABSA Service] 완료 - 총 소요: {total_time:.3f}s")
         
         return absa_dict
     

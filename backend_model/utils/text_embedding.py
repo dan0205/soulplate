@@ -40,18 +40,36 @@ class TextEmbeddingService:
         Returns:
             embedding: 100차원 벡터 (numpy array)
         """
+        import time
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        embedding_start = time.time()
+        
         if self.vectorizer is None:
             raise ValueError("Vectorizer가 로딩되지 않았습니다. load_vectorizer()를 먼저 호출하세요.")
         
         # 텍스트가 None이거나 빈 문자열이면 0 벡터 반환
         if not text or text.strip() == '':
+            logger.info(f"📊 [Text Embedding] 빈 텍스트 - 0 벡터 반환")
             return np.zeros(100, dtype=np.float32)
         
+        logger.info(f"📊 [Text Embedding] 시작 (텍스트 길이: {len(text)}자)")
+        
         # TF-IDF 변환
+        tfidf_start = time.time()
         tfidf_vector = self.vectorizer.transform([text])
+        tfidf_time = time.time() - tfidf_start
+        logger.info(f"  ⏱️  TF-IDF 변환: {tfidf_time:.3f}s")
         
         # Dense array로 변환
+        dense_start = time.time()
         embedding = tfidf_vector.toarray()[0].astype(np.float32)
+        dense_time = time.time() - dense_start
+        logger.info(f"  ⏱️  Dense 변환: {dense_time:.3f}s")
+        
+        total_time = time.time() - embedding_start
+        logger.info(f"✅ [Text Embedding] 완료 - {total_time:.3f}s")
         
         return embedding
     
