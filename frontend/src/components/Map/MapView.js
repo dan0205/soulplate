@@ -49,7 +49,8 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     
     // 정비례 관계 (레벨이 높을수록 = 축소할수록 마커 크게)
     const size = minSize + ((level - minLevel) / (maxLevel - minLevel)) * (maxSize - minSize);
-    return Math.max(minSize, Math.min(maxSize, size));
+    //return Math.max(minSize, Math.min(maxSize, size));
+    return 25;
   };
 
   // 마커 클릭 핸들러
