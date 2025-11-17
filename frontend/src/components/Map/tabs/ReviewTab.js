@@ -230,76 +230,85 @@ const ReviewTab = ({ businessId }) => {
     );
   };
 
+  // Useful 클릭 핸들러
+  const handleUsefulClick = async (reviewId) => {
+    try {
+      await reviewAPI.incrementUseful(reviewId);
+      // 로컬 상태 업데이트
+      setReviews(reviews.map(r => 
+        r.id === reviewId ? { ...r, useful: (r.useful || 0) + 1 } : r
+      ));
+      // 답글도 업데이트
+      const newRepliesData = { ...repliesData };
+      Object.keys(newRepliesData).forEach(parentId => {
+        newRepliesData[parentId] = newRepliesData[parentId].map(r =>
+          r.id === reviewId ? { ...r, useful: (r.useful || 0) + 1 } : r
+        );
+      });
+      setRepliesData(newRepliesData);
+    } catch (error) {
+      console.error('Useful 증가 실패:', error);
+    }
+  };
+
   // 리뷰 아이템 컴포넌트
   const ReviewItem = ({ review, isReply = false }) => (
     <div 
       className={`review-item ${isReply ? 'reply-item' : ''} ${replyingTo === review.id ? 'replying-target' : ''}`}
     >
-      <div className="review-header">
-        <div 
-          className="user-avatar clickable"
-          onClick={() => handleUserClick(review.user_id)}
-        >
-          {review.username ? review.username.charAt(0).toUpperCase() : 'U'}
-        </div>
-        <div className="user-info">
+      {/* 아바타 (왼쪽, 3줄 높이) */}
+      <div 
+        className="review-avatar clickable"
+        onClick={() => handleUserClick(review.user_id)}
+      >
+        {review.username ? review.username.charAt(0).toUpperCase() : 'U'}
+      </div>
+      
+      {/* 컨텐츠 (아바타 오른쪽) */}
+      <div className="review-content">
+        {/* 첫 줄: 이름 + 별점 + 케밥 */}
+        <div className="review-first-line">
           <span 
-            className="user-name clickable"
+            className="review-username clickable"
             onClick={() => handleUserClick(review.user_id)}
           >
             {review.username || '익명'}
           </span>
-          <span className="user-stats">리뷰 {review.user_total_reviews || 0}개</span>
+          {!isReply && review.stars && (
+            <span className="review-stars">
+              {'⭐'.repeat(Math.floor(review.stars))}
+            </span>
+          )}
+          {/* Kebab 메뉴 (로그인한 경우만) */}
+          {user && <KebabMenu review={review} />}
         </div>
         
-        {/* Kebab 메뉴 (로그인한 경우만) */}
-        {user && <KebabMenu review={review} />}
-      </div>
-      
-      {/* 별점 (답글이 아닌 경우만) */}
-      {!isReply && review.stars && (
-        <div className="review-rating">
-          {'⭐'.repeat(Math.floor(review.stars))} {review.stars}
+        {/* 둘째 줄: 리뷰 텍스트 */}
+        <p className="review-text">{review.text}</p>
+        
+        {/* 셋째 줄: useful + 날짜 */}
+        <div className="review-footer">
+          <button 
+            className="useful-btn"
+            onClick={() => handleUsefulClick(review.id)}
+          >
+            👍 {review.useful || 0}
+          </button>
+          <span className="review-date">
+            {new Date(review.created_at || review.date).toLocaleDateString()}
+          </span>
         </div>
-      )}
-      
-      {/* ABSA 감정 표시 */}
-      {review.absa_sentiment && (
-        <div className="absa-sentiment">
-          {review.absa_sentiment.food !== undefined && (
-            <span className="sentiment-tag">
-              🍜{review.absa_sentiment.food > 0 ? '+' : ''}{review.absa_sentiment.food}
-            </span>
-          )}
-          {review.absa_sentiment.service !== undefined && (
-            <span className="sentiment-tag">
-              👨‍🍳{review.absa_sentiment.service > 0 ? '+' : ''}{review.absa_sentiment.service}
-            </span>
-          )}
-          {review.absa_sentiment.atmosphere !== undefined && (
-            <span className="sentiment-tag">
-              🏠{review.absa_sentiment.atmosphere > 0 ? '+' : ''}{review.absa_sentiment.atmosphere}
-            </span>
-          )}
-        </div>
-      )}
-      
-      <p className="review-text">{review.text}</p>
-      
-      <div className="review-footer">
-        <span>👍 {review.useful || 0}</span>
-        <span>{new Date(review.created_at || review.date).toLocaleDateString()}</span>
+        
+        {/* 답글 토글 버튼 (최상위 리뷰만, 답글이 있는 경우) */}
+        {!isReply && review.reply_count > 0 && (
+          <button 
+            className="toggle-replies-btn"
+            onClick={() => toggleReplies(review.id)}
+          >
+            {expandedReplies.has(review.id) ? '▼' : '▶'} 답글 {review.reply_count}개
+          </button>
+        )}
       </div>
-      
-      {/* 답글 토글 버튼 (최상위 리뷰만, 답글이 있는 경우) */}
-      {!isReply && review.reply_count > 0 && (
-        <button 
-          className="toggle-replies-btn"
-          onClick={() => toggleReplies(review.id)}
-        >
-          {expandedReplies.has(review.id) ? '▼' : '▶'} 답글 {review.reply_count}개
-        </button>
-      )}
       
       {/* 답글 목록 */}
       {!isReply && expandedReplies.has(review.id) && repliesData[review.id] && (
