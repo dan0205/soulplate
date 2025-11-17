@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 MODEL_SERVER_URL = os.getenv("MODEL_API_URL", "https://backendmodel-production-77a7.up.railway.app")
 
 # 병렬 처리 설정
-CONCURRENCY = int(os.getenv("PREDICTION_CONCURRENCY", "1"))
+CONCURRENCY = int(os.getenv("PREDICTION_CONCURRENCY", "3"))
 CHUNK_SIZE = int(os.getenv("PREDICTION_CHUNK_SIZE", "50"))
 TIMEOUT = int(os.getenv("PREDICTION_TIMEOUT", "360"))
 
