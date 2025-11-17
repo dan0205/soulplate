@@ -1426,6 +1426,43 @@ async def create_reply(
         "reply_count": 0
     }
 
+@app.get("/api/reviews/{review_id}/replies", response_model=List[schemas.ReviewResponse])
+async def get_replies(
+    review_id: int,
+    db: Session = Depends(get_db)
+):
+    """특정 리뷰의 답글 목록 조회"""
+    from sqlalchemy.orm import joinedload
+    
+    # 부모 리뷰 존재 확인
+    parent_review = db.query(models.Review).filter(models.Review.id == review_id).first()
+    if not parent_review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    
+    # 답글 조회 (User 정보 함께 로드)
+    replies = db.query(models.Review).options(
+        joinedload(models.Review.user)
+    ).filter(
+        models.Review.parent_review_id == review_id
+    ).order_by(models.Review.created_at.asc()).all()
+    
+    result = []
+    for reply in replies:
+        result.append({
+            "id": reply.id,
+            "user_id": reply.user_id,
+            "business_id": reply.business_id,
+            "stars": None,
+            "text": reply.text,
+            "created_at": reply.created_at,
+            "username": reply.user.username,
+            "useful": reply.useful or 0,
+            "parent_review_id": reply.parent_review_id,
+            "reply_count": 0
+        })
+    
+    return result
+
 # ============================================================================
 # Taste Test Endpoints
 # ============================================================================

@@ -72,11 +72,11 @@ const ReviewTab = ({ businessId }) => {
       // 답글 로드 (아직 로드하지 않은 경우)
       if (!repliesData[reviewId]) {
         try {
-          // 임시: 현재 reviews에서 parent_review_id로 필터링
-          const replies = reviews.filter(r => r.parent_review_id === reviewId);
-          setRepliesData({ ...repliesData, [reviewId]: replies });
+          const response = await reviewAPI.getReplies(reviewId);
+          setRepliesData({ ...repliesData, [reviewId]: response.data });
         } catch (error) {
           console.error('답글 로드 실패:', error);
+          setRepliesData({ ...repliesData, [reviewId]: [] });
         }
       }
     }
@@ -316,17 +316,7 @@ const ReviewTab = ({ businessId }) => {
     <div className="review-tab">
       {/* 상단 헤더 */}
       <div className="review-header-top">
-        <button 
-          className="btn-write-review-top"
-          onClick={() => {
-            setWritingMode('create');
-            setFormData({ stars: 5, text: '' });
-            setEditingReview(null);
-            setReplyingTo(null);
-          }}
-        >
-          ✍️ 리뷰 작성
-        </button>
+        <h3 className="review-section-title">리뷰</h3>
         <select 
           className="review-sort"
           value={sortBy}
@@ -362,10 +352,10 @@ const ReviewTab = ({ businessId }) => {
         </>
       )}
       
-      {/* 하단 고정 작성칸 */}
+      {/* 하단 고정 작성칸 (position: fixed) */}
       {user && (
         <div 
-          className={`bottom-write-bar ${writingMode ? 'expanded' : ''}`}
+          className={`bottom-write-bar-fixed ${writingMode ? 'expanded' : ''}`}
           onClick={() => {
             if (!writingMode) {
               setWritingMode('create');
@@ -460,7 +450,7 @@ const ReviewTab = ({ businessId }) => {
       )}
       
       {!user && (
-        <div className="login-required-message">
+        <div className="login-required-message-fixed">
           리뷰를 작성하려면 로그인이 필요합니다.
         </div>
       )}
