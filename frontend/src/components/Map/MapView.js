@@ -42,13 +42,13 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
 
   // 줌 레벨에 따른 마커 크기 계산
   const getMarkerSize = (level) => {
-    const minSize = 30;
-    const maxSize = 60;
+    const minSize = 15; // 확대했을 때 (레벨 낮음)
+    const maxSize = 35; // 축소했을 때 (레벨 높음)
     const minLevel = 1;
     const maxLevel = 14;
     
-    // 역비례 관계 (레벨이 낮을수록 = 확대할수록 마커 크게)
-    const size = maxSize - ((level - minLevel) / (maxLevel - minLevel)) * (maxSize - minSize);
+    // 정비례 관계 (레벨이 높을수록 = 축소할수록 마커 크게)
+    const size = minSize + ((level - minLevel) / (maxLevel - minLevel)) * (maxSize - minSize);
     return Math.max(minSize, Math.min(maxSize, size));
   };
 
