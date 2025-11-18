@@ -274,9 +274,9 @@ const MyProfilePage = () => {
               </div>
             )}
             {hasMore && !loadingMore && (
-              <div className="load-more-container">
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
                 <button 
-                  className="btn-load-more"
+                  className="review-load-more-link"
                   onClick={() => loadReviews(reviewSkip, false)}
                 >
                   더보기

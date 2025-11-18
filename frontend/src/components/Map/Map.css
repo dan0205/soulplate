@@ -850,6 +850,32 @@ body:has(.snap-100) .floating-search-bar {
   cursor: not-allowed;
 }
 
+/* 리뷰 탭 더보기 링크 (텍스트 링크 스타일) */
+.review-load-more-link {
+  background: none;
+  border: none;
+  padding: 12px 0;
+  font-size: var(--font-body);
+  font-weight: 500;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  min-height: 44px;
+  display: inline-block;
+}
+
+.review-load-more-link:hover:not(:disabled) {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.review-load-more-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--text-secondary);
+}
+
 /* Kebab 메뉴 스타일 */
 .kebab-menu {
   margin-left: auto;
@@ -1113,6 +1139,7 @@ body:has(.snap-100) .floating-search-bar {
 /* 시트 힌트 (10%) */
 .sheet-hint {
   padding: 15px 20px;
+  padding-top: 10px;
   text-align: center;
   cursor: pointer;
   transition: background 0.2s;

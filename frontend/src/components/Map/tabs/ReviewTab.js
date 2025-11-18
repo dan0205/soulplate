@@ -350,13 +350,15 @@ const ReviewTab = ({ businessId }) => {
           </div>
 
           {hasMore && (
-            <button 
-              className="btn-load-more"
-              onClick={() => loadReviews(true)}
-              disabled={loading}
-            >
-              {loading ? '로딩 중...' : '더 보기'}
-            </button>
+            <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <button 
+                className="review-load-more-link"
+                onClick={() => loadReviews(true)}
+                disabled={loading}
+              >
+                {loading ? '로딩 중...' : '더 보기'}
+              </button>
+            </div>
           )}
         </>
       )}

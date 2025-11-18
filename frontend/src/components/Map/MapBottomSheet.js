@@ -266,9 +266,14 @@ const MapBottomSheet = ({
                   ))}
 
                   {hasMore && (
-                    <button className="btn-load-more" onClick={onLoadMore}>
-                      더보기 ({remainingCount}개 남음)
-                    </button>
+                    <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                      <button 
+                        className="review-load-more-link"
+                        onClick={onLoadMore}
+                      >
+                        더보기 ({remainingCount}개 남음)
+                      </button>
+                    </div>
                   )}
 
                   {!hasMore && restaurants.length > 20 && (
