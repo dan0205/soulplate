@@ -16,6 +16,9 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // 폼 유효성 검사: 모든 필수 필드가 입력되었는지 확인
+  const isFormValid = username.trim() !== '' && password.trim() !== '';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -60,7 +63,11 @@ const LoginPage = () => {
             />
           </div>
           
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <button 
+            type="submit" 
+            className={`btn-primary ${isFormValid ? 'btn-primary-filled' : ''}`}
+            disabled={loading || !isFormValid}
+          >
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>

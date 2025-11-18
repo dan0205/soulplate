@@ -21,6 +21,12 @@ const RegisterPage = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  // 폼 유효성 검사: 모든 필수 필드가 입력되었는지 확인 (username, email, password, age)
+  const isFormValid = formData.username.trim() !== '' && 
+                      formData.email.trim() !== '' && 
+                      formData.password.trim() !== '' && 
+                      formData.age.trim() !== '';
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -109,7 +115,11 @@ const RegisterPage = () => {
             </select>
           </div>
           
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <button 
+            type="submit" 
+            className={`btn-primary ${isFormValid ? 'btn-primary-filled' : ''}`}
+            disabled={loading || !isFormValid}
+          >
             {loading ? 'Registering...' : 'Register'}
           </button>
         </form>

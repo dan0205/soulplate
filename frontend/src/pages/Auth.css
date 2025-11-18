@@ -63,7 +63,7 @@
 .auth-box .btn-primary {
   width: 100%;
   padding: 12px;
-  background: #667eea;
+  background: #ccc;
   color: white;
   border: none;
   border-radius: 5px;
@@ -73,8 +73,16 @@
   transition: background 0.3s;
 }
 
-.auth-box .btn-primary:hover:not(:disabled) {
-  background: #5568d3;
+.auth-box .btn-primary-filled {
+  background: #ff6b6b;
+}
+
+.auth-box .btn-primary-filled:hover:not(:disabled) {
+  background: #ee5a52;
+}
+
+.auth-box .btn-primary:hover:not(:disabled):not(.btn-primary-filled) {
+  background: #bbb;
 }
 
 .auth-box .btn-primary:disabled {
@@ -98,7 +106,7 @@
 }
 
 .auth-link a {
-  color: #667eea;
+  color: #ff6b6b;
   text-decoration: none;
   font-weight: 600;
 }
@@ -121,6 +129,6 @@
 }
 
 .demo-accounts strong {
-  color: #ff6b6b;
+  color: #000;
 }
 
