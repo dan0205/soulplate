@@ -80,7 +80,7 @@ const MapBottomSheet = ({
       // 선택 해제 시 list 모드로
       setSheetMode('list');
     }
-  }, [selectedRestaurant]);
+  }, [selectedRestaurant, snapIndex]);
 
   // ResizeObserver로 snap 상태 감지
   useEffect(() => {
