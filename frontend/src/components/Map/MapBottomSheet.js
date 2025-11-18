@@ -65,22 +65,32 @@ const MapBottomSheet = ({
   const [sheetMode, setSheetMode] = useState('hint');
   const [snapIndex, setSnapIndex] = useState(0); // 0: 10%, 1: 50%, 2: 100%
   const sheetRef = useRef(null);
+  const prevSelectedRestaurantRef = useRef(null);
 
   // selectedRestaurant 변경 시 detail 모드로 전환 + 10%일 때 50%로 자동 확장
   useEffect(() => {
+    // 새로운 레스토랑이 선택되었는지 체크
+    const isNewSelection = selectedRestaurant && 
+      selectedRestaurant.business_id !== prevSelectedRestaurantRef.current?.business_id;
+    
     if (selectedRestaurant) {
       setSheetMode('detail');
-      // 10% 상태에서 마커 클릭 시 50%로 확장
-      if (snapIndex === 0 && sheetRef.current) {
+      
+      // 새로운 선택이고 10% 상태일 때만 50%로 확장
+      if (isNewSelection && snapIndex === 0 && sheetRef.current) {
         setTimeout(() => {
           sheetRef.current.snapTo(({ snapPoints }) => snapPoints[1]);
         }, 100);
       }
-    } else if (sheetMode === 'detail') {
-      // 선택 해제 시 list 모드로
-      setSheetMode('list');
+      
+      prevSelectedRestaurantRef.current = selectedRestaurant;
+    } else {
+      if (sheetMode === 'detail') {
+        setSheetMode('list');
+      }
+      prevSelectedRestaurantRef.current = null;
     }
-  }, [selectedRestaurant, snapIndex]);
+  }, [selectedRestaurant, snapIndex, sheetMode]);
 
   // ResizeObserver로 snap 상태 감지
   useEffect(() => {
