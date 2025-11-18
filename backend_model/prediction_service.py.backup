@@ -1,6 +1,6 @@
 """
 예측 서비스 - DeepFM과 Multi-Tower 모델을 사용한 별점 예측
-- 텍스트 임베딩 포함(체크)2
+- 텍스트 임베딩 포함(체크)
 """
 
 import torch
@@ -44,42 +44,18 @@ class PredictionService:
         """Scaler 파라미터 로딩 (mean, std)"""
         scaler_path = 'models/scaler_params.json'
         
-        logger.info(f"[Scaler] 파라미터 로딩 시도: {scaler_path}")
-        
         # HuggingFace에서 다운로드 시도
         hf_path = ensure_model_file("models/scaler_params.json", scaler_path)
         
-        loaded_path = None
         if hf_path and os.path.exists(hf_path):
-            loaded_path = hf_path
-            logger.info(f"[Scaler] HuggingFace에서 로딩: {hf_path}")
             with open(hf_path, 'r') as f:
                 self.scaler_params = json.load(f)
         elif os.path.exists(scaler_path):
-            loaded_path = scaler_path
-            logger.info(f"[Scaler] 로컬에서 로딩: {scaler_path}")
             with open(scaler_path, 'r') as f:
                 self.scaler_params = json.load(f)
         else:
-            logger.error(f"[Scaler] ❌ 파일을 찾을 수 없음: {scaler_path}")
             print(f"  [WARNING] Scaler params 파일 없음: {scaler_path}")
             self.scaler_params = None
-            return
-        
-        # 로딩 성공 시 내용 확인
-        if self.scaler_params:
-            logger.info(f"[Scaler] ✅ 로딩 성공")
-            logger.info(f"[Scaler] User params keys: {list(self.scaler_params.get('user', {}).keys())}")
-            logger.info(f"[Scaler] Business params keys: {list(self.scaler_params.get('business', {}).keys())}")
-            
-            # useful 파라미터 확인 (핵심 피처)
-            if 'user' in self.scaler_params and 'useful' in self.scaler_params['user']:
-                useful_params = self.scaler_params['user']['useful']
-                logger.info(f"[Scaler] useful mean={useful_params['mean']:.2f}, std={useful_params['std']:.2f}")
-            else:
-                logger.warning(f"[Scaler] ⚠️ useful 파라미터가 없음!")
-        else:
-            logger.error(f"[Scaler] ❌ 로딩 실패")
         
     def _get_absa_keys(self):
         """ABSA 피처 키 목록 (순서 유지) - 학습 데이터와 동일한 순서"""
@@ -248,23 +224,18 @@ class PredictionService:
         # Standard Scaling
         if self.scaler_params:
             user_params = self.scaler_params['user']
-            
-            # 스케일링 전 로그 (디버깅용)
-            logger.debug(f"[Scaling] User 원본 값 - useful: {useful:.2f}, compliment_log: {compliment_log:.2f}, fans_log: {fans_log:.2f}")
-            
             useful_scaled = (useful - user_params['useful']['mean']) / user_params['useful']['std']
             compliment_scaled = (compliment_log - user_params['compliment']['mean']) / user_params['compliment']['std']
             fans_scaled = (fans_log - user_params['fans']['mean']) / user_params['fans']['std']
             average_stars_scaled = (average_stars - user_params['average_stars']['mean']) / user_params['average_stars']['std']
             yelping_since_days_scaled = (yelping_since_days - user_params['yelping_since_days']['mean']) / user_params['yelping_since_days']['std']
-            
-            # 스케일링 후 로그 (디버깅용)
-            logger.debug(f"[Scaling] User 스케일링 후 - useful: {useful_scaled:.2f}, compliment: {compliment_scaled:.2f}, fans: {fans_scaled:.2f}")
         else:
-            # Scaler 없으면 에러 발생
-            logger.error(f"[Scaling] ❌ scaler_params가 None입니다! 스케일링 불가능")
-            logger.error(f"[Scaling] 원본 값: useful={useful}, compliment={compliment}, fans={fans}")
-            raise ValueError("scaler_params is required for prediction. Please ensure scaler_params.json is loaded correctly.")
+            # Scaler 없으면 원본 값 사용 (비권장)
+            useful_scaled = useful
+            compliment_scaled = compliment_log
+            fans_scaled = fans_log
+            average_stars_scaled = average_stars
+            yelping_since_days_scaled = yelping_since_days
         
         # Business 피처 (3개) - review_count 제외!
         stars = business_data.get('stars', 0.0)
@@ -274,21 +245,14 @@ class PredictionService:
         # Standard Scaling
         if self.scaler_params:
             business_params = self.scaler_params['business']
-            
-            # 스케일링 전 로그 (디버깅용)
-            logger.debug(f"[Scaling] Business 원본 값 - stars: {stars:.2f}, lat: {latitude:.4f}, lng: {longitude:.4f}")
-            
             stars_scaled = (stars - business_params['stars']['mean']) / business_params['stars']['std']
             latitude_scaled = (latitude - business_params['latitude']['mean']) / business_params['latitude']['std']
             longitude_scaled = (longitude - business_params['longitude']['mean']) / business_params['longitude']['std']
-            
-            # 스케일링 후 로그 (디버깅용)
-            logger.debug(f"[Scaling] Business 스케일링 후 - stars: {stars_scaled:.2f}, lat: {latitude_scaled:.2f}, lng: {longitude_scaled:.2f}")
         else:
-            # Scaler 없으면 에러 발생
-            logger.error(f"[Scaling] ❌ scaler_params가 None입니다! 스케일링 불가능")
-            logger.error(f"[Scaling] 원본 값: stars={stars}, latitude={latitude}, longitude={longitude}")
-            raise ValueError("scaler_params is required for prediction. Please ensure scaler_params.json is loaded correctly.")
+            # Scaler 없으면 원본 값 사용 (비권장)
+            stars_scaled = stars
+            latitude_scaled = latitude
+            longitude_scaled = longitude
         
         features.extend([
             useful_scaled, compliment_scaled, fans_scaled, average_stars_scaled, yelping_since_days_scaled,
