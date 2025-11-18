@@ -340,10 +340,35 @@ def check_predictions_exist(user_id: int, db: Session) -> bool:
         db: 데이터베이스 세션
     
     Returns:
-        bool: 예측값 존재 여부
+        bool: 예측값 존재 여부 (stale이 아닌 fresh 예측만 카운트)
+    """
+    # stale이 아닌 fresh 예측만 카운트
+    count = db.query(models.UserBusinessPrediction).filter(
+        and_(
+            models.UserBusinessPrediction.user_id == user_id,
+            models.UserBusinessPrediction.is_stale == False
+        )
+    ).count()
+    
+    return count > 0
+
+
+def check_has_stale_predictions(user_id: int, db: Session) -> bool:
+    """
+    사용자에게 stale 예측이 있는지 확인
+    
+    Args:
+        user_id: 사용자 ID
+        db: 데이터베이스 세션
+    
+    Returns:
+        bool: stale 예측 존재 여부
     """
     count = db.query(models.UserBusinessPrediction).filter(
-        models.UserBusinessPrediction.user_id == user_id
+        and_(
+            models.UserBusinessPrediction.user_id == user_id,
+            models.UserBusinessPrediction.is_stale == True
+        )
     ).count()
     
     return count > 0
