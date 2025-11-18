@@ -223,6 +223,9 @@ body:has(.snap-100) .floating-search-bar {
 .sheet-header-common {
   padding: 20px 20px 16px 20px;
   flex-shrink: 0;
+  touch-action: none; /* 모든 터치 동작 차단하여 지도 움직임 방지 */
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 .sheet-header-common h2 {
@@ -230,6 +233,7 @@ body:has(.snap-100) .floating-search-bar {
   font-weight: 700;
   color: var(--text-primary);
   margin: 0 0 8px 0;
+  touch-action: none; /* 모든 터치 동작 차단하여 지도 움직임 방지 */
 }
 
 /* 50% 상태: 헤더 아래 여백 */

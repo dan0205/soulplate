@@ -289,7 +289,13 @@ const MapBottomSheet = ({
             </div>
 
             {/* 공통 헤더: 가게 이름 + AI 점수 */}
-            <div className="sheet-header-common">
+            <div 
+              className="sheet-header-common"
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              onTouchCancel={(e) => e.stopPropagation()}
+            >
               <h2>{selectedRestaurant.name}</h2>
               <div className="ai-scores">
                 <span className="score-badge deepfm">
