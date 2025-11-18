@@ -1,6 +1,6 @@
 """
 예측 서비스 - DeepFM과 Multi-Tower 모델을 사용한 별점 예측
-- 텍스트 임베딩 포함
+- 텍스트 임베딩 포함(체크)
 """
 
 import torch
