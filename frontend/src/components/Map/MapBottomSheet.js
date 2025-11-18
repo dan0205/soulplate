@@ -94,10 +94,6 @@ const MapBottomSheet = ({
         // snap index 업데이트
         if (ratio < 0.2) {
           newSnapIndex = 0; // 10%
-          // 20% 이하로 내렸다면 강제로 10%로 이동
-          if (sheetRef.current) {
-            sheetRef.current.snapTo(({ snapPoints }) => snapPoints[0]);
-          }
         } else if (ratio < 0.7) {
           newSnapIndex = 1; // 50%
         } else {
