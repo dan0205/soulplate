@@ -5,6 +5,7 @@ HuggingFace Hub에서 모델 파일을 다운로드하는 모듈
     HF_TOKEN: HuggingFace Access Token (Private 저장소인 경우 필수)
     HF_REPO_ID: HuggingFace 저장소 ID (기본값: yidj/soulplate-models)
 """
+# 체크 로그
 
 import os
 import logging
