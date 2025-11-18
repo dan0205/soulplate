@@ -11,16 +11,23 @@ import PhotoTab from './tabs/PhotoTab';
 import SortDropdown from './SortDropdown';
 import { formatDistance } from '../../utils/distance';
 
+// AI 점수 기반 색상 (공통 함수)
+const getMarkerColor = (score) => {
+  if (score > 4.0) return '#ff6b6b'; // 연한 빨강 (높은 점수)
+  if (score > 3.0) return '#FFB74D'; // 연한 주황 (중간 점수)
+  return '#FFF176'; // 연한 노랑 (낮은 점수)
+};
+
 const RestaurantListItem = ({ restaurant, onClick }) => {
-  const aiScore = restaurant.ai_prediction?.deepfm_rating || restaurant.stars || 0;
+  // DeepFM과 Multi-Tower의 평균값 사용, 없으면 기본값 3.0
+  const deepfm = restaurant.ai_prediction?.deepfm_rating;
+  const multitower = restaurant.ai_prediction?.multitower_rating;
+  const aiScore = (deepfm !== undefined && multitower !== undefined) 
+    ? (deepfm + multitower) / 2 
+    : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 3.0));
   
-  // AI 점수 기반 색상
-  const getMarkerColor = (score) => {
-    if (score >= 4.5) return '#FF4444';
-    if (score >= 4.0) return '#FF8800';
-    if (score >= 3.5) return '#FFD700';
-    return '#CCCCCC';
-  };
+  // 리스트 카드용 DeepFM 점수 (배지 색상용)
+  const deepfmScore = restaurant.ai_prediction?.deepfm_rating || restaurant.stars || 3.0;
 
   return (
     <div className="restaurant-list-item" onClick={onClick}>
@@ -34,7 +41,10 @@ const RestaurantListItem = ({ restaurant, onClick }) => {
         <div className="list-item-header">
           <h4>{restaurant.name}</h4>
           <div className="list-item-badges">
-            <span className="badge-deepfm">
+            <span 
+              className="badge-deepfm"
+              style={{ backgroundColor: getMarkerColor(deepfmScore) }}
+            >
               {restaurant.ai_prediction?.deepfm_rating?.toFixed(1) || restaurant.stars.toFixed(1)}
             </span>
           </div>
@@ -174,8 +184,8 @@ const MapBottomSheet = ({
   const remainingCount = restaurants.length - displayedCount;
 
   // DeepFM과 Multi-Tower 점수 (detail 모드용)
-  const deepfmScore = selectedRestaurant?.ai_prediction?.deepfm_rating || selectedRestaurant?.stars || 0;
-  const multitowerScore = selectedRestaurant?.ai_prediction?.multitower_rating || selectedRestaurant?.ai_prediction?.deepfm_rating || selectedRestaurant?.stars || 0;
+  const deepfmScore = selectedRestaurant?.ai_prediction?.deepfm_rating || selectedRestaurant?.stars || 3.0;
+  const multitowerScore = selectedRestaurant?.ai_prediction?.multitower_rating || selectedRestaurant?.ai_prediction?.deepfm_rating || selectedRestaurant?.stars || 3.0;
 
   // snap 상태 확인
   const isHintSnap = snapIndex === 0; // 10%
@@ -301,10 +311,16 @@ const MapBottomSheet = ({
             >
               <h2>{selectedRestaurant.name}</h2>
               <div className="ai-scores">
-                <span className="score-badge deepfm">
+                <span 
+                  className="score-badge deepfm"
+                  style={{ backgroundColor: getMarkerColor(deepfmScore) }}
+                >
                   DeepFM {deepfmScore.toFixed(1)}
                 </span>
-                <span className="score-badge multitower">
+                <span 
+                  className="score-badge multitower"
+                  style={{ backgroundColor: getMarkerColor(multitowerScore) }}
+                >
                   Multi {multitowerScore.toFixed(1)}
                 </span>
               </div>

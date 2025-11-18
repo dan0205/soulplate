@@ -278,7 +278,7 @@ body:has(.snap-100) .floating-search-bar {
 }
 
 .score-badge {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  /* 배경색은 인라인 스타일로 점수 기반 동적 적용 */
   color: white;
   padding: 4px 10px;
   border-radius: 12px;
@@ -287,11 +287,11 @@ body:has(.snap-100) .floating-search-bar {
 }
 
 .score-badge.deepfm {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  /* 배경색은 인라인 스타일로 점수 기반 동적 적용 */
 }
 
 .score-badge.multitower {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
+  /* 배경색은 인라인 스타일로 점수 기반 동적 적용 */
 }
 
 /* 카테고리 + 리뷰 수 */
@@ -1227,7 +1227,7 @@ body:has(.snap-100) .floating-search-bar {
 }
 
 .badge-deepfm {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  /* 배경색은 인라인 스타일로 점수 기반 동적 적용 */
   color: white;
   padding: 2px 8px;
   border-radius: 8px;

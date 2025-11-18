@@ -34,10 +34,9 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
 
   // AI 점수에 따른 마커 색상
   const getMarkerColor = (aiScore) => {
-    if (aiScore >= 4.5) return '#FF4444'; // 빨강 (강력 추천)
-    if (aiScore >= 4.0) return '#FF8800'; // 주황 (추천)
-    if (aiScore >= 3.5) return '#FFD700'; // 노랑 (괜찮음)
-    return '#CCCCCC'; // 회색 (보통)
+    if (aiScore > 4.0) return '#ff6b6b'; // 연한 빨강 (높은 점수)
+    if (aiScore > 3.0) return '#FFB74D'; // 연한 주황 (중간 점수)
+    return '#FFF176'; // 연한 노랑 (낮은 점수)
   };
 
   // 줌 레벨에 따른 마커 크기 계산
@@ -102,7 +101,12 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
 
   // 커스텀 마커 컴포넌트 (지도핀 모양)
   const CustomMarker = ({ restaurant, mapLevel }) => {
-    const aiScore = restaurant.ai_prediction?.deepfm_rating || restaurant.stars || 0;
+    // DeepFM과 Multi-Tower의 평균값 사용, 없으면 기본값 3.0
+    const deepfm = restaurant.ai_prediction?.deepfm_rating;
+    const multitower = restaurant.ai_prediction?.multitower_rating;
+    const aiScore = (deepfm !== undefined && multitower !== undefined) 
+      ? (deepfm + multitower) / 2 
+      : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 3.0));
     const color = getMarkerColor(aiScore);
     const size = getMarkerSize(mapLevel);
     
