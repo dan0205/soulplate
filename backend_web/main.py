@@ -500,13 +500,13 @@ async def login(
     # 예측값 확인 및 생성
     from prediction_cache import check_predictions_exist, check_has_stale_predictions, calculate_and_store_predictions
     
-    # Fresh 예측이 없거나 stale 예측이 있으면 재계산
-    if not check_predictions_exist(user.id, db):
-        logger.info(f"사용자 {user.username}의 예측값이 없어 백그라운드 생성 시작")
+    # Stale 우선 처리: Stale이 있으면 무조건 재계산 (Fresh 여부 무관)
+    if check_has_stale_predictions(user.id, db):
+        logger.info(f"사용자 {user.username}의 stale 예측이 있어 백그라운드 재계산 시작")
         if background_tasks:
             background_tasks.add_task(calculate_and_store_predictions, user.id, db)
-    elif check_has_stale_predictions(user.id, db):
-        logger.info(f"사용자 {user.username}의 stale 예측이 있어 백그라운드 재계산 시작")
+    elif not check_predictions_exist(user.id, db):
+        logger.info(f"사용자 {user.username}의 예측값이 없어 백그라운드 생성 시작")
         if background_tasks:
             background_tasks.add_task(calculate_and_store_predictions, user.id, db)
     
@@ -886,14 +886,14 @@ async def get_businesses(
         ).offset(skip).limit(limit).all()
     elif sort_by in ["deepfm", "multitower"] and current_user:
         # AI 예측 기반 정렬: DB 캐시에서 조회
-        # 예측값이 없거나 stale이면 백그라운드에서 계산 시작
+        # Stale 우선 처리: Stale이 있으면 무조건 재계산 (Fresh 여부 무관)
         from prediction_cache import check_has_stale_predictions
-        if not check_predictions_exist(current_user.id, db):
-            logger.info(f"사용자 {current_user.id}의 예측값이 없어 백그라운드 계산 시작")
+        if check_has_stale_predictions(current_user.id, db):
+            logger.info(f"사용자 {current_user.id}의 stale 예측이 있어 백그라운드 재계산 시작")
             if background_tasks:
                 background_tasks.add_task(calculate_and_store_predictions, current_user.id, db)
-        elif check_has_stale_predictions(current_user.id, db):
-            logger.info(f"사용자 {current_user.id}의 stale 예측이 있어 백그라운드 재계산 시작")
+        elif not check_predictions_exist(current_user.id, db):
+            logger.info(f"사용자 {current_user.id}의 예측값이 없어 백그라운드 계산 시작")
             if background_tasks:
                 background_tasks.add_task(calculate_and_store_predictions, current_user.id, db)
             # 예측값이 없는 경우 기본 정렬로 폴백
