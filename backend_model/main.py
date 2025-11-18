@@ -4,6 +4,7 @@ DeepFM과 Multi-Tower 모델을 사용한 별점 예측 API
 """
 
 import sys
+import os
 from pathlib import Path
 
 # 현재 디렉토리를 Python path에 추가
@@ -129,7 +130,9 @@ async def predict_rating(request: PredictRatingRequest):
     
     DeepFM과 Multi-Tower 모델을 사용하여 사용자가 특정 비즈니스에 매길 별점을 예측합니다.
     """
-    logger.info(f"Rating prediction request")
+    # 요청 로그는 디버그 모드에서만 출력 (로그 과다 방지)
+    if os.getenv("DEBUG_PREDICTION", "false").lower() == "true":
+        logger.debug(f"Rating prediction request")
     
     try:
         pred_service = get_prediction_service()
@@ -140,7 +143,9 @@ async def predict_rating(request: PredictRatingRequest):
             business_data=request.business_data
         )
         
-        logger.info(f"Prediction: DeepFM={result['deepfm_rating']}, MT={result['multitower_rating']}, Ensemble={result['ensemble_rating']}")
+        # 예측 결과 로그는 디버그 모드에서만 출력 (로그 과다 방지)
+        if os.getenv("DEBUG_PREDICTION", "false").lower() == "true":
+            logger.debug(f"Prediction: DeepFM={result['deepfm_rating']}, MT={result['multitower_rating']}, Ensemble={result['ensemble_rating']}")
         
         return PredictRatingResponse(**result)
         

@@ -335,10 +335,12 @@ class PredictionService:
         # 전체 피처 준비 (212개)
         combined_features = self.prepare_combined_features(user_data, business_data, review_text)
         
-        print(f"[DEBUG] Combined features shape: {combined_features.shape}")
-        print(f"[DEBUG] Combined features stats: min={combined_features.min():.4f}, max={combined_features.max():.4f}, mean={combined_features.mean():.4f}")
-        print(f"[DEBUG] Non-zero features: {np.count_nonzero(combined_features)}/212")
-        print(f"[DEBUG] First 10 features: {combined_features[:10]}")
+        # 디버그 로그는 필요시에만 출력 (환경변수로 제어)
+        if os.getenv("DEBUG_PREDICTION", "false").lower() == "true":
+            logger.debug(f"[DEBUG] Combined features shape: {combined_features.shape}")
+            logger.debug(f"[DEBUG] Combined features stats: min={combined_features.min():.4f}, max={combined_features.max():.4f}, mean={combined_features.mean():.4f}")
+            logger.debug(f"[DEBUG] Non-zero features: {np.count_nonzero(combined_features)}/212")
+            logger.debug(f"[DEBUG] First 10 features: {combined_features[:10]}")
         
         predictions = {}
         
@@ -351,7 +353,7 @@ class PredictionService:
                     deepfm_pred = self.deepfm_model(deepfm_input).item()
                     deepfm_pred = max(1.0, min(5.0, deepfm_pred))
                     predictions['deepfm'] = deepfm_pred
-                    print(f"[DEBUG] DeepFM 예측: {deepfm_pred:.2f}")
+                    # 디버그 로그 제거 (너무 많은 로그 발생)
             except Exception as e:
                 print(f"DeepFM 예측 실패: {e}")
                 import traceback
@@ -368,13 +370,13 @@ class PredictionService:
                 mt_user_input = torch.FloatTensor(user_tower_input).unsqueeze(0).to(self.device)
                 mt_business_input = torch.FloatTensor(business_tower_input).unsqueeze(0).to(self.device)
                 
-                print(f"[DEBUG] Multi-Tower input shapes: user={mt_user_input.shape}, business={mt_business_input.shape}")
+                # 디버그 로그 제거 (너무 많은 로그 발생)
                 
                 with torch.no_grad():
                     mt_pred = self.multitower_model(mt_user_input, mt_business_input).item()
                     mt_pred = max(1.0, min(5.0, mt_pred))
                     predictions['multitower'] = mt_pred
-                    print(f"[DEBUG] Multi-Tower 예측: {mt_pred:.2f}")
+                    # 디버그 로그 제거 (너무 많은 로그 발생)
             except Exception as e:
                 print(f"Multi-Tower 예측 실패: {e}")
                 import traceback
