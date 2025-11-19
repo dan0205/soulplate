@@ -39,9 +39,25 @@ const SplashScreen = ({ onComplete }) => {
     };
   }, []);
 
-  // 페이드아웃 조건 체크: 최소 시간 경과 + 앱 초기화 완료
+  // 진행률이 100%에 도달하지 않으면 강제로 100% 설정 (타임아웃)
   useEffect(() => {
-    if (minTimeElapsed && !loading) {
+    const progressTimeout = setTimeout(() => {
+      setProgress(prev => {
+        if (prev < 100) {
+          return 100; // 강제로 100% 설정
+        }
+        return prev;
+      });
+    }, 2500); // 2.5초 후 강제 완료 (진행률 업데이트가 2초이므로 여유 시간)
+
+    return () => {
+      clearTimeout(progressTimeout);
+    };
+  }, []);
+
+  // 페이드아웃 조건 체크: 진행률 100% + 최소 시간 경과 + 앱 초기화 완료
+  useEffect(() => {
+    if (progress >= 100 && minTimeElapsed && !loading) {
       // 페이드아웃 시작
       setIsFadingOut(true);
       
@@ -57,7 +73,7 @@ const SplashScreen = ({ onComplete }) => {
         clearTimeout(fadeOutTimer);
       };
     }
-  }, [minTimeElapsed, loading, onComplete]);
+  }, [progress, minTimeElapsed, loading, onComplete]);
 
   // 앱 초기화가 너무 오래 걸리는 경우 타임아웃 (5초)
   useEffect(() => {
