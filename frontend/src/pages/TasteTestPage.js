@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { tasteTestAPI } from '../services/api';
+import ConfirmModal from '../components/ConfirmModal';
 import './TasteTest.css';
 
 function TasteTestPage() {
@@ -15,6 +16,9 @@ function TasteTestPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const [pendingExit, setPendingExit] = useState(false);
 
   useEffect(() => {
     loadQuestions();
@@ -32,10 +36,10 @@ function TasteTestPage() {
 
     const handlePopState = (e) => {
       if (answers.some(a => a !== null)) {
-        const confirmLeave = window.confirm('테스트를 종료하시겠습니까? 입력한 답변이 저장되지 않습니다.');
-        if (!confirmLeave) {
-          window.history.pushState(null, '', window.location.pathname);
-        }
+        e.preventDefault();
+        setPendingExit(true);
+        setShowExitConfirm(true);
+        window.history.pushState(null, '', window.location.pathname);
       }
     };
 
@@ -113,9 +117,23 @@ function TasteTestPage() {
   };
 
   const handleSkip = () => {
-    if (window.confirm('테스트를 건너뛰시겠습니까?')) {
-      navigate('/');
-    }
+    setShowSkipConfirm(true);
+  };
+
+  const handleSkipConfirm = () => {
+    setShowSkipConfirm(false);
+    navigate('/');
+  };
+
+  const handleExitConfirm = () => {
+    setShowExitConfirm(false);
+    setPendingExit(false);
+    navigate('/');
+  };
+
+  const handleExitCancel = () => {
+    setShowExitConfirm(false);
+    setPendingExit(false);
   };
 
   if (loading) {
@@ -220,6 +238,30 @@ function TasteTestPage() {
             : '다음'}
         </button>
       </div>
+
+      {/* 테스트 종료 확인 모달 */}
+      <ConfirmModal
+        isOpen={showExitConfirm}
+        title="테스트를 종료하시겠습니까?"
+        message="입력한 답변이 저장되지 않습니다."
+        confirmText="종료"
+        cancelText="취소"
+        variant="danger"
+        onConfirm={handleExitConfirm}
+        onCancel={handleExitCancel}
+      />
+
+      {/* 테스트 건너뛰기 확인 모달 */}
+      <ConfirmModal
+        isOpen={showSkipConfirm}
+        title="테스트를 건너뛰시겠습니까?"
+        message="나중에 언제든 다시 할 수 있어요."
+        confirmText="건너뛰기"
+        cancelText="취소"
+        variant="confirm"
+        onConfirm={handleSkipConfirm}
+        onCancel={() => setShowSkipConfirm(false)}
+      />
     </div>
   );
 }

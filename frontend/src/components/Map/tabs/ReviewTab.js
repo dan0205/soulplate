@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { businessAPI, reviewAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
+import ConfirmModal from '../../ConfirmModal';
 
 const ReviewTab = ({ businessId }) => {
   const navigate = useNavigate();
@@ -27,6 +28,9 @@ const ReviewTab = ({ businessId }) => {
   
   // Kebab 메뉴 상태
   const [openMenu, setOpenMenu] = useState(null);
+  
+  // 삭제 확인 모달 상태
+  const [deleteConfirmReviewId, setDeleteConfirmReviewId] = useState(null);
 
   useEffect(() => {
     loadReviews();
@@ -140,22 +144,27 @@ const ReviewTab = ({ businessId }) => {
     }
   };
 
-  // 리뷰 삭제
-  const handleDelete = async (reviewId) => {
-    if (!window.confirm('정말 삭제하시겠습니까? 답글도 함께 삭제됩니다.')) {
-      return;
-    }
+  // 리뷰 삭제 확인 모달 표시
+  const handleDelete = (reviewId) => {
+    setDeleteConfirmReviewId(reviewId);
+    setOpenMenu(null);
+  };
+
+  // 리뷰 삭제 실행
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmReviewId) return;
     
     try {
-      await reviewAPI.delete(reviewId);
+      await reviewAPI.delete(deleteConfirmReviewId);
       toast.dismiss();
       toast.success('삭제되었습니다.');
+      setDeleteConfirmReviewId(null);
       loadReviews();
-      setOpenMenu(null);
     } catch (error) {
       console.error('삭제 실패:', error);
       toast.dismiss();
       toast.error(error.response?.data?.detail || '삭제에 실패했습니다.');
+      setDeleteConfirmReviewId(null);
     }
   };
 
@@ -473,6 +482,18 @@ const ReviewTab = ({ businessId }) => {
           리뷰를 작성하려면 로그인이 필요합니다.
         </div>
       )}
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmModal
+        isOpen={deleteConfirmReviewId !== null}
+        title="정말 삭제하시겠습니까?"
+        message="답글도 함께 삭제됩니다."
+        confirmText="삭제"
+        cancelText="취소"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteConfirmReviewId(null)}
+      />
     </div>
   );
 };

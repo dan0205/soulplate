@@ -9,6 +9,7 @@ import { userAPI, tasteTestAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
 import { getMBTIInfo } from '../utils/mbtiDescriptions';
+import ConfirmModal from '../components/ConfirmModal';
 import './Profile.css';
 
 const MyProfilePage = () => {
@@ -23,6 +24,7 @@ const MyProfilePage = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showTestOptions, setShowTestOptions] = useState(false);
+  const [showDeleteTestConfirm, setShowDeleteTestConfirm] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -88,21 +90,24 @@ const MyProfilePage = () => {
     navigate('/taste-test', { state: { testType } });
   };
 
-  const handleDeleteTest = async () => {
-    if (!window.confirm('기존 취향 테스트 결과를 삭제하시겠습니까?')) {
-      return;
-    }
-    
+  const handleDeleteTest = () => {
+    setShowDeleteTestConfirm(true);
+    setShowTestOptions(false);
+  };
+
+  const handleDeleteTestConfirm = async () => {
     try {
       await tasteTestAPI.delete();
       toast.dismiss();
       toast.success('취향 테스트 결과가 삭제되었습니다.');
+      setShowDeleteTestConfirm(false);
       loadProfile();
       loadReviews(0, true);
     } catch (err) {
       console.error('취향 테스트 삭제 실패:', err);
       toast.dismiss();
       toast.error('삭제에 실패했습니다.');
+      setShowDeleteTestConfirm(false);
     }
   };
 
@@ -294,6 +299,18 @@ const MyProfilePage = () => {
           </>
         )}
       </div>
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmModal
+        isOpen={showDeleteTestConfirm}
+        title="기존 취향 테스트 결과를 삭제하시겠습니까?"
+        message="삭제된 테스트 결과는 복구할 수 없습니다."
+        confirmText="삭제"
+        cancelText="취소"
+        variant="danger"
+        onConfirm={handleDeleteTestConfirm}
+        onCancel={() => setShowDeleteTestConfirm(false)}
+      />
     </div>
   );
 };

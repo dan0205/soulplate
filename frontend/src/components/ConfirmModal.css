@@ -1,0 +1,166 @@
+/* 모달 오버레이 */
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1003 !important;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+  animation: confirmModalFadeIn 0.3s ease-out;
+}
+
+@keyframes confirmModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 모달 컨텐츠 */
+.confirm-modal-content {
+  background: white;
+  border-radius: 24px;
+  max-width: 400px;
+  width: 100%;
+  padding: 40px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: confirmModalSlideIn 0.3s ease-out;
+  max-height: 90vh; /* 폴백 */
+  max-height: 90dvh; /* 최신 브라우저 */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@keyframes confirmModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 헤더 */
+.confirm-modal-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.confirm-modal-header h2 {
+  font-size: 24px;
+  margin: 0 0 12px;
+  color: #333;
+  font-weight: 700;
+}
+
+.confirm-modal-header p {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 버튼 컨테이너 */
+.confirm-modal-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.confirm-modal-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* 취소 버튼 */
+.confirm-modal-btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.confirm-modal-btn-cancel:hover {
+  background: #e8e8e8;
+  transform: translateY(-2px);
+}
+
+.confirm-modal-btn-cancel:active {
+  transform: translateY(0);
+}
+
+/* 확인 버튼 (기본) */
+.confirm-modal-btn-confirm {
+  background: #ff6b6b;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.confirm-modal-btn-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+  background: #ff5555;
+}
+
+.confirm-modal-btn-confirm:active {
+  transform: translateY(0);
+}
+
+/* 위험 버튼 (삭제 등) */
+.confirm-modal-btn-danger {
+  background: #ff6b6b;
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.confirm-modal-btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+  background: #ff5555;
+}
+
+.confirm-modal-btn-danger:active {
+  transform: translateY(0);
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .confirm-modal-content {
+    padding: 30px 24px;
+    max-width: 100%;
+    max-height: 85vh; /* 폴백 */
+    max-height: 85dvh; /* 최신 브라우저 */
+  }
+
+  .confirm-modal-header h2 {
+    font-size: 20px;
+  }
+
+  .confirm-modal-header p {
+    font-size: 14px;
+  }
+
+  .confirm-modal-buttons {
+    flex-direction: column;
+  }
+
+  .confirm-modal-btn {
+    width: 100%;
+  }
+}
+
