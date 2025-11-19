@@ -1138,8 +1138,7 @@ body:has(.snap-100) .floating-search-bar {
 
 /* 시트 힌트 (10%) */
 .sheet-hint {
-  padding: 15px 20px;
-  padding-top: 10px;
+  padding: 5px 20px;
   text-align: center;
   cursor: pointer;
   transition: background 0.2s;
