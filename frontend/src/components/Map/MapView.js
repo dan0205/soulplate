@@ -62,13 +62,20 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
 
   // 지도 bounds 변경 핸들러 (드래그 끝, 줌 변경 시)
   const handleBoundsChange = useCallback((map) => {
+    console.log('🔵 handleBoundsChange 호출됨', {
+      timestamp: new Date().toISOString(),
+      caller: new Error().stack.split('\n')[2]?.trim() || 'unknown'
+    });
+    
     // 기존 타이머 취소
     if (debounceTimerRef.current) {
+      console.log('⏸️  기존 타이머 취소');
       clearTimeout(debounceTimerRef.current);
     }
 
     // 0.5초 후 새 데이터 로드
     debounceTimerRef.current = setTimeout(() => {
+      console.log('⏰ Debounce 타이머 실행 - API 호출 시작');
       // Bounds 정보 추출
       const bounds = map.getBounds();
       const sw = bounds.getSouthWest();
@@ -80,6 +87,8 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
         east: ne.getLng(),
         west: sw.getLng()
       };
+      
+      console.log('📊 API 호출할 bounds:', boundsData);
       
       if (onBoundsChange) {
         onBoundsChange(boundsData);
@@ -186,18 +195,27 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
         style={{ width: '100%', height: 'var(--vh)' }}
         level={mapLevel}
         onCreate={(map) => { 
+          console.log('🟢 onCreate 호출됨!', new Date().toISOString());
           mapRef.current = map;
           // 지도 생성 후 초기 bounds 전달
           setTimeout(() => {
+            console.log('🟢 onCreate의 setTimeout 실행');
             handleBoundsChange(map);
           }, 100);
         }}
         onDragEnd={(map) => {
+          console.log('🟡 onDragEnd 호출됨!', new Date().toISOString());
           // 드래그가 끝났을 때만 호출
           handleBoundsChange(map);
         }}
         onZoomChanged={(map) => {
-          setMapLevel(map.getLevel());
+          const level = map.getLevel();
+          console.log('🟠 onZoomChanged 호출됨!', {
+            timestamp: new Date().toISOString(),
+            level: level,
+            previousLevel: mapLevel
+          });
+          setMapLevel(level);
           // 줌 변경이 끝났을 때만 호출
           handleBoundsChange(map);
         }}
