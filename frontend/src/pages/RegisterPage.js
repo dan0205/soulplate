@@ -46,7 +46,7 @@ const RegisterPage = () => {
         age: formData.age ? parseInt(formData.age) : null
       });
       // 회원가입 성공 시 취향 테스트 건너뛰기 플래그 초기화 (신규 사용자는 모달을 볼 수 있도록)
-      localStorage.removeItem('taste_test_skipped');
+      sessionStorage.removeItem('taste_test_skipped');
       // 회원가입 성공 시 자동 로그인 후 홈으로 이동
       toast.dismiss();
       toast.success('회원가입이 완료되었습니다!');

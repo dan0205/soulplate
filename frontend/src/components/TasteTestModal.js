@@ -16,7 +16,7 @@ function TasteTestModal({ onClose }) {
   };
 
   const handleSkip = () => {
-    localStorage.setItem('taste_test_skipped', 'true');
+    sessionStorage.setItem('taste_test_skipped', 'true');
     onClose();
   };
 
@@ -26,7 +26,7 @@ function TasteTestModal({ onClose }) {
         <button className="modal-close" onClick={onClose}>×</button>
         
         <div className="modal-header">
-          <h2>🎯 잠깐만요!</h2>
+          <h2>잠깐만요!</h2>
           <p>음식 취향 테스트를 하시면<br/>맞춤 맛집 추천을 받을 수 있어요!</p>
         </div>
 

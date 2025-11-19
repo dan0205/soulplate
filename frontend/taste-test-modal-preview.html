@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>취향테스트 모달 미리보기</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 24px;
+      max-width: 500px;
+      width: 100%;
+      padding: 40px;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 32px;
+      cursor: pointer;
+      color: #999;
+      line-height: 1;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #333;
+      transform: rotate(90deg);
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .modal-header h2 {
+      font-size: 28px;
+      margin: 0 0 12px;
+      color: #ff6b6b;
+    }
+
+    .modal-header p {
+      font-size: 16px;
+      color: #666;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .test-option {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+
+    .test-option:hover {
+      background: #fff5f5;
+      border-color: #ff6b6b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+    }
+
+    .test-icon {
+      font-size: 40px;
+      flex-shrink: 0;
+    }
+
+    .test-info {
+      flex: 1;
+    }
+
+    .test-info h3 {
+      font-size: 18px;
+      margin: 0 0 6px;
+      color: #333;
+    }
+
+    .test-info p {
+      font-size: 14px;
+      color: #666;
+      margin: 0 0 8px;
+    }
+
+    .test-badge {
+      display: inline-block;
+      background: #ff6b6b;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .btn-skip-modal {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      border: none;
+      color: #999;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 8px;
+    }
+
+    .btn-skip-modal:hover {
+      background: #f8f9fa;
+      color: #666;
+    }
+
+    .modal-hint {
+      text-align: center;
+      font-size: 13px;
+      color: #999;
+      margin: 12px 0 0;
+    }
+
+    /* 모바일 반응형 */
+    @media (max-width: 768px) {
+      .modal-content {
+        padding: 30px 24px;
+      }
+
+      .modal-header h2 {
+        font-size: 24px;
+      }
+
+      .modal-header p {
+        font-size: 15px;
+      }
+
+      .test-option {
+        flex-direction: column;
+        text-align: center;
+        padding: 24px 20px;
+      }
+
+      .test-icon {
+        font-size: 48px;
+      }
+    }
+
+    /* 테스트용 버튼 */
+    .show-modal-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    }
+
+    .show-modal-btn:hover {
+      background: #ff5555;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <button class="show-modal-btn" onclick="showModal()">모달 보기</button>
+
+  <div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      
+      <div class="modal-header">
+        <h2>잠깐만요!</h2>
+        <p>음식 취향 테스트를 하시면<br/>맞춤 맛집 추천을 받을 수 있어요!</p>
+      </div>
+
+      <div class="modal-body">
+        <div class="test-option" onclick="alert('간단 테스트 클릭!')">
+          <div class="test-icon">⚡</div>
+          <div class="test-info">
+            <h3>간단 테스트</h3>
+            <p>8개 질문 · 약 1분</p>
+            <span class="test-badge">빠르게 확인</span>
+          </div>
+        </div>
+
+        <div class="test-option" onclick="alert('심화 테스트 클릭!')">
+          <div class="test-icon">🔍</div>
+          <div class="test-info">
+            <h3>심화 테스트</h3>
+            <p>20개 질문 · 약 3-4분</p>
+            <span class="test-badge">정확한 분석</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-skip-modal" onclick="closeModal()">
+        나중에 하기 →
+      </button>
+
+      <p class="modal-hint">💡 나중에 언제든 다시 할 수 있어요</p>
+    </div>
+  </div>
+
+  <script>
+    function showModal() {
+      const modal = document.getElementById('modalOverlay');
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal(event) {
+      // 오버레이 클릭 시에만 닫기 (이벤트가 전달된 경우)
+      if (event && event.target.id === 'modalOverlay') {
+        const modal = document.getElementById('modalOverlay');
+        modal.classList.add('hidden');
+      } else if (!event) {
+        // 닫기 버튼 클릭 시
+        const modal = document.getElementById('modalOverlay');
+        modal.classList.add('hidden');
+      }
+    }
+
+    // 페이지 로드 시 자동으로 모달 표시
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        showModal();
+      }, 500);
+    });
+  </script>
+</body>
+</html>

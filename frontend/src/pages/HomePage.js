@@ -101,7 +101,7 @@ const HomePage = () => {
         review_count
       });
       
-      const skipped = localStorage.getItem('taste_test_skipped');
+      const skipped = sessionStorage.getItem('taste_test_skipped');
       console.log('[취향 테스트 모달] 건너뛰기 상태:', skipped);
       
       if (should_show_test_popup && !skipped) {
