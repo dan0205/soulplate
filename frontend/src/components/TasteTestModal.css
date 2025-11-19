@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1003;
+  z-index: 1003 !important;
   padding: 20px;
   backdrop-filter: blur(4px);
 }
@@ -114,22 +114,22 @@
   color: white;
 }
 
-.test-info {
+.modal-content .test-info {
   flex: 1;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  margin: 0;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
 }
 
-.test-info h3 {
+.modal-content .test-info h3 {
   font-size: 18px;
   margin: 0 0 8px;
   color: #333;
   font-weight: 600;
 }
 
-.test-info p {
+.modal-content .test-info p {
   font-size: 14px;
   color: #666;
   line-height: 1.6;
@@ -192,11 +192,11 @@
     margin: 0 auto;
   }
 
-  .test-info h3 {
+  .modal-content .test-info h3 {
     font-size: 17px;
   }
 
-  .test-info p {
+  .modal-content .test-info p {
     font-size: 14px;
   }
 }
