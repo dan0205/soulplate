@@ -35,8 +35,7 @@ function TasteTestModal({ onClose }) {
             <div className="test-icon">⚡</div>
             <div className="test-info">
               <h3>간단 테스트</h3>
-              <p>8개 질문 · 약 1분</p>
-              <span className="test-badge">빠르게 확인</span>
+              <p>빠르게 음식 취향을 파악하고 싶다면 간단 테스트를 추천해요. 8개의 핵심 질문으로 당신의 취향을 분석합니다.</p>
             </div>
           </div>
 
@@ -44,8 +43,7 @@ function TasteTestModal({ onClose }) {
             <div className="test-icon">🔍</div>
             <div className="test-info">
               <h3>심화 테스트</h3>
-              <p>20개 질문 · 약 3-4분</p>
-              <span className="test-badge">정확한 분석</span>
+              <p>더 정확하고 상세한 맞춤 추천을 원한다면 심화 테스트를 선택하세요. 20개의 질문으로 깊이 있는 분석을 제공합니다.</p>
             </div>
           </div>
         </div>

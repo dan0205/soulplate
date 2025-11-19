@@ -86,26 +86,32 @@
 
 .test-option {
   display: flex;
-  align-items: center;
-  gap: 20px;
+  align-items: flex-start;
+  gap: 16px;
   padding: 20px;
   background: #f8f9fa;
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s;
-  border: 2px solid transparent;
 }
 
 .test-option:hover {
   background: #fff5f5;
-  border-color: #ff6b6b;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
 }
 
 .test-icon {
-  font-size: 40px;
+  font-size: 36px;
   flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8888 100%);
+  border-radius: 12px;
+  color: white;
 }
 
 .test-info {
@@ -114,41 +120,39 @@
 
 .test-info h3 {
   font-size: 18px;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   color: #333;
+  font-weight: 600;
 }
 
 .test-info p {
   font-size: 14px;
   color: #666;
-  margin: 0 0 8px;
-}
-
-.test-badge {
-  display: inline-block;
-  background: #ff6b6b;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  line-height: 1.6;
+  margin: 0;
 }
 
 .btn-skip-modal {
   width: 100%;
-  padding: 14px;
-  background: transparent;
+  padding: 16px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8888 100%);
+  color: white;
   border: none;
-  color: #999;
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
 }
 
 .btn-skip-modal:hover {
-  background: #f8f9fa;
-  color: #666;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+}
+
+.btn-skip-modal:active {
+  transform: translateY(0);
 }
 
 .modal-hint {
@@ -177,11 +181,19 @@
   .test-option {
     flex-direction: column;
     text-align: center;
-    padding: 24px 20px;
+    padding: 20px;
   }
 
   .test-icon {
-    font-size: 48px;
+    margin: 0 auto;
+  }
+
+  .test-info h3 {
+    font-size: 17px;
+  }
+
+  .test-info p {
+    font-size: 14px;
   }
 }
 
