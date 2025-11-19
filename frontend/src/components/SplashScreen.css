@@ -103,20 +103,9 @@
 .progress-bar {
   height: 100%;
   background: linear-gradient(90deg, #ff6b6b 0%, #ff8888 50%, #ff6b6b 100%);
-  background-size: 200% 100%;
   border-radius: 2px;
-  animation: progressAnimation 1.5s ease-in-out infinite;
-  width: 60%;
-}
-
-/* 프로그레스 바 애니메이션 */
-@keyframes progressAnimation {
-  0% {
-    background-position: 0% 0%;
-  }
-  100% {
-    background-position: 200% 0%;
-  }
+  width: 0%; /* 초기값, JavaScript로 동적 변경 */
+  transition: width 0.1s ease-out;
 }
 
 /* 데스크톱 스타일 */
