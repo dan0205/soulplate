@@ -244,6 +244,11 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
           // 줌 변경이 끝났을 때만 호출
           handleBoundsChange(map);
         }}
+        onIdle={(map) => {
+          // 지도 이동/줌이 완전히 끝났을 때 호출 (panTo 포함)
+          console.log('🟣 onIdle 호출됨!', new Date().toISOString());
+          handleBoundsChange(map);
+        }}
       >
         {/* 사용자 위치 마커 */}
         {userLocation && (
