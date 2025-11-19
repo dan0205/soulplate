@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulPlate 사용법 공지 모달 미리보기</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* 모달 오버레이 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* 모달 컨텐츠 */
+    .modal-content {
+      background: white;
+      border-radius: 24px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 40px;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: modalSlideIn 0.3s ease-out;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .modal-content::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* 닫기 버튼 */
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 32px;
+      cursor: pointer;
+      color: #999;
+      line-height: 1;
+      padding: 0;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      border-radius: 50%;
+    }
+
+    .modal-close:hover {
+      color: #333;
+      background: #f5f5f5;
+      transform: rotate(90deg);
+    }
+
+    /* 헤더 */
+    .modal-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .modal-header h2 {
+      font-size: 32px;
+      margin: 0 0 12px;
+      color: #ff6b6b;
+      font-weight: 700;
+    }
+
+    .modal-header p {
+      font-size: 16px;
+      color: #666;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* 가이드 아이템 컨테이너 */
+    .guide-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    /* 가이드 아이템 */
+    .guide-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 16px;
+    }
+
+    .guide-icon {
+      font-size: 36px;
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8888 100%);
+      border-radius: 12px;
+      color: white;
+    }
+
+    .guide-content {
+      flex: 1;
+    }
+
+    .guide-content h3 {
+      font-size: 18px;
+      margin: 0 0 8px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .guide-content p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+
+    /* 확인 버튼 */
+    .btn-confirm {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8888 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-confirm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-confirm:active {
+      transform: translateY(0);
+    }
+
+    /* 힌트 텍스트 */
+    .modal-hint {
+      text-align: center;
+      font-size: 13px;
+      color: #999;
+      margin-top: 16px;
+    }
+
+
+    /* 모바일 반응형 */
+    @media (max-width: 768px) {
+      .modal-content {
+        padding: 30px 24px;
+        max-height: 85vh;
+      }
+
+      .modal-header h2 {
+        font-size: 26px;
+      }
+
+      .modal-header p {
+        font-size: 15px;
+      }
+
+      .guide-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .guide-icon {
+        margin: 0 auto;
+      }
+
+      .guide-content h3 {
+        font-size: 17px;
+      }
+
+      .guide-content p {
+        font-size: 14px;
+      }
+    }
+
+    /* 테스트용 버튼 */
+    .test-button {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .test-button:hover {
+      background: #ff5555;
+    }
+
+    /* 배경 데모 컨텐츠 */
+    .demo-content {
+      text-align: center;
+      color: white;
+      z-index: 1;
+      position: relative;
+    }
+
+    .demo-content h1 {
+      font-size: 48px;
+      margin-bottom: 16px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .demo-content p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <!-- 배경 데모 컨텐츠 -->
+  <div class="demo-content">
+    <h1>SoulPlate</h1>
+    <p>사용법 공지 모달 미리보기</p>
+  </div>
+
+  <!-- 사용법 공지 모달 -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      
+      <div class="modal-header">
+        <h2>SoulPlate 사용법</h2>
+        <p>서비스를 더 잘 활용하기 위한 간단한 가이드입니다</p>
+      </div>
+
+      <div class="guide-list">
+        <div class="guide-item">
+          <div class="guide-icon">🗺️</div>
+          <div class="guide-content">
+            <h3>지도에서 맛집 찾기</h3>
+            <p>지도를 드래그하거나 확대/축소하여 원하는 지역의 맛집을 탐색할 수 있습니다. 마커를 클릭하면 상세 정보를 확인할 수 있어요.</p>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon">🤖</div>
+          <div class="guide-content">
+            <h3>AI 맞춤 추천</h3>
+            <p>취향 테스트를 완료하면 AI가 당신의 취향을 분석하여 개인화된 맛집 추천을 제공합니다. 더 정확한 추천을 위해 심화 테스트도 추천해요!</p>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon">👤</div>
+          <div class="guide-content">
+            <h3>마이페이지</h3>
+            <p>우측 상단의 프로필 버튼을 클릭하면 마이페이지로 이동할 수 있습니다. 마이페이지에서는 내가 작성한 리뷰 확인, 취향 테스트 결과 확인, 프로필 정보 수정 등을 할 수 있어요.</p>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon">📋</div>
+          <div class="guide-content">
+            <h3>하단 카드</h3>
+            <p>화면 하단에 있는 카드를 위로 드래그하면 맛집 목록을 확인할 수 있습니다. 아래로 드래그하면 카드를 접어 지도를 전체적으로 볼 수 있고, 카드를 클릭하면 상세 정보를 확인할 수 있어요.</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-confirm" onclick="closeModal()">
+        확인했습니다
+      </button>
+
+      <p class="modal-hint">💡 이 가이드는 세션당 한 번만 표시됩니다</p>
+    </div>
+  </div>
+
+  <!-- 테스트용 버튼 -->
+  <button class="test-button" onclick="showModal()">모달 다시 보기</button>
+
+  <script>
+    function closeModal() {
+      const modal = document.getElementById('modal');
+      modal.style.animation = 'fadeOut 0.3s ease-out forwards';
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
+    }
+
+    function showModal() {
+      const modal = document.getElementById('modal');
+      modal.style.display = 'flex';
+      modal.style.animation = 'fadeIn 0.3s ease-out';
+    }
+
+    // 오버레이 클릭 시 닫기
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeModal();
+      }
+    });
+
+    // ESC 키로 닫기
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    // 페이드아웃 애니메이션 추가
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
+

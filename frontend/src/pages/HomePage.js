@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { businessAPI, userAPI } from '../services/api';
+import UserGuideModal from '../components/UserGuideModal';
 import TasteTestModal from '../components/TasteTestModal';
 import MapView from '../components/Map/MapView';
 import MapBottomSheet from '../components/Map/MapBottomSheet';
@@ -18,6 +19,7 @@ const HomePage = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState('');
   const [sortBy, setSortBy] = useState('deepfm');
+  const [showUserGuideModal, setShowUserGuideModal] = useState(false);
   const [showTasteTestModal, setShowTasteTestModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -65,15 +67,28 @@ const HomePage = () => {
     }
   }, []);
 
-  // 사용자 인증이 완료된 후 취향 테스트 모달 표시 여부 확인
+  // 사용자 인증이 완료된 후 모달 표시 여부 확인
   useEffect(() => {
     // 인증 로딩이 완료되고 사용자 정보가 있을 때만 상태 확인
     if (!authLoading && user) {
-      checkUserStatus();
+      checkModalsToShow();
     }
   }, [authLoading, user]);
 
-  const checkUserStatus = async () => {
+  const checkModalsToShow = async () => {
+    // 1. 사용법 공지 모달 표시 여부 확인 (세션 기반)
+    const userGuideSeen = sessionStorage.getItem('user_guide_seen');
+    if (!userGuideSeen) {
+      console.log('[사용법 공지 모달] 세션에서 표시되지 않음 - 모달 표시');
+      setShowUserGuideModal(true);
+      return; // 사용법 공지 모달이 표시되면 취향 테스트 모달은 나중에 확인
+    }
+
+    // 2. 사용법 공지 모달이 이미 표시되었거나 건너뛴 경우 취향 테스트 모달 확인
+    checkTasteTestModal();
+  };
+
+  const checkTasteTestModal = async () => {
     try {
       console.log('[취향 테스트 모달] 사용자 상태 확인 시작');
       const response = await userAPI.getStatus();
@@ -106,6 +121,13 @@ const HomePage = () => {
         status: err.response?.status
       });
     }
+  };
+
+  // 사용법 공지 모달 닫기 핸들러
+  const handleUserGuideClose = () => {
+    setShowUserGuideModal(false);
+    // 사용법 공지 모달이 닫힌 후 취향 테스트 모달 확인
+    checkTasteTestModal();
   };
 
   // 지도 범위 기반 레스토랑 로드
@@ -241,6 +263,11 @@ const HomePage = () => {
         sortBy={sortBy}
         onSortChange={handleSortChange}
       />
+
+      {/* 사용법 공지 모달 */}
+      {showUserGuideModal && (
+        <UserGuideModal onClose={handleUserGuideClose} />
+      )}
 
       {/* 취향 테스트 모달 */}
       {showTasteTestModal && (

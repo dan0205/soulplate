@@ -1,0 +1,220 @@
+/* 모달 오버레이 */
+.user-guide-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+  animation: userGuideFadeIn 0.3s ease-out;
+}
+
+@keyframes userGuideFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 모달 컨텐츠 */
+.user-guide-modal-content {
+  background: white;
+  border-radius: 24px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 40px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: userGuideModalSlideIn 0.3s ease-out;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.user-guide-modal-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+@keyframes userGuideModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 닫기 버튼 */
+.user-guide-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  color: #999;
+  line-height: 1;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border-radius: 50%;
+}
+
+.user-guide-modal-close:hover {
+  color: #333;
+  background: #f5f5f5;
+  transform: rotate(90deg);
+}
+
+/* 헤더 */
+.user-guide-modal-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.user-guide-modal-header h2 {
+  font-size: 32px;
+  margin: 0 0 12px;
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+.user-guide-modal-header p {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 가이드 아이템 컨테이너 */
+.user-guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* 가이드 아이템 */
+.user-guide-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 16px;
+}
+
+.user-guide-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8888 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.user-guide-content {
+  flex: 1;
+}
+
+.user-guide-content h3 {
+  font-size: 18px;
+  margin: 0 0 8px;
+  color: #333;
+  font-weight: 600;
+}
+
+.user-guide-content p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 확인 버튼 */
+.user-guide-btn-confirm {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8888 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.user-guide-btn-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+}
+
+.user-guide-btn-confirm:active {
+  transform: translateY(0);
+}
+
+/* 힌트 텍스트 */
+.user-guide-modal-hint {
+  text-align: center;
+  font-size: 13px;
+  color: #999;
+  margin-top: 16px;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .user-guide-modal-content {
+    padding: 30px 24px;
+    max-height: 85vh;
+  }
+
+  .user-guide-modal-header h2 {
+    font-size: 26px;
+  }
+
+  .user-guide-modal-header p {
+    font-size: 15px;
+  }
+
+  .user-guide-item {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .user-guide-icon {
+    margin: 0 auto;
+  }
+
+  .user-guide-content h3 {
+    font-size: 17px;
+  }
+
+  .user-guide-content p {
+    font-size: 14px;
+  }
+}
+
