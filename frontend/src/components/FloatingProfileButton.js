@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ConfirmModal from './ConfirmModal';
 import './FloatingProfileButton.css';
 
 const FloatingProfileButton = ({ username, onLogout }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -37,6 +39,11 @@ const FloatingProfileButton = ({ username, onLogout }) => {
 
   const handleLogout = () => {
     setShowMenu(false);
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirm(false);
     onLogout();
   };
 
@@ -75,6 +82,18 @@ const FloatingProfileButton = ({ username, onLogout }) => {
           </button>
         </div>
       )}
+
+      {/* 로그아웃 확인 모달 */}
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        title="로그아웃 하시겠습니까?"
+        message="다시 로그인하시면 계속 이용하실 수 있습니다."
+        confirmText="로그아웃"
+        cancelText="취소"
+        variant="confirm"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   );
 };
