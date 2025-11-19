@@ -10,6 +10,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
   const debounceTimerRef = useRef(null);
   const initialLoadRef = useRef(false);
   const mapRef = useRef(null); // Map 객체 저장용 ref
+  const lastBoundsRef = useRef(null); // 마지막 bounds 저장용 ref
   
   // 아주대학교 좌표
   const AJOU_UNIVERSITY = { lat: 37.2809, lng: 127.0447 };
@@ -88,7 +89,24 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
         west: sw.getLng()
       };
       
+      // 이전 bounds와 비교 (소수점 6자리까지 비교)
+      const boundsEqual = (b1, b2) => {
+        if (!b1 || !b2) return false;
+        return (
+          Math.abs(b1.north - b2.north) < 0.000001 &&
+          Math.abs(b1.south - b2.south) < 0.000001 &&
+          Math.abs(b1.east - b2.east) < 0.000001 &&
+          Math.abs(b1.west - b2.west) < 0.000001
+        );
+      };
+      
+      if (boundsEqual(boundsData, lastBoundsRef.current)) {
+        console.log('⏭️ 동일한 bounds - API 호출 건너뜀');
+        return;
+      }
+      
       console.log('📊 API 호출할 bounds:', boundsData);
+      lastBoundsRef.current = boundsData;
       
       if (onBoundsChange) {
         onBoundsChange(boundsData);
@@ -195,7 +213,14 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
         style={{ width: '100%', height: 'var(--vh)' }}
         level={mapLevel}
         onCreate={(map) => { 
+          // 이미 초기화되었으면 무시
+          if (initialLoadRef.current) {
+            console.log('⏭️ onCreate 무시됨 (이미 초기화됨)');
+            return;
+          }
+          
           console.log('🟢 onCreate 호출됨!', new Date().toISOString());
+          initialLoadRef.current = true; // 플래그 설정
           mapRef.current = map;
           // 지도 생성 후 초기 bounds 전달
           setTimeout(() => {
