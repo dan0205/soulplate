@@ -29,7 +29,7 @@ const HomePage = () => {
   
   const LOAD_MORE_COUNT = 20;
   
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
 
   // Debounce 검색어 (300ms 지연)
   useEffect(() => {
@@ -65,23 +65,46 @@ const HomePage = () => {
     }
   }, []);
 
+  // 사용자 인증이 완료된 후 취향 테스트 모달 표시 여부 확인
   useEffect(() => {
-    checkUserStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // 인증 로딩이 완료되고 사용자 정보가 있을 때만 상태 확인
+    if (!authLoading && user) {
+      checkUserStatus();
+    }
+  }, [authLoading, user]);
 
   const checkUserStatus = async () => {
     try {
+      console.log('[취향 테스트 모달] 사용자 상태 확인 시작');
       const response = await userAPI.getStatus();
-      const { should_show_test_popup } = response.data;
+      const { should_show_test_popup, is_new_user, has_taste_test, review_count } = response.data;
+      
+      console.log('[취향 테스트 모달] API 응답:', {
+        should_show_test_popup,
+        is_new_user,
+        has_taste_test,
+        review_count
+      });
       
       const skipped = localStorage.getItem('taste_test_skipped');
+      console.log('[취향 테스트 모달] 건너뛰기 상태:', skipped);
       
       if (should_show_test_popup && !skipped) {
+        console.log('[취향 테스트 모달] 모달 표시 조건 충족 - 모달 표시');
         setShowTasteTestModal(true);
+      } else {
+        console.log('[취향 테스트 모달] 모달 표시 조건 불충족:', {
+          should_show_test_popup,
+          skipped: !!skipped
+        });
       }
     } catch (err) {
-      console.error('사용자 상태 확인 실패:', err);
+      console.error('[취향 테스트 모달] 사용자 상태 확인 실패:', {
+        error: err,
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
     }
   };
 
