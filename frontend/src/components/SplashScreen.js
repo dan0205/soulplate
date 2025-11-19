@@ -1,6 +1,6 @@
 /**
  * 스플래시 화면 컴포넌트
- * 첫 방문 시에만 표시되는 스플래시 화면
+ * 세션별로 표시되는 스플래시 화면 (탭을 닫았다가 다시 열 때마다 표시)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -13,9 +13,9 @@ const SplashScreen = () => {
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
-  // 첫 방문 감지 및 스플래시 표시 시작
+  // 세션별 방문 감지 및 스플래시 표시 시작
   useEffect(() => {
-    const hasVisited = localStorage.getItem('soulplate_first_visit');
+    const hasVisited = sessionStorage.getItem('soulplate_first_visit');
     
     if (!hasVisited) {
       // 첫 방문이면 스플래시 표시
@@ -41,7 +41,7 @@ const SplashScreen = () => {
       // 페이드아웃 애니메이션 완료 후 제거
       const fadeOutTimer = setTimeout(() => {
         setShowSplash(false);
-        localStorage.setItem('soulplate_first_visit', 'false');
+        sessionStorage.setItem('soulplate_first_visit', 'false');
       }, 500); // 페이드아웃 애니메이션 시간
 
       return () => {
@@ -59,7 +59,7 @@ const SplashScreen = () => {
           setIsFadingOut(true);
           setTimeout(() => {
             setShowSplash(false);
-            localStorage.setItem('soulplate_first_visit', 'false');
+            sessionStorage.setItem('soulplate_first_visit', 'false');
           }, 500);
         }
       }, 5000);
