@@ -1,0 +1,152 @@
+/**
+ * 스플래시 화면 스타일
+ */
+
+/* 스플래시 화면 컨테이너 */
+.splash-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #ffe0e0 0%, #ffcccc 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.5s ease-in;
+  pointer-events: all; /* 사용자 상호작용 차단 */
+}
+
+/* 페이드인 애니메이션 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 페이드아웃 애니메이션 */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.splash-container.fade-out {
+  animation: fadeOut 0.5s ease-out forwards;
+}
+
+/* 로고/타이틀 영역 */
+.splash-content {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.splash-title {
+  font-size: 56px;
+  font-weight: 700;
+  color: #ff6b6b;
+  margin-bottom: 20px;
+  letter-spacing: -1px;
+  text-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  animation: titleFadeIn 0.8s ease-out;
+}
+
+@keyframes titleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.splash-subtitle {
+  font-size: 20px;
+  font-weight: 400;
+  color: #cc5555;
+  letter-spacing: 1px;
+  animation: subtitleFadeIn 1s ease-out 0.2s both;
+}
+
+@keyframes subtitleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 프로그레스 바 컨테이너 */
+.progress-container {
+  width: 280px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 프로그레스 바 */
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b 0%, #ff8888 50%, #ff6b6b 100%);
+  background-size: 200% 100%;
+  border-radius: 2px;
+  animation: progressAnimation 1.5s ease-in-out infinite;
+  width: 60%;
+}
+
+/* 프로그레스 바 애니메이션 */
+@keyframes progressAnimation {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+/* 데스크톱 스타일 */
+@media (min-width: 768px) {
+  .splash-title {
+    font-size: 72px;
+    letter-spacing: -1.5px;
+  }
+  .splash-subtitle {
+    font-size: 24px;
+    letter-spacing: 1.5px;
+  }
+  .progress-container {
+    width: 320px;
+    height: 5px;
+  }
+}
+
+/* 모바일 스타일 */
+@media (max-width: 480px) {
+  .splash-title {
+    font-size: 44px;
+    letter-spacing: -0.5px;
+  }
+  .splash-subtitle {
+    font-size: 17px;
+    letter-spacing: 0.5px;
+  }
+  .progress-container {
+    width: 240px;
+  }
+}
+
