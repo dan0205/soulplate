@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { businessAPI, reviewAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -89,7 +90,8 @@ const ReviewTab = ({ businessId }) => {
     e.preventDefault();
     
     if (!formData.text.trim()) {
-      alert('내용을 입력해주세요.');
+      toast.dismiss();
+      toast.error('내용을 입력해주세요.');
       return;
     }
     
@@ -102,20 +104,23 @@ const ReviewTab = ({ businessId }) => {
           stars: formData.stars,
           text: formData.text
         });
-        alert('리뷰가 작성되었습니다!');
+        toast.dismiss();
+        toast.success('리뷰가 작성되었습니다!');
       } else if (writingMode === 'edit') {
         // 리뷰 수정
         await reviewAPI.update(editingReview.id, {
           stars: formData.stars,
           text: formData.text
         });
-        alert('리뷰가 수정되었습니다!');
+        toast.dismiss();
+        toast.success('리뷰가 수정되었습니다!');
       } else if (writingMode === 'reply') {
         // 답글 작성
         await reviewAPI.createReply(replyingTo, {
           text: formData.text
         });
-        alert('답글이 작성되었습니다!');
+        toast.dismiss();
+        toast.success('답글이 작성되었습니다!');
       }
       
       // 초기화
@@ -128,7 +133,8 @@ const ReviewTab = ({ businessId }) => {
       loadReviews();
     } catch (error) {
       console.error('작성/수정 실패:', error);
-      alert(error.response?.data?.detail || '작업에 실패했습니다.');
+      toast.dismiss();
+      toast.error(error.response?.data?.detail || '작업에 실패했습니다.');
     } finally {
       setSubmitting(false);
     }
@@ -142,12 +148,14 @@ const ReviewTab = ({ businessId }) => {
     
     try {
       await reviewAPI.delete(reviewId);
-      alert('삭제되었습니다.');
+      toast.dismiss();
+      toast.success('삭제되었습니다.');
       loadReviews();
       setOpenMenu(null);
     } catch (error) {
       console.error('삭제 실패:', error);
-      alert(error.response?.data?.detail || '삭제에 실패했습니다.');
+      toast.dismiss();
+      toast.error(error.response?.data?.detail || '삭제에 실패했습니다.');
     }
   };
 

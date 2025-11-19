@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import toast from 'react-hot-toast';
 import 'react-spring-bottom-sheet/dist/style.css';
 import 'react-tabs/style/react-tabs.css';
 import './Map.css';
@@ -365,7 +366,10 @@ const MapBottomSheet = ({
                 </button>
                 <button 
                   className="action-btn"
-                  onClick={() => alert('전화번호 준비 중입니다')}
+                  onClick={() => {
+                    toast.dismiss();
+                    toast('전화번호 준비 중입니다');
+                  }}
                 >
                   📞 전화
                 </button>

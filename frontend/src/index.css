@@ -142,3 +142,6 @@ button {
     padding: 12px 24px;
   }
 }
+
+/* Toast 커스텀 스타일 */
+/* react-hot-toast의 기본 애니메이션이 슬라이드+페이드를 제공하므로 추가 CSS는 불필요 */

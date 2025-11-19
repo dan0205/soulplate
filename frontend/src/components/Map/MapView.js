@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
+import toast from 'react-hot-toast';
 import './Map.css';
 
 const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationChange, loading, isInitialLoading }) => {
@@ -150,7 +151,8 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
       const moveLatLon = new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng);
       mapRef.current.panTo(moveLatLon);
     } else if (!userLocation) {
-      alert('위치 정보를 가져올 수 없습니다.');
+      toast.dismiss();
+      toast.error('위치 정보를 가져올 수 없습니다.');
     }
   };
 

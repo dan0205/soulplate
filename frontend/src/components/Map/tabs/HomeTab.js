@@ -1,4 +1,5 @@
 import React from 'react';
+import toast from 'react-hot-toast';
 
 const HomeTab = ({ restaurant }) => {
   return (
@@ -13,7 +14,10 @@ const HomeTab = ({ restaurant }) => {
         </button>
         <button 
           className="action-btn"
-          onClick={() => alert('전화번호 준비 중입니다')}
+          onClick={() => {
+            toast.dismiss();
+            toast('전화번호 준비 중입니다');
+          }}
         >
           📞 전화
         </button>

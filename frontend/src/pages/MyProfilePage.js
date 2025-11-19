@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { userAPI, tasteTestAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
@@ -94,12 +95,14 @@ const MyProfilePage = () => {
     
     try {
       await tasteTestAPI.delete();
-      alert('취향 테스트 결과가 삭제되었습니다.');
+      toast.dismiss();
+      toast.success('취향 테스트 결과가 삭제되었습니다.');
       loadProfile();
       loadReviews(0, true);
     } catch (err) {
       console.error('취향 테스트 삭제 실패:', err);
-      alert('삭제에 실패했습니다.');
+      toast.dismiss();
+      toast.error('삭제에 실패했습니다.');
     }
   };
 

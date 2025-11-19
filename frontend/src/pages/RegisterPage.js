@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
@@ -45,7 +46,8 @@ const RegisterPage = () => {
         age: formData.age ? parseInt(formData.age) : null
       });
       // 회원가입 성공 시 자동 로그인 후 홈으로 이동
-      alert('Registration successful!');
+      toast.dismiss();
+      toast.success('회원가입이 완료되었습니다!');
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed');

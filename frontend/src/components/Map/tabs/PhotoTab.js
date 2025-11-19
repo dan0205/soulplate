@@ -1,9 +1,11 @@
 import React from 'react';
+import toast from 'react-hot-toast';
 import EmptyState from '../EmptyState';
 
 const PhotoTab = () => {
   const handlePhotoUpload = () => {
-    alert('준비 중입니다');
+    toast.dismiss();
+    toast('준비 중입니다');
   };
 
   return (

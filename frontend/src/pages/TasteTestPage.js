@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { tasteTestAPI } from '../services/api';
 import './TasteTest.css';
 
@@ -72,7 +73,8 @@ function TasteTestPage() {
 
   const handleNext = () => {
     if (answers[currentQuestionIndex] === null) {
-      alert('답변을 선택해주세요.');
+      toast.dismiss();
+      toast.error('답변을 선택해주세요.');
       return;
     }
 
@@ -104,7 +106,8 @@ function TasteTestPage() {
       });
     } catch (err) {
       console.error('테스트 제출 실패:', err);
-      alert('테스트 제출에 실패했습니다. 다시 시도해주세요.');
+      toast.dismiss();
+      toast.error('테스트 제출에 실패했습니다. 다시 시도해주세요.');
       setSubmitting(false);
     }
   };

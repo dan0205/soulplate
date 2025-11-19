@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import LoginPage from './pages/LoginPage';
@@ -25,6 +26,26 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <Toaster
+          position="bottom-center"
+          toastOptions={{
+            duration: 2000,
+            style: {
+              background: '#ff6b6b',
+              color: '#ffffff',
+              borderRadius: '8px',
+              padding: '12px 20px',
+              fontSize: '15px',
+              fontWeight: '500',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            },
+            className: 'toast-custom',
+          }}
+          containerStyle={{
+            bottom: '20px',
+          }}
+          reverseOrder={false}
+        />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
