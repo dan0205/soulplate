@@ -16,7 +16,7 @@ const PrivateRoute = ({ children }) => {
   // loading = 현재 로그인 상태를 확인 중인지 여부 true/false 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'var(--vh)' }}>
         <h2>Loading...</h2>
       </div>
     );

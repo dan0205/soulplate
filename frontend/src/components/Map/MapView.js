@@ -183,7 +183,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
       
       <Map
         center={center}
-        style={{ width: '100%', height: '100vh' }}
+        style={{ width: '100%', height: 'var(--vh)' }}
         level={mapLevel}
         onCreate={(map) => { 
           mapRef.current = map;

@@ -30,7 +30,8 @@
   border-radius: 24px;
   max-width: 600px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 90vh; /* 폴백 */
+  max-height: 90dvh; /* 최신 브라우저 */
   overflow-y: auto;
   overflow-x: hidden;
   padding: 40px;
@@ -188,7 +189,8 @@
 @media (max-width: 768px) {
   .user-guide-modal-content {
     padding: 30px 24px;
-    max-height: 85vh;
+    max-height: 85vh; /* 폴백 */
+    max-height: 85dvh; /* 최신 브라우저 */
   }
 
   .user-guide-modal-header h2 {

@@ -6,7 +6,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: 100vh; /* 폴백 */
+  min-height: 100dvh; /* 최신 브라우저 */
   background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
   padding: 20px;
 }

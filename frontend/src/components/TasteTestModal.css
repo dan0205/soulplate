@@ -170,7 +170,8 @@
 @media (max-width: 768px) {
   .modal-content {
     padding: 30px 24px;
-    max-height: 85vh;
+    max-height: 85vh; /* 폴백 */
+    max-height: 85dvh; /* 최신 브라우저 */
     overflow-y: auto;
   }
 

@@ -2,8 +2,10 @@
   max-width: 700px;
   margin: 0 auto;
   padding: 40px 20px;
-  min-height: 100vh;
-  height: 100vh;
+  min-height: 100vh; /* 폴백 */
+  min-height: 100dvh; /* 최신 브라우저 */
+  height: 100vh; /* 폴백 */
+  height: 100dvh; /* 최신 브라우저 */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
 }
