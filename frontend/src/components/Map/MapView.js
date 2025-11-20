@@ -3,8 +3,8 @@ import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
 import toast from 'react-hot-toast';
 import './Map.css';
 
-const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationChange, loading, isInitialLoading }) => {
-  const [center, setCenter] = useState({ lat: 37.5665, lng: 126.9780 }); // 서울 중심 기본 위치
+const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationChange, loading, isInitialLoading, initialCenter }) => {
+  const [center, setCenter] = useState(initialCenter || { lat: 37.5665, lng: 126.9780 }); // 서울 중심 기본 위치
   const [userLocation, setUserLocation] = useState(null);
   const [mapLevel, setMapLevel] = useState(3);
   const debounceTimerRef = useRef(null);
@@ -14,6 +14,15 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
   
   // 아주대학교 좌표
   const AJOU_UNIVERSITY = { lat: 37.2809, lng: 127.0447 };
+
+  // initialCenter prop 변경 시 지도 중심 이동
+  useEffect(() => {
+    if (initialCenter && mapRef.current) {
+      const moveLatLon = new window.kakao.maps.LatLng(initialCenter.lat, initialCenter.lng);
+      mapRef.current.panTo(moveLatLon);
+      setCenter(initialCenter);
+    }
+  }, [initialCenter]);
 
   // 사용자 위치 가져오기 (위치만 설정, API 호출은 지도 생성 후 자동)
   useEffect(() => {
@@ -25,14 +34,17 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
             lng: position.coords.longitude,
           };
           setUserLocation(userPos);
-          setCenter(userPos);
+          // initialCenter가 없을 때만 사용자 위치로 설정
+          if (!initialCenter) {
+            setCenter(userPos);
+          }
         },
         (error) => {
           console.log('위치 권한 거부 또는 오류:', error);
         }
       );
     }
-  }, [])
+  }, [initialCenter])
 
   // AI 점수에 따른 마커 색상
   const getMarkerColor = (aiScore) => {

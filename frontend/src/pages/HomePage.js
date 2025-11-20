@@ -3,6 +3,8 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { businessAPI, userAPI } from '../services/api';
 import UserGuideModal from '../components/UserGuideModal';
@@ -15,6 +17,7 @@ import { calculateDistance } from '../utils/distance';
 import './Home.css';
 
 const HomePage = () => {
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,6 +31,7 @@ const HomePage = () => {
   const [displayedCount, setDisplayedCount] = useState(20);
   const [userLocation, setUserLocation] = useState(null);
   const [currentBounds, setCurrentBounds] = useState(null);
+  const [loadingBusiness, setLoadingBusiness] = useState(false);
   
   const LOAD_MORE_COUNT = 20;
   
@@ -66,6 +70,56 @@ const HomePage = () => {
       );
     }
   }, []);
+
+  // 프로필 페이지에서 전달된 businessId 처리
+  useEffect(() => {
+    const businessId = location.state?.businessId;
+    if (businessId && !loadingBusiness && !selectedRestaurant) {
+      loadBusinessFromProfile(businessId);
+      // state 초기화 (한 번만 실행되도록)
+      window.history.replaceState({}, document.title);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.businessId]);
+
+  // 프로필에서 전달된 businessId로 가게 정보 로드
+  const loadBusinessFromProfile = useCallback(async (businessId) => {
+    setLoadingBusiness(true);
+    try {
+      const response = await businessAPI.get(businessId);
+      const business = response.data;
+      
+      // 거리 계산 추가
+      const businessWithDistance = {
+        ...business,
+        distance: userLocation 
+          ? calculateDistance(userLocation.lat, userLocation.lng, business.latitude, business.longitude)
+          : null
+      };
+      
+      // 가게 선택
+      setSelectedRestaurant(businessWithDistance);
+      
+    } catch (err) {
+      console.error('Error loading business:', err);
+      toast.dismiss();
+      if (err.response?.status === 404) {
+        toast.error('가게를 찾을 수 없습니다.');
+      } else {
+        toast.error('가게 정보를 불러오는데 실패했습니다.');
+      }
+    } finally {
+      setLoadingBusiness(false);
+    }
+  }, [userLocation]);
+
+  // selectedRestaurant가 변경되면 지도 중심을 해당 위치로 이동
+  const mapCenter = useMemo(() => {
+    if (selectedRestaurant && location.state?.businessId) {
+      return { lat: selectedRestaurant.latitude, lng: selectedRestaurant.longitude };
+    }
+    return null;
+  }, [selectedRestaurant, location.state?.businessId]);
 
   // 사용자 인증이 완료된 후 모달 표시 여부 확인
   useEffect(() => {
@@ -250,6 +304,7 @@ const HomePage = () => {
         onBoundsChange={handleMapBoundsChange}
         loading={loading}
         isInitialLoading={isInitialLoading}
+        initialCenter={mapCenter}
       />
 
       {/* 하단 시트 (통합) */}

@@ -181,7 +181,7 @@ const UserProfilePage = () => {
                   <div className="review-minimal-header">
                     <h3 
                       className="review-minimal-title"
-                      onClick={() => navigate(`/business/${review.business.business_id}`)}
+                      onClick={() => navigate('/', { state: { businessId: review.business.business_id } })}
                     >
                       {review.business.name}
                     </h3>
