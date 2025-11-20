@@ -523,20 +523,14 @@ async def get_current_user_info(current_user: models.User = Depends(auth.get_cur
 # ============================================================================
 
 def get_user_taste_test_info(user_id: int, db: Session):
-    """사용자의 취향 테스트 정보 조회"""
-    taste_test_review = db.query(models.Review).filter(
-        models.Review.user_id == user_id,
-        models.Review.is_taste_test == True
-    ).order_by(models.Review.created_at.desc()).first()
+    """사용자의 취향 테스트 정보 조회 (User 테이블에서 직접 읽기)"""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
     
-    if not taste_test_review:
+    if not user or not user.taste_test_completed:
         return False, None, None
     
-    # MBTI 타입 계산
-    from taste_test_questions import calculate_mbti_type
-    mbti_type = calculate_mbti_type(taste_test_review.absa_features) if taste_test_review.absa_features else None
-    
-    return True, taste_test_review.taste_test_type, mbti_type
+    # User 테이블에서 직접 읽기 (계산 불필요)
+    return True, user.taste_test_type, user.taste_test_mbti_type
 
 @app.get("/api/users/me/profile", response_model=schemas.UserProfileResponse)
 async def get_my_profile(
@@ -1491,18 +1485,11 @@ async def get_user_status(
         models.Review.is_taste_test == False
     ).count()
     
-    # 취향 테스트 완료 여부
-    taste_test_review = db.query(models.Review).filter(
-        models.Review.user_id == current_user.id,
-        models.Review.is_taste_test == True
-    ).first()
+    # 취향 테스트 완료 여부 (User 테이블에서 직접 확인)
+    has_taste_test = current_user.taste_test_completed if current_user.taste_test_completed else False
     
-    has_taste_test = taste_test_review is not None
-    
-    # MBTI 타입 계산 (취향 테스트 완료 시)
-    mbti_type = None
-    if has_taste_test and current_user.absa_features:
-        mbti_type = calculate_mbti_type(current_user.absa_features)
+    # MBTI 타입은 User 테이블에서 직접 읽기
+    mbti_type = current_user.taste_test_mbti_type if current_user.taste_test_completed else None
     
     return schemas.UserStatusResponse(
         is_new_user=(real_review_count == 0),
@@ -1600,16 +1587,22 @@ async def submit_taste_test(
         
         logger.info(f"Taste test saved for user {current_user.username} (type: {submission.test_type}, MBTI: {mbti_type})")
         
-        # 5. User 프로필 업데이트 (백그라운드)
+        # 5. User 테이블에 MBTI 저장
+        current_user.taste_test_mbti_type = mbti_type
+        current_user.taste_test_completed = True
+        current_user.taste_test_type = submission.test_type
+        db.commit()
+        
+        # 6. User 프로필 업데이트 (백그라운드)
         background_tasks.add_task(update_user_profile, current_user.id, db)
         
-        # 6. 예측 캐시 재계산 (백그라운드)
+        # 7. 예측 캐시 재계산 (백그라운드)
         from prediction_cache import mark_predictions_stale, calculate_and_store_predictions
         background_tasks.add_task(mark_predictions_stale, current_user.id, db)
         background_tasks.add_task(calculate_and_store_predictions, current_user.id, db)
         logger.info(f"Background tasks scheduled for user {current_user.id} predictions")
         
-        # 7. 결과 반환
+        # 8. 결과 반환
         return schemas.TasteTestResult(
             mbti_type=mbti_type,
             type_name=type_info["name"],
@@ -1638,6 +1631,11 @@ async def delete_taste_test(
         models.Review.user_id == current_user.id,
         models.Review.is_taste_test == True
     ).delete()
+    
+    # User 테이블의 MBTI 정보도 초기화
+    current_user.taste_test_mbti_type = None
+    current_user.taste_test_completed = False
+    current_user.taste_test_type = None
     
     db.commit()
     

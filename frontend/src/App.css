@@ -15,7 +15,8 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  min-height: 100vh; /* 폴백 */
+  min-height: 100dvh; /* 최신 브라우저 */
   display: flex;
   flex-direction: column;
   align-items: center;

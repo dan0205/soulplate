@@ -42,6 +42,11 @@ class User(Base):
     # 텍스트 임베딩 (JSON: 100차원 평균 벡터)
     text_embedding = Column(JSONB, nullable=True)
     
+    # 취향 테스트 관련 필드
+    taste_test_mbti_type = Column(String(4), nullable=True, index=True)  # 'SAPA', 'MOCA' 등
+    taste_test_completed = Column(Boolean, default=False, nullable=False)
+    taste_test_type = Column(String, nullable=True)  # 'quick' or 'deep'
+    
     # Relationships
     reviews = relationship("Review", back_populates="user")
     # 한 명의 유저는 여러 개의 리뷰를 가질 수 있다 

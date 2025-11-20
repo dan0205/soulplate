@@ -198,9 +198,9 @@ const MyProfilePage = () => {
         </div>
       </div>
 
-      {profile.taste_test_completed && mbtiInfo && (
-        <div className="taste-test-section">
-          <h2>음식 취향</h2>
+      <div className="taste-test-section">
+        <h2>음식 취향</h2>
+        {profile.taste_test_completed && mbtiInfo ? (
           <div className="mbti-box-red">
             <div className="mbti-type-large">
               {profile.taste_test_mbti_type}
@@ -253,8 +253,33 @@ const MyProfilePage = () => {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="mbti-box-red" style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div style={{ fontSize: '24px', marginBottom: '20px', color: '#666' }}>
+              🍽️ 취향 테스트를 진행해주세요
+            </div>
+            <div style={{ fontSize: '16px', color: '#888', marginBottom: '30px' }}>
+              간단한 질문으로 당신의 음식 취향을 알아보세요!
+            </div>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button 
+                className="btn-retest-inline" 
+                onClick={() => navigate('/taste-test', { state: { testType: 'quick' } })}
+                style={{ padding: '12px 24px', fontSize: '16px' }}
+              >
+                ⚡ 간단 테스트 시작
+              </button>
+              <button 
+                className="btn-retest-inline" 
+                onClick={() => navigate('/taste-test', { state: { testType: 'deep' } })}
+                style={{ padding: '12px 24px', fontSize: '16px' }}
+              >
+                🔍 심화 테스트 시작
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
 
       <div className="reviews-section">

@@ -332,121 +332,112 @@ def answers_to_absa(answers: list, test_type: str = "quick") -> dict:
 
 def calculate_mbti_type(absa_features: dict) -> str:
     """
-    ABSA 특징으로부터 MBTI 스타일 타입 계산
+    ABSA 특징으로부터 MBTI 스타일 타입 계산 (새 축 시스템)
     
     4개 축:
-    - S (Spicy/Strong) vs M (Mild): 강렬한 맛 vs 부드러운 맛
-    - Q (Quality) vs V (Value): 품질 중시 vs 가성비 중시
-    - A (Atmosphere) vs C (Convenience): 분위기 중시 vs 편의성 중시
-    - F (Friendly) vs I (Independent): 서비스 중시 vs 독립적
+    - S (Strong) vs M (Mild): 강렬한 맛 vs 부드러운 맛
+    - A (Ambiance) vs O (Optimized): 경험 가치 vs 효율성
+    - P (Premium) vs C (Cost Effective): 가치 추구
+    - A (All Together) vs O (On My Own): 서비스 활용 목적
     
     Returns:
-        str: 4글자 타입 (예: "SQAF", "MVCI")
+        str: 4글자 타입 (예: "SAPA", "MOCA")
     """
-    # 축 1: 맛 성향
+    # 축 1: 맛 성향 (S vs M)
     spicy_score = absa_features.get("매운맛_긍정", 0) + absa_features.get("짠맛_긍정", 0)
     mild_score = absa_features.get("담백함_긍정", 0) + absa_features.get("단맛_긍정", 0)
     axis1 = "S" if spicy_score > mild_score else "M"
     
-    # 축 2: 음식 스타일
-    quality_score = absa_features.get("품질/신선도_긍정", 0) + absa_features.get("맛_긍정", 0)
-    value_score = absa_features.get("가격_긍정", 0) + absa_features.get("양_긍정", 0)
-    axis2 = "Q" if quality_score > value_score else "V"
+    # 축 2: 경험 가치 vs 효율성 (A vs O)
+    # A (Ambiance): 분위기 + 쾌적함/청결도 + 공간
+    ambiance_score = (
+        absa_features.get("분위기_긍정", 0) + 
+        absa_features.get("쾌적함/청결도_긍정", 0) + 
+        absa_features.get("공간_긍정", 0)
+    )
+    # O (Optimized): 주차 + 대기(짧은 대기 = 긍정) + 접근성
+    # 대기는 짧을수록 좋으므로 대기_부정이 긍정적
+    optimized_score = (
+        absa_features.get("주차_긍정", 0) + 
+        absa_features.get("대기_부정", 0) +  # 짧은 대기 = 좋음
+        absa_features.get("대기_긍정", 0) * 0.3  # 긴 대기는 약간만 반영
+    )
+    axis2 = "A" if ambiance_score > optimized_score else "O"
     
-    # 축 3: 공간 성향
-    atmosphere_score = absa_features.get("분위기_긍정", 0) + absa_features.get("쾌적함/청결도_긍정", 0)
-    convenience_score = absa_features.get("주차_긍정", 0) + absa_features.get("대기_긍정", 0)
-    axis3 = "A" if atmosphere_score > convenience_score else "C"
+    # 축 3: 가치 추구 (P vs C)
+    # P (Premium): 품질/신선도 + 맛
+    premium_score = (
+        absa_features.get("품질/신선도_긍정", 0) + 
+        absa_features.get("맛_긍정", 0)
+    )
+    # C (Cost Effective): 가격(긍정일 때만) + 양
+    cost_effective_score = (
+        max(0, absa_features.get("가격_긍정", 0)) +  # 가격이 긍정적일 때만
+        absa_features.get("양_긍정", 0)
+    )
+    axis3 = "P" if premium_score > cost_effective_score else "C"
     
-    # 축 4: 서비스 성향
-    friendly_score = absa_features.get("서비스_긍정", 0)
-    independent_score = absa_features.get("서비스_부정", 0) + absa_features.get("서비스_중립", 0)
-    axis4 = "F" if friendly_score > independent_score else "I"
+    # 축 4: 서비스 활용 목적 (A vs O)
+    # A (All Together): 서비스 + 공간(함께) + 분위기
+    all_together_score = (
+        absa_features.get("서비스_긍정", 0) + 
+        absa_features.get("공간_긍정", 0) * 0.7 +  # 함께 식사하기 좋은 공간
+        absa_features.get("분위기_긍정", 0) * 0.5
+    )
+    # O (On My Own): 서비스_부정/중립 + 쾌적함/청결도(혼자) + 소음_부정(조용함)
+    on_my_own_score = (
+        absa_features.get("서비스_부정", 0) + 
+        absa_features.get("서비스_중립", 0) * 0.5 +
+        absa_features.get("쾌적함/청결도_긍정", 0) * 0.7 +
+        absa_features.get("소음_부정", 0)  # 조용함 = 좋음
+    )
+    axis4 = "A" if all_together_score > on_my_own_score else "O"
     
     return f"{axis1}{axis2}{axis3}{axis4}"
 
 
-# MBTI 타입별 설명
+# MBTI 타입별 설명 (새 축 시스템: S/M, A/O, P/C, A/O)
+# 축 1: S(Strong) vs M(Mild), 축 2: A(Ambiance) vs O(Optimized), 축 3: P(Premium) vs C(Cost Effective), 축 4: A(All Together) vs O(On My Own)
 MBTI_TYPE_DESCRIPTIONS = {
-    "SQAF": {
-        "name": "미식가 감성파",
-        "description": "강렬한 맛을 즐기며, 고급 재료와 멋진 분위기, 친절한 서비스를 중시하는 타입",
-        "recommendations": ["파인다이닝 레스토랑", "감성 카페", "프리미엄 맛집"]
+    "SAPA": {
+        "name": "프리미엄 소셜러",
+        "description": "강렬한 맛을 즐기며, 프리미엄 품질과 멋진 분위기, 함께 즐기는 서비스를 중시하는 타입",
+        "recommendations": ["파인다이닝 레스토랑", "프리미엄 바", "고급 한정식"]
     },
-    "SQAI": {
-        "name": "품격있는 미식가",
-        "description": "품질과 분위기를 중시하지만, 서비스보다는 음식 자체에 집중하는 타입",
-        "recommendations": ["조용한 고급 레스토랑", "품질 중심 맛집", "분위기 좋은 술집"]
+    "SAPO": {
+        "name": "품격있는 독립가",
+        "description": "강렬한 맛과 프리미엄 품질을 중시하며, 멋진 분위기에서 혼자만의 시간을 즐기는 타입",
+        "recommendations": ["조용한 고급 레스토랑", "프리미엄 와인바", "품격 있는 일식당"]
     },
-    "SQCF": {
-        "name": "실용적 미식가",
-        "description": "품질 좋은 음식과 친절한 서비스를 원하지만, 접근성도 중요하게 생각하는 타입",
-        "recommendations": ["동네 맛집", "품질 좋은 프랜차이즈", "친절한 가게"]
+    "SOCA": {
+        "name": "가성비 소셜러",
+        "description": "강렬한 맛과 가성비를 중시하며, 효율적인 접근성과 함께 즐기는 서비스를 선호하는 타입",
+        "recommendations": ["가성비 좋은 맛집", "분위기 좋은 술집", "동네 인기 맛집"]
     },
-    "SQCI": {
-        "name": "맛집 헌터",
-        "description": "강렬한 맛과 품질을 최우선으로, 접근성 좋은 곳이라면 어디든 찾아가는 타입",
-        "recommendations": ["숨은 맛집", "로컬 맛집", "품질 최우선 식당"]
+    "SOCO": {
+        "name": "실용적 독립가",
+        "description": "강렬한 맛과 가성비를 최우선으로, 효율적이고 접근성 좋은 곳에서 혼자 즐기는 타입",
+        "recommendations": ["가성비 맛집", "배달 맛집", "효율적인 식당"]
     },
-    "SVAF": {
-        "name": "감성 외식러",
-        "description": "강한 맛과 가성비, 좋은 분위기와 서비스를 모두 원하는 균형잡힌 타입",
-        "recommendations": ["분위기 좋은 맛집", "가성비 좋은 감성 카페", "SNS 핫플"]
-    },
-    "SVAI": {
-        "name": "분위기 중시형",
-        "description": "맛과 가성비, 분위기는 중요하지만 혼자 조용히 즐기는 것을 선호",
-        "recommendations": ["혼밥 카페", "분위기 좋은 술집", "조용한 맛집"]
-    },
-    "SVCF": {
-        "name": "합리적 외식러",
-        "description": "강한 맛과 가성비, 편의성과 친절한 서비스를 중시하는 실속형",
-        "recommendations": ["가성비 맛집", "동네 맛집", "편한 분위기 식당"]
-    },
-    "SVCI": {
-        "name": "효율적 미식가",
-        "description": "맛과 가성비, 접근성을 최우선으로 빠르게 식사하는 타입",
-        "recommendations": ["가성비 맛집", "배달 맛집", "빠른 식당"]
-    },
-    "MQAF": {
-        "name": "우아한 식도락가",
-        "description": "부드러운 맛과 품질, 멋진 분위기와 서비스를 중시하는 세련된 타입",
+    "MAPA": {
+        "name": "우아한 소셜러",
+        "description": "부드러운 맛과 프리미엄 품질을 중시하며, 멋진 분위기에서 함께 즐기는 것을 선호하는 타입",
         "recommendations": ["고급 레스토랑", "브런치 카페", "프리미엄 디저트 카페"]
     },
-    "MQAI": {
+    "MAPO": {
         "name": "조용한 미식가",
-        "description": "담백한 맛과 품질, 분위기를 중시하며 혼자만의 시간을 즐기는 타입",
+        "description": "부드러운 맛과 프리미엄 품질을 중시하며, 멋진 분위기에서 혼자만의 시간을 즐기는 타입",
         "recommendations": ["조용한 카페", "품질 좋은 일식당", "분위기 좋은 와인바"]
     },
-    "MQCF": {
-        "name": "편안한 미식가",
-        "description": "담백한 맛과 품질, 편의성과 친절함을 중시하는 균형잡힌 타입",
-        "recommendations": ["동네 맛집", "편한 카페", "친절한 식당"]
-    },
-    "MQCI": {
-        "name": "건강 지향형",
-        "description": "담백하고 품질 좋은 음식, 접근성을 중시하는 건강한 식사 추구형",
-        "recommendations": ["샐러드 전문점", "건강식 레스토랑", "웰빙 카페"]
-    },
-    "MVAF": {
-        "name": "가족 외식러",
-        "description": "부드러운 맛, 가성비, 편의성과 친절한 서비스를 모두 중시하는 가족 외식형",
+    "MOCA": {
+        "name": "균형잡힌 소셜러",
+        "description": "부드러운 맛과 가성비를 중시하며, 효율적이고 접근성 좋은 곳에서 함께 즐기는 것을 선호하는 타입",
         "recommendations": ["가족 레스토랑", "뷔페", "친절한 한식당"]
     },
-    "MVAI": {
-        "name": "혼밥 마스터",
-        "description": "담백한 맛과 가성비, 분위기를 중시하며 혼자 식사를 즐기는 타입",
-        "recommendations": ["혼밥 맛집", "조용한 카페", "분위기 좋은 식당"]
-    },
-    "MVCF": {
-        "name": "실속 외식러",
-        "description": "담백한 맛, 가성비, 편의성, 서비스를 모두 고려하는 가장 균형잡힌 타입",
-        "recommendations": ["동네 맛집", "가성비 한식당", "편한 카페"]
-    },
-    "MVCI": {
+    "MOCO": {
         "name": "실속 혼밥러",
-        "description": "담백한 맛, 가성비, 편의성을 중시하며 혼자 조용히 먹는 것을 선호",
-        "recommendations": ["배달 맛집", "편의점", "간단한 식사"]
+        "description": "부드러운 맛과 가성비를 중시하며, 효율적이고 접근성 좋은 곳에서 혼자 조용히 즐기는 타입",
+        "recommendations": ["혼밥 맛집", "조용한 카페", "편의점 식사"]
     }
 }
 

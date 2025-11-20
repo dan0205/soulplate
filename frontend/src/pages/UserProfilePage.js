@@ -142,7 +142,7 @@ const UserProfilePage = () => {
         </div>
       </div>
 
-      {profile.taste_test_completed && mbtiInfo && (
+      {profile.taste_test_completed && mbtiInfo ? (
         <div className="taste-test-section">
           <h2>음식 취향</h2>
           <div className="mbti-box-red">
@@ -167,7 +167,7 @@ const UserProfilePage = () => {
             )}
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className="reviews-section">
         <h2>작성한 리뷰 ({reviews.length})</h2>
