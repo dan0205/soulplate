@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { userAPI, tasteTestAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
-import { getMBTIInfo } from '../utils/mbtiDescriptions';
+import { getMBTIInfo, MBTI_TYPE_DESCRIPTIONS } from '../utils/mbtiDescriptions';
 import ConfirmModal from '../components/ConfirmModal';
 import './Profile.css';
 
@@ -23,8 +23,12 @@ const MyProfilePage = () => {
   const [reviewSkip, setReviewSkip] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [showTestOptions, setShowTestOptions] = useState(false);
   const [showDeleteTestConfirm, setShowDeleteTestConfirm] = useState(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [selectedType, setSelectedType] = useState(null);
+  const [showOtherTypes, setShowOtherTypes] = useState(false);
+  const [showRetestOptions, setShowRetestOptions] = useState(false);
+  const [visibleReviewCount, setVisibleReviewCount] = useState(5);
 
   useEffect(() => {
     loadProfile();
@@ -57,8 +61,10 @@ const MyProfilePage = () => {
       
       if (isInitial) {
         setReviews(newReviews);
+        setVisibleReviewCount(Math.min(5, newReviews.length));
       } else {
         setReviews(prev => [...prev, ...newReviews]);
+        setVisibleReviewCount(prev => prev + Math.min(5, newReviews.length));
       }
       
       if (newReviews.length < limit) {
@@ -85,14 +91,9 @@ const MyProfilePage = () => {
     return features.slice(0, 5);
   };
 
-  const handleStartTest = (testType) => {
-    setShowTestOptions(false);
-    navigate('/taste-test', { state: { testType } });
-  };
-
   const handleDeleteTest = () => {
     setShowDeleteTestConfirm(true);
-    setShowTestOptions(false);
+    setShowRetestOptions(false);
   };
 
   const handleDeleteTestConfirm = async () => {
@@ -110,6 +111,51 @@ const MyProfilePage = () => {
       setShowDeleteTestConfirm(false);
     }
   };
+
+  const toggleOtherTypes = () => {
+    setShowOtherTypes(!showOtherTypes);
+  };
+
+  const openTypeModal = (typeCode) => {
+    setSelectedType(typeCode);
+    setShowTypeModal(true);
+  };
+
+  const closeTypeModal = () => {
+    setShowTypeModal(false);
+    setSelectedType(null);
+  };
+
+  const handleLoadMoreReviews = (e) => {
+    e.preventDefault();
+    if (visibleReviewCount < reviews.length) {
+      // 이미 로드된 리뷰 중에서 더 보여주기
+      setVisibleReviewCount(prev => Math.min(prev + 5, reviews.length));
+    } else if (hasMore) {
+      // 더 많은 리뷰를 API에서 가져오기
+      loadReviews(reviewSkip, false);
+      setVisibleReviewCount(prev => prev + 5);
+    }
+  };
+
+  const toggleRetestOptions = () => {
+    setShowRetestOptions(!showRetestOptions);
+  };
+
+  const handleStartQuickTest = () => {
+    setShowRetestOptions(false);
+    navigate('/taste-test', { state: { testType: 'quick' } });
+  };
+
+  const handleStartDeepTest = () => {
+    setShowRetestOptions(false);
+    navigate('/taste-test', { state: { testType: 'deep' } });
+  };
+
+  // 다른 취향 타입 목록 생성 (현재 타입 제외)
+  const otherTypes = Object.keys(MBTI_TYPE_DESCRIPTIONS).filter(
+    type => type !== profile?.taste_test_mbti_type
+  );
 
   if (loading) {
     return (
@@ -155,22 +201,138 @@ const MyProfilePage = () => {
       {profile.taste_test_completed && mbtiInfo && (
         <div className="taste-test-section">
           <h2>음식 취향</h2>
-          <div className="taste-test-card">
-            <div className="mbti-box-red">
-              <div className="mbti-type-large">
-                {profile.taste_test_mbti_type}
+          <div className="mbti-box-red">
+            <div className="mbti-type-large">
+              {profile.taste_test_mbti_type}
+            </div>
+            <div className="mbti-type-name">
+              {mbtiInfo.name}
+            </div>
+            <div className="mbti-description">
+              {mbtiInfo.description}
+            </div>
+            {mbtiInfo.recommendations && mbtiInfo.recommendations.length > 0 && (
+              <div className="mbti-recommendations">
+                <div className="recommendations-title">📍 추천 장소</div>
+                <ul>
+                  {mbtiInfo.recommendations.map((rec, idx) => (
+                    <li key={idx}>{rec}</li>
+                  ))}
+                </ul>
               </div>
-              <div className="mbti-type-name">
-                {mbtiInfo.name}
+            )}
+            <button className="btn-explore-types" onClick={toggleOtherTypes}>
+              🔍 다른 취향 탐색하기
+            </button>
+            <div className={`other-types-grid ${showOtherTypes ? 'show' : ''}`}>
+              {otherTypes.map((typeCode) => {
+                const typeInfo = getMBTIInfo(typeCode);
+                return (
+                  <div
+                    key={typeCode}
+                    className="other-type-card"
+                    onClick={() => openTypeModal(typeCode)}
+                  >
+                    <div className="other-type-code">{typeCode}</div>
+                    <div className="other-type-name">{typeInfo.name}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <button className="btn-retest-inline" onClick={toggleRetestOptions}>
+                🔄 다시 테스트하기
+              </button>
+              <div className={`retest-options-container ${showRetestOptions ? 'show' : ''}`}>
+                <button className="retest-option-btn" onClick={handleStartQuickTest}>
+                  ⚡ 간단 테스트 (8문항, ~1분)
+                </button>
+                <button className="retest-option-btn" onClick={handleStartDeepTest}>
+                  🔍 심화 테스트 (20문항, ~3-4분)
+                </button>
               </div>
-              <div className="mbti-description">
-                {mbtiInfo.description}
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      <div className="reviews-section">
+        <h2>내가 작성한 리뷰 ({reviews.length})</h2>
+        {reviews.length === 0 && !loadingMore ? (
+          <p className="no-reviews">아직 작성한 리뷰가 없습니다.</p>
+        ) : (
+          <>
+            <div className="review-encouragement-banner">
+              <div className="review-encouragement-banner-text">
+                💡 실제 리뷰를 작성하면 취향 분석이 더 정확해져요!<br />
+                다양한 맛집에 대한 리뷰를 남겨보세요.
               </div>
-              {mbtiInfo.recommendations && mbtiInfo.recommendations.length > 0 && (
-                <div className="mbti-recommendations">
-                  <div className="recommendations-title">📍 추천 장소</div>
+            </div>
+            <div style={{ padding: '0 20px' }}>
+              {reviews.slice(0, visibleReviewCount).map((review) => (
+                <div key={review.id} className="review-minimal-item">
+                  <div className="review-minimal-header">
+                    <h3 
+                      className="review-minimal-title"
+                      onClick={() => navigate(`/business/${review.business.business_id}`)}
+                    >
+                      {review.business.name}
+                    </h3>
+                    <div className="review-minimal-rating">
+                      {'⭐'.repeat(review.stars)}
+                    </div>
+                  </div>
+                  <div className="review-minimal-meta">
+                    <span>{new Date(review.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')}</span>
+                    <span>👍 {review.useful || 0}명이 도움됨</span>
+                  </div>
+                  <p className="review-minimal-text">{review.text}</p>
+                </div>
+              ))}
+              {(reviews.length > visibleReviewCount || (hasMore && !loadingMore)) && (
+                <div className="review-load-more-link-minimal show">
+                  <a href="#" onClick={handleLoadMoreReviews}>더보기</a>
+                </div>
+              )}
+              {loadingMore && (
+                <div className="loading-more">
+                  <p>리뷰를 불러오는 중...</p>
+                </div>
+              )}
+              {!hasMore && reviews.length > 0 && reviews.length <= visibleReviewCount && (
+                <div className="no-more-reviews">
+                  <p>모든 리뷰를 불러왔습니다</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* 타입 상세 모달 */}
+      {showTypeModal && selectedType && (
+        <div 
+          className={`type-detail-modal ${showTypeModal ? 'show' : ''}`}
+          onClick={(e) => {
+            if (e.target.classList.contains('type-detail-modal')) {
+              closeTypeModal();
+            }
+          }}
+        >
+          <div className="type-detail-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeTypeModal}>×</button>
+            <div className="modal-mbti-box">
+              <div className="modal-mbti-type">{selectedType}</div>
+              <div className="modal-mbti-name">{getMBTIInfo(selectedType).name}</div>
+              <div className="modal-mbti-description">
+                {getMBTIInfo(selectedType).description}
+              </div>
+              {getMBTIInfo(selectedType).recommendations && getMBTIInfo(selectedType).recommendations.length > 0 && (
+                <div className="modal-recommendations">
+                  <div className="modal-recommendations-title">📍 추천 장소</div>
                   <ul>
-                    {mbtiInfo.recommendations.map((rec, idx) => (
+                    {getMBTIInfo(selectedType).recommendations.map((rec, idx) => (
                       <li key={idx}>{rec}</li>
                     ))}
                   </ul>
@@ -180,125 +342,6 @@ const MyProfilePage = () => {
           </div>
         </div>
       )}
-
-      <div className="taste-test-section">
-        <h2>🍽️ 음식 취향 테스트</h2>
-        <div className="taste-test-card">
-          {profile.taste_test_completed ? (
-            <>
-              <div className="test-completed-badge">
-                ✅ 취향 테스트 완료
-              </div>
-              {profile.review_count === 0 && (
-                <p className="taste-test-hint">
-                  💡 실제 리뷰를 작성하면 추천이 더 정확해져요!
-                </p>
-              )}
-              <button 
-                className="btn-retest"
-                onClick={() => setShowTestOptions(!showTestOptions)}
-              >
-                🔄 재테스트하기
-              </button>
-            </>
-          ) : (
-            <>
-              {profile.review_count === 0 ? (
-                <p className="taste-test-desc">
-                  아직 리뷰가 없으시네요! 취향 테스트로 시작해보세요.
-                </p>
-              ) : (
-                <p className="taste-test-desc">
-                  취향 테스트로 더 정확한 맛집 추천을 받아보세요!
-                </p>
-              )}
-              <button 
-                className="btn-start-test"
-                onClick={() => setShowTestOptions(!showTestOptions)}
-              >
-                테스트 시작하기
-              </button>
-            </>
-          )}
-          
-          {showTestOptions && (
-            <div className="test-options">
-              <button 
-                className="test-option-btn quick"
-                onClick={() => handleStartTest('quick')}
-              >
-                ⚡ 간단 테스트 (8문항, ~1분)
-              </button>
-              <button 
-                className="test-option-btn deep"
-                onClick={() => handleStartTest('deep')}
-              >
-                🔍 심화 테스트 (20문항, ~3-4분)
-              </button>
-              {profile.taste_test_completed && (
-                <button 
-                  className="test-option-btn delete"
-                  onClick={handleDeleteTest}
-                >
-                  ❌ 기존 테스트 삭제
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="reviews-section">
-        <h2>내가 작성한 리뷰 ({reviews.length})</h2>
-        {reviews.length === 0 && !loadingMore ? (
-          <p className="no-reviews">아직 작성한 리뷰가 없습니다.</p>
-        ) : (
-          <>
-            <div className="user-reviews-list">
-              {reviews.map((review) => (
-                <div key={review.id} className="user-review-item">
-                  <div className="review-business-info">
-                    <h3 
-                      className="business-name-link"
-                      onClick={() => navigate(`/business/${review.business.business_id}`)}
-                    >
-                      {review.business.name}
-                    </h3>
-                    <div className="review-meta">
-                      <span className="review-stars">{'⭐'.repeat(review.stars)}</span>
-                      <span className="review-date">
-                        {new Date(review.created_at).toLocaleDateString()}
-                      </span>
-                      <span className="review-useful">👍 {review.useful || 0}</span>
-                    </div>
-                  </div>
-                  <p className="review-text">{review.text}</p>
-                </div>
-              ))}
-            </div>
-            {loadingMore && (
-              <div className="loading-more">
-                <p>리뷰를 불러오는 중...</p>
-              </div>
-            )}
-            {hasMore && !loadingMore && (
-              <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                <button 
-                  className="review-load-more-link"
-                  onClick={() => loadReviews(reviewSkip, false)}
-                >
-                  더보기
-                </button>
-              </div>
-            )}
-            {!hasMore && reviews.length > 0 && (
-              <div className="no-more-reviews">
-                <p>모든 리뷰를 불러왔습니다</p>
-              </div>
-            )}
-          </>
-        )}
-      </div>
 
       {/* 삭제 확인 모달 */}
       <ConfirmModal
@@ -316,4 +359,5 @@ const MyProfilePage = () => {
 };
 
 export default MyProfilePage;
+
 

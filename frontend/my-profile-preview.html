@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulPlate - 내 프로필 페이지 미리보기</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* CSS 변수 */
+    :root {
+      --primary: #ff6b6b;
+      --primary-dark: #ff5252;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --bg-primary: #f5f7fa;
+      --bg-card: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --font-h1: 24px;
+      --font-h2: 20px;
+      --font-h3: 18px;
+      --font-body: 15px;
+      --font-small: 13px;
+    }
+
+    .profile-container {
+      min-height: 100dvh;
+      background: var(--bg-primary);
+      padding: 15px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .profile-header-actions {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .profile-logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #ff6b6b;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .profile-logo:hover {
+      background: rgba(255, 107, 107, 0.1);
+      transform: scale(1.02);
+    }
+
+    .profile-header {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px var(--shadow);
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #9e9e9e;
+      color: white;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .avatar-medium {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+    }
+
+    .avatar-initial {
+      user-select: none;
+    }
+
+    .profile-info h1 {
+      margin: 0 0 16px 0;
+      color: var(--text-primary);
+      font-size: var(--font-h2);
+      text-align: left;
+    }
+
+    .profile-stats {
+      display: flex;
+      gap: 16px;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .stat-inline {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .taste-test-section {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .taste-test-section h2 {
+      margin: 0 0 16px 0;
+      color: var(--text-primary);
+      font-size: var(--font-h3);
+    }
+
+    .taste-test-card {
+      background: #f8f9fa;
+      padding: 24px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .mbti-box-red {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      padding: 30px;
+      border-radius: 16px;
+      margin: 20px 0;
+      color: white;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+    }
+
+    .mbti-type-large {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: 8px;
+      margin-bottom: 16px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .mbti-type-name {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .mbti-description {
+      font-size: 16px;
+      line-height: 1.8;
+      margin-bottom: 24px;
+      opacity: 0.95;
+    }
+
+    .mbti-recommendations {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .recommendations-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .mbti-recommendations ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .mbti-recommendations li {
+      padding: 8px 0;
+      padding-left: 24px;
+      position: relative;
+      font-size: 15px;
+    }
+
+    .mbti-recommendations li:before {
+      content: "•";
+      position: absolute;
+      left: 8px;
+      font-size: 20px;
+    }
+
+    /* 다른 취향 탐색 버튼 */
+    .btn-explore-types {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 20px;
+      min-height: 44px;
+    }
+
+    .btn-explore-types:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .btn-explore-types:active {
+      transform: scale(0.98);
+    }
+
+    /* 재테스트 버튼 (음식 취향 섹션 내부) */
+    .btn-retest-inline {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 16px;
+      display: inline-block;
+    }
+
+    .btn-retest-inline:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-retest-inline:active {
+      transform: scale(0.98);
+    }
+
+    .retest-options-container {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      display: none;
+    }
+
+    .retest-options-container.show {
+      display: block;
+    }
+
+    .retest-option-btn {
+      width: 100%;
+      padding: 10px 16px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .retest-option-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .retest-option-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* 다른 취향 타입 그리드 */
+    .other-types-grid {
+      display: none;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .other-types-grid.show {
+      display: grid;
+    }
+
+    .other-type-card {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+
+    .other-type-card:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .other-type-card:active {
+      transform: translateY(0);
+    }
+
+    .other-type-code {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+
+    .other-type-name {
+      font-size: 13px;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+
+    /* 타입 상세 모달 */
+    .type-detail-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .type-detail-modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .type-detail-content {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90dvh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #f0f0f0;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: #e0e0e0;
+    }
+
+    .modal-mbti-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px;
+      border-radius: 16px;
+      color: white;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-mbti-type {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: 6px;
+      margin-bottom: 12px;
+    }
+
+    .modal-mbti-name {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .modal-mbti-description {
+      font-size: 15px;
+      line-height: 1.6;
+      opacity: 0.95;
+      margin-bottom: 20px;
+    }
+
+    .modal-recommendations {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 16px;
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .modal-recommendations-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .modal-recommendations ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .modal-recommendations li {
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+      font-size: 14px;
+    }
+
+    .modal-recommendations li:before {
+      content: "•";
+      position: absolute;
+      left: 6px;
+      font-size: 18px;
+    }
+
+    .test-completed-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .taste-test-hint {
+      font-size: 14px;
+      color: #666;
+      margin: 12px 0;
+      padding: 12px;
+      background: #fff5e6;
+      border-radius: 8px;
+      border-left: 3px solid #ffa726;
+    }
+
+    .review-encouragement-banner {
+      background: linear-gradient(135deg, #fff5e6 0%, #ffe0b2 100%);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #ffa726;
+      text-align: center;
+    }
+
+    .review-encouragement-banner-text {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .taste-test-desc {
+      font-size: 15px;
+      color: #666;
+      margin: 0 0 16px 0;
+      line-height: 1.6;
+    }
+
+    .btn-start-test,
+    .btn-retest {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 44px;
+    }
+
+    .btn-start-test:active,
+    .btn-retest:active {
+      background: #ff5252;
+      transform: scale(0.95);
+    }
+
+    .test-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .test-option-btn {
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: var(--font-body);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      min-height: 44px;
+    }
+
+    .test-option-btn.quick {
+      background: var(--primary);
+      color: white;
+    }
+
+    .test-option-btn.quick:active {
+      background: var(--primary-dark);
+      transform: scale(0.98);
+    }
+
+    .test-option-btn.deep {
+      background: #764ba2;
+      color: white;
+    }
+
+    .test-option-btn.deep:active {
+      background: #633991;
+      transform: scale(0.98);
+    }
+
+    .test-option-btn.delete {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .test-option-btn.delete:active {
+      background: #c0392b;
+      transform: scale(0.98);
+    }
+
+    .reviews-section {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+
+    .reviews-section h2 {
+      margin: 0 0 16px 0;
+      color: var(--text-primary);
+      font-size: var(--font-h3);
+    }
+
+    .no-reviews {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .user-reviews-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .user-review-item {
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .review-business-info {
+      margin-bottom: 10px;
+    }
+
+    .business-name-link {
+      color: #667eea;
+      cursor: pointer;
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .business-name-link:hover {
+      color: #5568d3;
+      text-decoration: underline;
+    }
+
+    .review-meta {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
+
+    .review-stars {
+      font-size: 16px;
+    }
+
+    .review-date {
+      color: #888;
+      font-size: 13px;
+    }
+
+    .review-useful {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .review-text {
+      color: #555;
+      line-height: 1.6;
+      margin: 10px 0 0 0;
+    }
+
+    .review-load-more-link {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 8px;
+      font-size: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 44px;
+    }
+
+    .review-load-more-link:active {
+      background: var(--primary-dark);
+      transform: scale(0.98);
+    }
+
+    /* 미니멀 리스트 스타일 */
+    .review-minimal-item {
+      padding: 20px 0;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.2s ease;
+    }
+
+    .review-minimal-item:last-child {
+      border-bottom: none;
+    }
+
+    .review-minimal-item:hover {
+      background: #fafafa;
+      margin: 0 -20px;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .review-minimal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .review-minimal-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+    }
+
+    .review-minimal-rating {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    .review-minimal-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 10px;
+    }
+
+    .review-minimal-text {
+      color: #666;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    /* 미니멀 리스트 더보기 링크 */
+    .review-load-more-link-minimal {
+      display: none; /* 기본적으로 숨김 */
+      text-align: center;
+      padding: 20px 0;
+      margin-top: 10px;
+    }
+
+    .review-load-more-link-minimal.show {
+      display: block;
+    }
+
+    .review-load-more-link-minimal a {
+      color: #ff6b6b;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .review-load-more-link-minimal a:hover {
+      color: #ff5252;
+      text-decoration: underline;
+    }
+
+    .review-minimal-item.hidden {
+      display: none;
+    }
+
+    /* 반응형 */
+    @media (min-width: 768px) {
+      .profile-container {
+        padding: 25px;
+      }
+
+      .profile-header {
+        padding: 30px;
+        margin-bottom: 30px;
+        gap: 30px;
+      }
+
+      .profile-info h1 {
+        font-size: var(--font-h1);
+      }
+
+      .taste-test-section,
+      .reviews-section {
+        padding: 30px;
+        margin-bottom: 30px;
+      }
+
+      .btn-start-test:hover,
+      .btn-retest:hover {
+        background: #ff5252;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+      }
+
+      .other-types-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+      }
+
+      .btn-explore-types:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .profile-container {
+        padding: 40px;
+      }
+
+      .profile-header {
+        padding: 40px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      /* 모바일 반응형 스타일 */
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-container">
+    <!-- 헤더 -->
+    <div class="profile-header-actions">
+      <div class="profile-logo">Soulplate</div>
+    </div>
+    
+    <!-- 프로필 헤더 -->
+    <div class="profile-header">
+      <div class="avatar avatar-medium">
+        <span class="avatar-initial">김</span>
+      </div>
+      <div class="profile-info">
+        <h1>김맛집</h1>
+        <div class="profile-stats">
+          <span class="stat-inline">Reviews: 15</span>
+          <span class="stat-inline">Useful: 42</span>
+          <span class="stat-inline">Fans: 8</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 음식 취향 (MBTI) -->
+    <div class="taste-test-section">
+      <h2>음식 취향</h2>
+      <div class="mbti-box-red">
+        <div class="mbti-type-large">SQAF</div>
+        <div class="mbti-type-name">미식가 감성파</div>
+        <div class="mbti-description">
+          강렬한 맛을 즐기며, 고급 재료와 멋진 분위기, 친절한 서비스를 중시하는 타입
+        </div>
+        <div class="mbti-recommendations">
+          <div class="recommendations-title">📍 추천 장소</div>
+          <ul>
+            <li>파인다이닝 레스토랑</li>
+            <li>감성 카페</li>
+            <li>프리미엄 맛집</li>
+          </ul>
+        </div>
+        <button class="btn-explore-types" onclick="toggleOtherTypes()">
+          🔍 다른 취향 탐색하기
+        </button>
+        <div class="other-types-grid" id="otherTypesGrid">
+          <!-- 다른 타입들이 여기에 동적으로 추가됩니다 -->
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+          <button class="btn-retest-inline" onclick="toggleRetestOptions()">
+            🔄 다시 테스트하기
+          </button>
+          <div class="retest-options-container" id="retestOptionsContainer">
+            <button class="retest-option-btn" onclick="startQuickTest()">
+              ⚡ 간단 테스트 (8문항, ~1분)
+            </button>
+            <button class="retest-option-btn" onclick="startDeepTest()">
+              🔍 심화 테스트 (20문항, ~3-4분)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 타입 상세 모달 -->
+    <div class="type-detail-modal" id="typeDetailModal" onclick="closeModalOnBackdrop(event)">
+      <div class="type-detail-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeTypeModal()">×</button>
+        <div class="modal-mbti-box" id="modalMbtiBox">
+          <!-- 모달 내용이 여기에 동적으로 추가됩니다 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 리뷰 섹션 -->
+    <div class="reviews-section">
+      <h2>내가 작성한 리뷰 (8)</h2>
+      <div class="review-encouragement-banner">
+        <div class="review-encouragement-banner-text">
+          💡 실제 리뷰를 작성하면 취향 분석이 더 정확해져요!<br>
+          다양한 맛집에 대한 리뷰를 남겨보세요.
+        </div>
+      </div>
+      <div style="padding: 0 20px;" id="minimalReviewsList">
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">맛있는 한식당</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2024.01.15</span>
+            <span>👍 12명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            정말 맛있었어요! 김치찌개가 정말 진하고 고기가 부드러웠습니다. 
+            서비스도 친절하고 분위기도 좋아서 다시 가고 싶은 곳이에요.
+          </p>
+        </div>
+
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">감성 카페</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2024.01.10</span>
+            <span>👍 8명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            분위기가 정말 좋아요! 커피도 맛있고 디저트도 훌륭했습니다. 
+            사진 찍기 좋은 곳이에요. 다만 좀 비싼 편이긴 해요.
+          </p>
+        </div>
+
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">프리미엄 스테이크 하우스</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2024.01.05</span>
+            <span>👍 25명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            최고의 스테이크였습니다! 고기 품질이 정말 좋고, 조리도 완벽했어요. 
+            가격이 비싸긴 하지만 그만한 가치가 있다고 생각합니다.
+          </p>
+        </div>
+
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">일본 라멘 전문점</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2023.12.28</span>
+            <span>👍 18명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            정통 일본 라멘 맛을 느낄 수 있는 곳이에요! 면발이 쫄깃하고 육수가 진해서 정말 맛있었습니다. 
+            직원분들도 친절하시고 분위기도 좋아요.
+          </p>
+        </div>
+
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">동네 파스타집</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2023.12.20</span>
+            <span>👍 9명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            가성비 좋은 파스타집이에요! 크림파스타가 부드럽고 맛있었습니다. 
+            양도 많고 가격도 합리적이라 자주 가는 곳입니다.
+          </p>
+        </div>
+
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">브런치 카페</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2023.12.15</span>
+            <span>👍 14명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            브런치 메뉴가 다양하고 맛있어요! 에그베네딕트가 특히 좋았습니다. 
+            분위기도 깔끔하고 사진 찍기 좋은 곳이에요.
+          </p>
+        </div>
+
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">맛있는 치킨집</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2023.12.10</span>
+            <span>👍 7명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            치킨이 바삭하고 맛있어요! 양도 많고 가격도 착해요. 
+            배달도 빠르게 와서 자주 주문하는 곳입니다.
+          </p>
+        </div>
+
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">고급 일식당</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2023.12.05</span>
+            <span>👍 22명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            초밥이 정말 신선하고 맛있었어요! 셰프님이 친절하게 설명해주시고, 
+            가격도 합리적입니다. 다시 가고 싶은 곳이에요.
+          </p>
+        </div>
+
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">베트남 쌀국수집</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2023.11.28</span>
+            <span>👍 11명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            쌀국수가 정말 진하고 맛있어요! 고기도 부드럽고 양념도 잘 어울렸습니다. 
+            가성비도 좋고 서비스도 친절해요.
+          </p>
+        </div>
+
+        <div class="review-minimal-item">
+          <div class="review-minimal-header">
+            <h3 class="review-minimal-title">수제 버거집</h3>
+            <div class="review-minimal-rating">⭐⭐⭐⭐</div>
+          </div>
+          <div class="review-minimal-meta">
+            <span>2023.11.20</span>
+            <span>👍 6명이 도움됨</span>
+          </div>
+          <p class="review-minimal-text">
+            수제 버거가 정말 맛있어요! 패티가 두껍고 부드러워서 만족스러웠습니다. 
+            감자튀김도 바삭하고 양도 많아요.
+          </p>
+        </div>
+
+        <!-- 더보기 링크 -->
+        <div class="review-load-more-link-minimal" id="minimalLoadMore">
+          <a href="#" onclick="loadMoreMinimalReviews(event)">더보기</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // MBTI 타입 데이터
+    const MBTI_TYPES = {
+      "SQAF": {
+        "name": "미식가 감성파",
+        "description": "강렬한 맛을 즐기며, 고급 재료와 멋진 분위기, 친절한 서비스를 중시하는 타입",
+        "recommendations": ["파인다이닝 레스토랑", "감성 카페", "프리미엄 맛집"]
+      },
+      "SQAI": {
+        "name": "품격있는 미식가",
+        "description": "품질과 분위기를 중시하지만, 서비스보다는 음식 자체에 집중하는 타입",
+        "recommendations": ["조용한 고급 레스토랑", "품질 중심 맛집", "분위기 좋은 술집"]
+      },
+      "SQCF": {
+        "name": "실용적 미식가",
+        "description": "품질 좋은 음식과 친절한 서비스를 원하지만, 접근성도 중요하게 생각하는 타입",
+        "recommendations": ["동네 맛집", "품질 좋은 프랜차이즈", "친절한 가게"]
+      },
+      "SQCI": {
+        "name": "맛집 헌터",
+        "description": "강렬한 맛과 품질을 최우선으로, 접근성 좋은 곳이라면 어디든 찾아가는 타입",
+        "recommendations": ["숨은 맛집", "로컬 맛집", "품질 최우선 식당"]
+      },
+      "SVAF": {
+        "name": "감성 외식러",
+        "description": "강한 맛과 가성비, 좋은 분위기와 서비스를 모두 원하는 균형잡힌 타입",
+        "recommendations": ["분위기 좋은 맛집", "가성비 좋은 감성 카페", "SNS 핫플"]
+      },
+      "SVAI": {
+        "name": "분위기 중시형",
+        "description": "맛과 가성비, 분위기는 중요하지만 혼자 조용히 즐기는 것을 선호",
+        "recommendations": ["혼밥 카페", "분위기 좋은 술집", "조용한 맛집"]
+      },
+      "SVCF": {
+        "name": "합리적 외식러",
+        "description": "강한 맛과 가성비, 편의성과 친절한 서비스를 중시하는 실속형",
+        "recommendations": ["가성비 맛집", "동네 맛집", "편한 분위기 식당"]
+      },
+      "SVCI": {
+        "name": "효율적 미식가",
+        "description": "맛과 가성비, 접근성을 최우선으로 빠르게 식사하는 타입",
+        "recommendations": ["가성비 맛집", "배달 맛집", "빠른 식당"]
+      },
+      "MQAF": {
+        "name": "우아한 식도락가",
+        "description": "부드러운 맛과 품질, 멋진 분위기와 서비스를 중시하는 세련된 타입",
+        "recommendations": ["고급 레스토랑", "브런치 카페", "프리미엄 디저트 카페"]
+      },
+      "MQAI": {
+        "name": "조용한 미식가",
+        "description": "담백한 맛과 품질, 분위기를 중시하며 혼자만의 시간을 즐기는 타입",
+        "recommendations": ["조용한 카페", "품질 좋은 일식당", "분위기 좋은 와인바"]
+      },
+      "MQCF": {
+        "name": "편안한 미식가",
+        "description": "담백한 맛과 품질, 편의성과 친절함을 중시하는 균형잡힌 타입",
+        "recommendations": ["동네 맛집", "편한 카페", "친절한 식당"]
+      },
+      "MQCI": {
+        "name": "건강 지향형",
+        "description": "담백하고 품질 좋은 음식, 접근성을 중시하는 건강한 식사 추구형",
+        "recommendations": ["샐러드 전문점", "건강식 레스토랑", "웰빙 카페"]
+      },
+      "MVAF": {
+        "name": "가족 외식러",
+        "description": "부드러운 맛, 가성비, 편의성과 친절한 서비스를 모두 중시하는 가족 외식형",
+        "recommendations": ["가족 레스토랑", "뷔페", "친절한 한식당"]
+      },
+      "MVAI": {
+        "name": "혼밥 마스터",
+        "description": "담백한 맛과 가성비, 분위기를 중시하며 혼자 식사를 즐기는 타입",
+        "recommendations": ["혼밥 맛집", "조용한 카페", "분위기 좋은 식당"]
+      },
+      "MVCF": {
+        "name": "실속 외식러",
+        "description": "담백한 맛, 가성비, 편의성, 서비스를 모두 고려하는 가장 균형잡힌 타입",
+        "recommendations": ["동네 맛집", "가성비 한식당", "편한 카페"]
+      },
+      "MVCI": {
+        "name": "실속 혼밥러",
+        "description": "담백한 맛, 가성비, 편의성을 중시하며 혼자 조용히 먹는 것을 선호",
+        "recommendations": ["배달 맛집", "편의점", "간단한 식사"]
+      }
+    };
+
+    const currentType = "SQAF"; // 현재 사용자의 타입
+
+    function toggleRetestOptions() {
+      const container = document.getElementById('retestOptionsContainer');
+      container.classList.toggle('show');
+    }
+
+    function startQuickTest() {
+      alert('간단 테스트를 시작합니다!');
+      // 실제 구현 시 테스트 페이지로 이동
+    }
+
+    function startDeepTest() {
+      alert('심화 테스트를 시작합니다!');
+      // 실제 구현 시 테스트 페이지로 이동
+    }
+
+    // 미니멀 리스트 더보기 기능
+    function initMinimalReviews() {
+      const reviewItems = document.querySelectorAll('#minimalReviewsList .review-minimal-item:not(.review-load-more-link-minimal)');
+      const loadMoreLink = document.getElementById('minimalLoadMore');
+      const initialShowCount = 5; // 처음에 보여줄 리뷰 개수
+      
+      // 리뷰가 5개 이하면 더보기 링크 숨김
+      if (reviewItems.length <= initialShowCount) {
+        loadMoreLink.classList.remove('show');
+        return;
+      }
+      
+      // 처음 5개만 보이고 나머지는 숨김
+      reviewItems.forEach((item, index) => {
+        if (index >= initialShowCount) {
+          item.classList.add('hidden');
+        }
+      });
+      
+      // 더보기 링크 표시
+      loadMoreLink.classList.add('show');
+    }
+
+    function loadMoreMinimalReviews(event) {
+      event.preventDefault();
+      const hiddenItems = document.querySelectorAll('#minimalReviewsList .review-minimal-item.hidden');
+      const loadMoreLink = document.getElementById('minimalLoadMore');
+      
+      // 숨겨진 리뷰 중 최대 5개씩 보여주기
+      const showCount = Math.min(5, hiddenItems.length);
+      for (let i = 0; i < showCount; i++) {
+        hiddenItems[i].classList.remove('hidden');
+      }
+      
+      // 모든 리뷰를 보여줬으면 더보기 링크 숨김
+      const remainingHidden = document.querySelectorAll('#minimalReviewsList .review-minimal-item.hidden');
+      if (remainingHidden.length === 0) {
+        loadMoreLink.classList.remove('show');
+      }
+    }
+
+    function toggleOtherTypes() {
+      const grid = document.getElementById('otherTypesGrid');
+      const isShowing = grid.classList.contains('show');
+      
+      if (!isShowing) {
+        // 그리드가 처음 열릴 때만 타입 카드 생성
+        if (grid.children.length === 0) {
+          renderOtherTypes();
+        }
+        grid.classList.add('show');
+      } else {
+        grid.classList.remove('show');
+      }
+    }
+
+    function renderOtherTypes() {
+      const grid = document.getElementById('otherTypesGrid');
+      grid.innerHTML = '';
+      
+      Object.keys(MBTI_TYPES).forEach(typeCode => {
+        if (typeCode === currentType) return; // 현재 타입은 제외
+        
+        const type = MBTI_TYPES[typeCode];
+        const card = document.createElement('div');
+        card.className = 'other-type-card';
+        card.onclick = () => showTypeDetail(typeCode);
+        
+        card.innerHTML = `
+          <div class="other-type-code">${typeCode}</div>
+          <div class="other-type-name">${type.name}</div>
+        `;
+        
+        grid.appendChild(card);
+      });
+    }
+
+    function showTypeDetail(typeCode) {
+      const type = MBTI_TYPES[typeCode];
+      const modal = document.getElementById('typeDetailModal');
+      const modalBox = document.getElementById('modalMbtiBox');
+      
+      modalBox.innerHTML = `
+        <div class="modal-mbti-type">${typeCode}</div>
+        <div class="modal-mbti-name">${type.name}</div>
+        <div class="modal-mbti-description">${type.description}</div>
+        <div class="modal-recommendations">
+          <div class="modal-recommendations-title">📍 추천 장소</div>
+          <ul>
+            ${type.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+      
+      modal.classList.add('show');
+    }
+
+    function closeTypeModal() {
+      const modal = document.getElementById('typeDetailModal');
+      modal.classList.remove('show');
+    }
+
+    function closeModalOnBackdrop(event) {
+      if (event.target.id === 'typeDetailModal') {
+        closeTypeModal();
+      }
+    }
+
+    // 페이지 로드 시 미니멀 리뷰 초기화
+    window.addEventListener('DOMContentLoaded', () => {
+      initMinimalReviews();
+    });
+  </script>
+</body>
+</html>
+
