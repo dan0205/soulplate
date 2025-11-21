@@ -969,3 +969,317 @@
   }
 }
 
+/* 상세 MBTI 카드 스타일 */
+.mbti-card-detailed {
+  border: none !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.mbti-card-header-detailed {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  color: white;
+  padding: 30px;
+  text-align: center;
+  border-radius: 16px 16px 0 0;
+}
+
+.mbti-type-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.mbti-type-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.mbti-emoji {
+  font-size: 2rem;
+}
+
+.mbti-name {
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.mbti-catchphrase {
+  font-size: 1rem;
+  opacity: 0.95;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.mbti-card-body-detailed {
+  padding: 25px;
+  background: white;
+  border-radius: 0 0 16px 16px;
+}
+
+.mbti-info-section {
+  margin-bottom: 20px;
+}
+
+.mbti-info-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mbti-recommend {
+  color: #2b8a3e;
+}
+
+.mbti-avoid {
+  color: #c92a2a;
+}
+
+.mbti-info-content {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
+
+.mbti-info-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.mbti-info-content li {
+  padding: 6px 0;
+  line-height: 1.6;
+}
+
+.mbti-info-content li:before {
+  content: "•";
+  color: #FF6B6B;
+  font-weight: bold;
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+}
+
+.mbti-button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-detail-view {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-detail-view:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+/* 확률 뷰 */
+.probability-view {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin-top: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.probability-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #1a1a1a;
+}
+
+.axis-item {
+  margin-bottom: 30px;
+}
+
+.axis-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #666;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.axis-bar-container {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  background: #f5f5f5;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.axis-left,
+.axis-right {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.axis-left {
+  background: linear-gradient(90deg, #FF6B6B, #FF8E53);
+}
+
+.axis-right {
+  background: linear-gradient(90deg, #4ECDC4, #44A08D);
+}
+
+.axis-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+/* 모달 상세 스타일 */
+.modal-mbti-header {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  color: white;
+  padding: 30px;
+  text-align: center;
+  border-radius: 16px 16px 0 0;
+  margin: -20px -20px 20px -20px;
+}
+
+.modal-mbti-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.modal-mbti-emoji {
+  font-size: 2rem;
+}
+
+.modal-mbti-catchphrase {
+  font-size: 1rem;
+  opacity: 0.95;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.modal-info-section {
+  margin-bottom: 20px;
+}
+
+.modal-info-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-recommend {
+  color: #2b8a3e;
+}
+
+.modal-avoid {
+  color: #c92a2a;
+}
+
+.modal-info-content {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
+
+.modal-info-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.modal-info-content li {
+  padding: 6px 0;
+  line-height: 1.6;
+}
+
+.modal-info-content li:before {
+  content: "•";
+  color: #FF6B6B;
+  font-weight: bold;
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+}
+
+/* 반응형 조정 */
+@media (max-width: 768px) {
+  .mbti-name {
+    font-size: 1.4rem;
+  }
+
+  .mbti-emoji {
+    font-size: 1.6rem;
+  }
+
+  .probability-title {
+    font-size: 1.2rem;
+  }
+
+  .axis-bar-container {
+    height: 40px;
+  }
+
+  .axis-left,
+  .axis-right {
+    font-size: 0.85rem;
+  }
+}
+

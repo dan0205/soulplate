@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마이페이지 - 내 음식 MBTI</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: #666;
+      font-size: 1rem;
+    }
+
+    /* 내 MBTI 카드 */
+    .my-mbti-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      border: 3px solid #FF6B6B;
+    }
+
+    .card-header {
+      padding: 40px 30px;
+      background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+      color: white;
+      text-align: center;
+    }
+
+    .type-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 25px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .card-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .card-desc {
+      font-size: 1.05rem;
+      opacity: 0.95;
+      line-height: 1.8;
+      word-break: keep-all;
+    }
+
+    .card-body {
+      padding: 35px;
+    }
+
+    .info-section {
+      margin-bottom: 25px;
+    }
+
+    .info-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-content {
+      font-size: 0.95rem;
+      background: #f9f9f9;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #eee;
+    }
+
+    .recommend { color: #2b8a3e; }
+    .avoid { color: #c92a2a; }
+    
+    ul { padding-left: 20px; margin: 0; }
+    li { margin-bottom: 6px; }
+
+    /* 버튼 영역 */
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 16px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Pretendard', sans-serif;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #FF6B6B;
+      border: 2px solid #FF6B6B;
+    }
+
+    .btn-secondary:hover {
+      background: #fff5f5;
+      transform: translateY(-2px);
+    }
+
+    /* 확률 상세 뷰 */
+    .probability-view {
+      display: none;
+      background: white;
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .probability-view.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .probability-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 30px;
+      text-align: center;
+      color: #1a1a1a;
+    }
+
+    .axis-item {
+      margin-bottom: 30px;
+    }
+
+    .axis-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #666;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .axis-bar-container {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      height: 50px;
+      background: #f5f5f5;
+      border-radius: 25px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .axis-left, .axis-right {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+    }
+
+    .axis-left {
+      background: linear-gradient(90deg, #FF6B6B, #FF8E53);
+      color: white;
+    }
+
+    .axis-right {
+      background: linear-gradient(90deg, #4ECDC4, #44A08D);
+      color: white;
+    }
+
+    .axis-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    /* 그리드 뷰 */
+    .grid-view {
+      display: none;
+    }
+
+    .grid-view.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .grid-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .grid-header h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+    }
+
+    .grid-header p {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .grid-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .grid-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+      border-color: #FF6B6B;
+    }
+
+    .grid-card-header {
+      padding: 20px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .grid-type-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: #f0f2f5;
+      color: #666;
+    }
+
+    .grid-card-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+
+    .grid-card-desc {
+      font-size: 0.85rem;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    /* 모달 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #f5f5f5;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: #666;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .modal-close:hover {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: #f5f5f5;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    /* 반응형 */
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .card-title {
+        font-size: 1.8rem;
+      }
+      
+      .page-header h1 {
+        font-size: 1.6rem;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="page-header">
+    <h1>🍽️ 내 음식 MBTI</h1>
+    <p>나의 식사 습관과 푸드 페르소나</p>
+  </div>
+
+  <!-- 내 MBTI 카드 -->
+  <div class="my-mbti-card">
+    <div class="card-header">
+      <span class="type-badge">SAPA (강렬+분위기+프리미엄+함께)</span>
+      <h2 class="card-title">🔥 도파민 추구 미식회장</h2>
+      <p class="card-desc">"인생 뭐 있어? 오늘 밤은 화려하게!"<br>맵고 짜고 비싼 음식을 힙한 곳에서 친구들과 즐깁니다. 스트레스는 자극으로 풉니다.</p>
+    </div>
+    <div class="card-body">
+      <div class="info-section">
+        <div class="info-title recommend"><i class="fas fa-thumbs-up"></i> 추천 메뉴 & 장소</div>
+        <div class="info-content">
+          <ul>
+            <li><strong>마라 훠궈 무한리필:</strong> 가장 매운 단계 필수</li>
+            <li><strong>프리미엄 다이닝 펍:</strong> 조명 화려하고 음악 빵빵한 곳</li>
+            <li><strong>킹크랩/랍스터:</strong> 비주얼 압도적인 메뉴</li>
+          </ul>
+        </div>
+      </div>
+      <div class="info-section">
+        <div class="info-title avoid"><i class="fas fa-ban"></i> 피해야 할 식당</div>
+        <div class="info-content">
+          <ul>
+            <li>슴슴한 사찰음식 전문점 (무맛이라 싫음)</li>
+            <li>조용히 책 읽어야 하는 북카페</li>
+            <li>플레이팅 대충 나오는 기사식당</li>
+          </ul>
+        </div>
+      </div>
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="showProbability()">
+          <i class="fas fa-chart-bar"></i> 자세히 보기
+        </button>
+        <button class="btn btn-secondary" onclick="retakeTest()">
+          <i class="fas fa-redo"></i> 다시 테스트하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 확률 상세 뷰 -->
+  <div class="probability-view" id="probabilityView">
+    <button class="back-button" onclick="hideProbability()">
+      <i class="fas fa-arrow-left"></i> 돌아가기
+    </button>
+    
+    <h3 class="probability-title">🎯 내 음식 취향 비율 분석</h3>
+    
+    <div class="axis-item">
+      <div class="axis-name">맛 강도 (Flavor Intensity)</div>
+      <div class="axis-bar-container">
+        <div class="axis-left" style="width: 17%;">S 17%</div>
+        <div class="axis-right" style="width: 83%;">M 83%</div>
+      </div>
+      <div class="axis-labels">
+        <span>강렬한 맛 (Strong)</span>
+        <span>부드러운 맛 (Mild)</span>
+      </div>
+    </div>
+
+    <div class="axis-item">
+      <div class="axis-name">식사 환경 (Dining Environment)</div>
+      <div class="axis-bar-container">
+        <div class="axis-left" style="width: 75%;">A 75%</div>
+        <div class="axis-right" style="width: 25%;">O 25%</div>
+      </div>
+      <div class="axis-labels">
+        <span>분위기 중시 (Atmosphere)</span>
+        <span>효율 중시 (Optimized)</span>
+      </div>
+    </div>
+
+    <div class="axis-item">
+      <div class="axis-name">가격 민감도 (Price Sensitivity)</div>
+      <div class="axis-bar-container">
+        <div class="axis-left" style="width: 68%;">P 68%</div>
+        <div class="axis-right" style="width: 32%;">C 32%</div>
+      </div>
+      <div class="axis-labels">
+        <span>프리미엄 선호 (Premium)</span>
+        <span>가성비 중시 (Cost-effective)</span>
+      </div>
+    </div>
+
+    <div class="axis-item">
+      <div class="axis-name">동행 선호도 (Dining Company)</div>
+      <div class="axis-bar-container">
+        <div class="axis-left" style="width: 82%;">A 82%</div>
+        <div class="axis-right" style="width: 18%;">O 18%</div>
+      </div>
+      <div class="axis-labels">
+        <span>함께 (All together)</span>
+        <span>혼자 (On my own)</span>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button class="btn btn-primary" onclick="showGrid()">
+        <i class="fas fa-compass"></i> 다른 취향 탐색하기
+      </button>
+    </div>
+  </div>
+
+  <!-- 그리드 뷰 -->
+  <div class="grid-view" id="gridView">
+    <button class="back-button" onclick="hideGrid()">
+      <i class="fas fa-arrow-left"></i> 돌아가기
+    </button>
+    
+    <div class="grid-header">
+      <h2>🧭 모든 음식 MBTI 타입</h2>
+      <p>클릭하여 각 타입의 상세 정보를 확인하세요</p>
+    </div>
+
+    <div class="grid" id="mbtiGrid">
+      <!-- 16개의 타입이 자바스크립트로 생성됩니다 -->
+    </div>
+  </div>
+
+</div>
+
+<!-- 모달 -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBody">
+      <!-- 선택된 타입의 상세 정보가 여기에 표시됩니다 -->
+    </div>
+  </div>
+</div>
+
+<script>
+  // MBTI 타입 데이터
+  const mbtiTypes = {
+    'SAPA': {
+      badge: 'SAPA (강렬+분위기+프리미엄+함께)',
+      title: '🔥 도파민 추구 미식회장',
+      desc: '"인생 뭐 있어? 오늘 밤은 화려하게!"<br>맵고 짜고 비싼 음식을 힙한 곳에서 친구들과 즐깁니다. 스트레스는 자극으로 풉니다.',
+      recommend: [
+        '<strong>마라 훠궈 무한리필:</strong> 가장 매운 단계 필수',
+        '<strong>프리미엄 다이닝 펍:</strong> 조명 화려하고 음악 빵빵한 곳',
+        '<strong>킹크랩/랍스터:</strong> 비주얼 압도적인 메뉴'
+      ],
+      avoid: [
+        '슴슴한 사찰음식 전문점 (무맛이라 싫음)',
+        '조용히 책 읽어야 하는 북카페',
+        '플레이팅 대충 나오는 기사식당'
+      ]
+    },
+    'SAPO': {
+      badge: 'SAPO (강렬+분위기+프리미엄+혼자)',
+      title: '🍷 나를 위한 마라카세',
+      desc: '"내 취향은 소중하니까."<br>혼자서도 최고급으로 즐깁니다. 자극적인 맛을 우아하고 프라이빗하게 즐기는 고독한 미식가입니다.',
+      recommend: [
+        '<strong>1인 셰프 바(Bar):</strong> 독한 위스키와 안주',
+        '<strong>프리미엄 혼고기:</strong> 최고급 특수부위',
+        '<strong>매운맛 오마카세:</strong> 퓨전 다이닝'
+      ],
+      avoid: [
+        '시끄러운 회식 장소 (기 빨림)',
+        '가성비 무한리필집 (질 떨어져서 싫음)',
+        '합석해야 하는 시장 국밥집'
+      ]
+    },
+    'SACA': {
+      badge: 'SACA (강렬+분위기+가성비+함께)',
+      title: '📸 가성비 핫플 사냥꾼',
+      desc: '"야, 여기 인스타에서 난리 났대!"<br>힙하고 맛도 있는데 가격까지 착한 곳을 찾아냅니다. 웨이팅도 친구와 함께라면 즐겁습니다.',
+      recommend: [
+        '<strong>을지로 노포:</strong> 감성 터지는 야장 삼겹살',
+        '<strong>대학가 퓨전 포차:</strong> 안주 킬러들의 성지',
+        '<strong>줄 서는 떡볶이 맛집:</strong> 맵단짠의 정석'
+      ],
+      avoid: [
+        '비싸기만 하고 맛없는 호텔 뷔페',
+        '인테리어 구린 동네 백반집',
+        '정적 흐르는 격식 있는 식당'
+      ]
+    },
+    'SACO': {
+      badge: 'SACO (강렬+분위기+가성비+혼자)',
+      title: '🤳 프로 혼밥 인스타그래머',
+      desc: '"혼자 먹어도 느낌 있게."<br>분위기 좋은 창가 자리에서 자극적인 맛을 즐기며 SNS에 올릴 사진을 찍습니다.',
+      recommend: [
+        '<strong>바 테이블 라멘집:</strong> 매운 돈코츠 라멘',
+        '<strong>감성 타코 가게:</strong> 혼자서 타코 3개 순삭',
+        '<strong>수제버거 맛집:</strong> 육즙 가득 패티'
+      ],
+      avoid: [
+        '4인 테이블만 있는 패밀리 레스토랑',
+        '조명 너무 밝은 김밥천국',
+        '플레이팅 없는 기사식당'
+      ]
+    },
+    'SOPA': {
+      badge: 'SOPA (강렬+최적화+프리미엄+함께)',
+      title: '⚡ 속전속결 맛집 파괴자',
+      desc: '"맛있는 건 먹고 싶은데, 기다리는 건 질색이야."<br>돈을 더 내더라도 예약 확정이 되고, 서비스가 빠르며 맛도 확실한 곳을 선호합니다.',
+      recommend: [
+        '<strong>구워주는 고깃집:</strong> 손 하나 까딱 안 해도 됨',
+        '<strong>중식 코스 요리:</strong> 예약 필수, 빠른 서빙',
+        '<strong>호텔 뷔페 룸:</strong> 동선 짧고 음식 다양'
+      ],
+      avoid: [
+        '웨이팅 2시간 필수인 인스타 핫플',
+        '직접 재료 손질해서 먹는 샤브샤브',
+        '주차장 없는 골목 식당'
+      ]
+    },
+    'SOPO': {
+      badge: 'SOPO (강렬+최적화+프리미엄+혼자)',
+      title: '🛵 1인분 10만원 배달러',
+      desc: '"집이 최고야, 맛은 포기 못 해."<br>가장 편한 옷차림으로 집에서 최고급 요리를 즐깁니다. 배달비 따위는 신경 쓰지 않습니다.',
+      recommend: [
+        '<strong>특상 우나기동(장어덮밥):</strong> 배달로 즐기는 보양식',
+        '<strong>호텔 투고(To-go) 박스:</strong> 퀄리티 보장',
+        '<strong>프리미엄 모듬회:</strong> 두툼하게 썬 회'
+      ],
+      avoid: [
+        '브레이크 타임 걸리는 식당',
+        '직접 가서 줄 서야 먹을 수 있는 곳',
+        '조리 시간이 오래 걸리는 슬로우 푸드'
+      ]
+    },
+    'SOCA': {
+      badge: 'SOCA (강렬+최적화+가성비+함께)',
+      title: '🍖 무한리필 원정대장',
+      desc: '"양 많고, 맛있고, 싸고!"<br>전투적으로 먹습니다. 격식 따위는 필요 없고 배부르고 자극적인 게 최고입니다.',
+      recommend: [
+        '<strong>마라탕 & 꿔바로우:</strong> 재료 듬뿍 담아도 저렴',
+        '<strong>고기 뷔페:</strong> 눈치 안 보고 고기 흡입',
+        '<strong>기사식당 제육볶음:</strong> 맛과 스피드 보장'
+      ],
+      avoid: [
+        '양 쥐꼬리만 한 파인다이닝',
+        '음식 나오는 데 30분 걸리는 곳',
+        '조용히 먹어야 하는 분위기'
+      ]
+    },
+    'SOCO': {
+      badge: 'SOCO (강렬+최적화+가성비+혼자)',
+      title: '🏪 편의점 만렙 귀차니스트',
+      desc: '"귀찮지만 맛없는 건 싫어."<br>식사는 생존입니다. 빠르고 싸게 해결하되, 맵고 짠 자극은 포기할 수 없습니다.',
+      recommend: [
+        '<strong>불닭볶음면 + 삼각김밥:</strong> 편의점 꿀조합',
+        '<strong>패스트푸드 신메뉴:</strong> 키오스크로 1분 컷',
+        '<strong>컵밥/도시락:</strong> 설거지 필요 없음'
+      ],
+      avoid: [
+        '주문 방식 복잡한 서브웨이 (커스텀 귀찮음)',
+        '코스 요리 (너무 길어)',
+        '직원이 말 거는 식당'
+      ]
+    },
+    'MAPA': {
+      badge: 'MAPA (부드러움+분위기+프리미엄+함께)',
+      title: '🥗 청담동 브런치 모임장',
+      desc: '"건강하고 예쁘게, 우아하게."<br>자극적이지 않은 건강한 맛과 고급스러운 분위기를 선호합니다. 식사는 대화의 연장선입니다.',
+      recommend: [
+        '<strong>호텔 애프터눈 티 세트:</strong> 사진 필수, 맛도 깔끔',
+        '<strong>평양냉면 맛집:</strong> 슴슴한 맛의 미학',
+        '<strong>비건 파인다이닝:</strong> 속이 편한 코스 요리'
+      ],
+      avoid: [
+        '맵고 짜고 위생 안 좋은 노포',
+        '음악 소리 너무 큰 펍',
+        '빨간 국물 튀는 전골집'
+      ]
+    },
+    'MAPO': {
+      badge: 'MAPO (부드러움+분위기+프리미엄+혼자)',
+      title: '🧘 고독한 미슐랭 탐험가',
+      desc: '"재료 본연의 맛을 느껴봐."<br>조용한 곳에서 셰프의 정성이 담긴 요리를 음미합니다. 시끄러운 건 질색입니다.',
+      recommend: [
+        '<strong>스시 오마카세:</strong> 흰 살 생선의 풍미',
+        '<strong>프리미엄 솥밥:</strong> 갓 지은 밥맛',
+        '<strong>티(Tea) 오마카세:</strong> 차와 다과'
+      ],
+      avoid: [
+        '시장통 국밥집 (너무 소란스러움)',
+        '간이 센 프랜차이즈 식당',
+        '합석 권유하는 식당'
+      ]
+    },
+    'MACA': {
+      badge: 'MACA (부드러움+분위기+가성비+함께)',
+      title: '🧸 연남동 감성 지킴이',
+      desc: '"아기자기하고 귀여운 게 좋아."<br>예쁘고 감성 넘치는 공간에서 부담 없는 가격의 브런치나 디저트를 즐깁니다.',
+      recommend: [
+        '<strong>일본 가정식:</strong> 정갈한 한 상 차림',
+        '<strong>주택 개조 카페:</strong> 포토존 많은 곳',
+        '<strong>과일 산도 & 푸딩:</strong> 눈으로 먼저 먹는 맛'
+      ],
+      avoid: [
+        '투박한 아재 입맛 식당',
+        '욕쟁이 할머니 식당',
+        '조명 어두운 술집'
+      ]
+    },
+    'MACO': {
+      badge: 'MACO (부드러움+분위기+가성비+혼자)',
+      title: '🌿 숨은 골목 맛집 발굴러',
+      desc: '"소소하지만 확실한 행복."<br>사람 많은 핫플보다는 동네의 조용하고 따뜻한 가게를 선호합니다.',
+      recommend: [
+        '<strong>동네 작은 베이커리:</strong> 갓 구운 소금빵',
+        '<strong>조용한 찻집:</strong> 창밖 보며 멍때리기',
+        '<strong>수제 요거트 가게:</strong> 건강한 한 끼'
+      ],
+      avoid: [
+        '단체 손님 많은 고깃집',
+        '웨이팅 있는 인스타 맛집',
+        '향이 강한 마라탕집'
+      ]
+    },
+    'MOPA': {
+      badge: 'MOPA (부드러움+최적화+프리미엄+함께)',
+      title: '🧭 실패 없는 맛집 네비게이션',
+      desc: '"깔끔하고, 빠르고, 맛있게."<br>비즈니스 미팅이나 가족 모임에 적합한, 호불호 없이 누구나 만족할 고급 식당을 찾습니다.',
+      recommend: [
+        '<strong>룸 있는 일식 코스:</strong> 프라이빗하고 정갈함',
+        '<strong>모던 한식 반상:</strong> 1인 1상으로 깔끔하게',
+        '<strong>샤브샤브 뷔페:</strong> 취향껏 골라 먹기'
+      ],
+      avoid: [
+        '호불호 갈리는 향신료(고수 등) 전문점',
+        '음식 늦게 나오는 곳',
+        '주차 불편한 곳'
+      ]
+    },
+    'MOPO': {
+      badge: 'MOPO (부드러움+최적화+프리미엄+혼자)',
+      title: '💼 성공한 자의 간편식',
+      desc: '"내 몸은 자산이다."<br>시간은 금입니다. 빠르고 간편하게 먹지만, 영양 성분과 퀄리티는 절대 타협하지 않습니다.',
+      recommend: [
+        '<strong>프리미엄 샐러드 구독:</strong> 탄단지 완벽 비율',
+        '<strong>백화점 식품관 도시락:</strong> 검증된 맛',
+        '<strong>고급 단백질 쉐이크:</strong> 바쁠 땐 마시는 걸로'
+      ],
+      avoid: [
+        '줄 서서 사 먹는 길거리 음식',
+        '직접 요리해야 하는 밀키트 (귀찮음)',
+        '기름진 패스트푸드'
+      ]
+    },
+    'MOCA': {
+      badge: 'MOCA (부드러움+최적화+가성비+함께)',
+      title: '🍚 기사식당 섭외 담당',
+      desc: '"밥은 역시 집밥 스타일이지."<br>편안한 분위기에서 부담 없이 배불리 먹을 수 있는 백반집을 사랑합니다.',
+      recommend: [
+        '<strong>기사식당 백반:</strong> 불백, 생선구이',
+        '<strong>24시간 콩나물 국밥:</strong> 빠르고 든든함',
+        '<strong>칼국수 & 수제비:</strong> 후루룩 먹기 좋음'
+      ],
+      avoid: [
+        '양 적고 비싼 카페 브런치',
+        '옷 차려입고 가야 하는 레스토랑',
+        '향신료 강한 외국 음식'
+      ]
+    },
+    'MOCO': {
+      badge: 'MOCO (부드러움+최적화+가성비+혼자)',
+      title: '🥪 삼각김밥 소믈리에',
+      desc: '"배만 채우면 돼, 자극적인 건 싫어."<br>식사는 미션 클리어하듯이. 빠르고 간단하게, 속 편한 음식을 선호합니다.',
+      recommend: [
+        '<strong>계란 샌드위치:</strong> 부드럽고 간편함',
+        '<strong>맑은 우동/국수:</strong> 자극 없는 국물',
+        '<strong>미숫가루/두유:</strong> 마시는 식사'
+      ],
+      avoid: [
+        '매운 떡볶이 (속 쓰림)',
+        '먹기 불편한 대형 수제버거',
+        '뜨거운 뚝배기 음식 (식혀 먹기 귀찮음)'
+      ]
+    }
+  };
+
+  // 그리드 생성
+  function createGrid() {
+    const gridContainer = document.getElementById('mbtiGrid');
+    gridContainer.innerHTML = '';
+    
+    Object.keys(mbtiTypes).forEach(type => {
+      const data = mbtiTypes[type];
+      const card = document.createElement('div');
+      card.className = 'grid-card';
+      card.onclick = () => openModal(type);
+      
+      card.innerHTML = `
+        <div class="grid-card-header">
+          <div class="grid-type-badge">${type}</div>
+          <h3 class="grid-card-title">${data.title}</h3>
+          <p class="grid-card-desc">${data.desc.replace(/<br>/g, ' ')}</p>
+        </div>
+      `;
+      
+      gridContainer.appendChild(card);
+    });
+  }
+
+  // 확률 뷰 표시
+  function showProbability() {
+    document.getElementById('probabilityView').classList.add('active');
+    window.scrollTo({ top: document.getElementById('probabilityView').offsetTop - 20, behavior: 'smooth' });
+  }
+
+  function hideProbability() {
+    document.getElementById('probabilityView').classList.remove('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // 그리드 뷰 표시
+  function showGrid() {
+    createGrid();
+    document.getElementById('gridView').classList.add('active');
+    window.scrollTo({ top: document.getElementById('gridView').offsetTop - 20, behavior: 'smooth' });
+  }
+
+  function hideGrid() {
+    document.getElementById('gridView').classList.remove('active');
+    window.scrollTo({ top: document.getElementById('probabilityView').offsetTop - 20, behavior: 'smooth' });
+  }
+
+  // 모달 열기
+  function openModal(type) {
+    const data = mbtiTypes[type];
+    const modalBody = document.getElementById('modalBody');
+    
+    modalBody.innerHTML = `
+      <div class="card-header" style="background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); color: white; padding: 40px 30px; text-align: center;">
+        <span class="type-badge" style="background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid rgba(255, 255, 255, 0.4);">${data.badge}</span>
+        <h2 class="card-title" style="color: white; font-size: 2rem; margin: 15px 0;">${data.title}</h2>
+        <p class="card-desc" style="color: white; opacity: 0.95;">${data.desc}</p>
+      </div>
+      <div class="card-body" style="padding: 35px;">
+        <div class="info-section">
+          <div class="info-title recommend"><i class="fas fa-thumbs-up"></i> 추천 메뉴 & 장소</div>
+          <div class="info-content">
+            <ul>
+              ${data.recommend.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+        <div class="info-section">
+          <div class="info-title avoid"><i class="fas fa-ban"></i> 피해야 할 식당</div>
+          <div class="info-content">
+            <ul>
+              ${data.avoid.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+
+  // 다시 테스트하기
+  function retakeTest() {
+    alert('취향 테스트 페이지로 이동합니다! 🍽️');
+    // 실제 구현 시: window.location.href = '/taste-test';
+  }
+
+  // 모달 배경 클릭 시 닫기
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeModal();
+    }
+  });
+</script>
+
+</body>
+</html>
+

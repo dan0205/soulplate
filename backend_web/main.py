@@ -1554,12 +1554,20 @@ async def submit_taste_test(
         absa_features = answers_to_absa(submission.answers, submission.test_type)
         logger.info(f"Taste test ABSA features generated: {len(absa_features)} features")
         
-        # 2. MBTI 타입 계산
-        mbti_type = calculate_mbti_type(absa_features)
+        # 2. MBTI 타입과 확률 계산
+        from backend_web.taste_test_questions import calculate_mbti_with_probabilities
+        mbti_result = calculate_mbti_with_probabilities(absa_features)
+        mbti_type = mbti_result["type"]
+        axis_scores = mbti_result["axis_scores"]
+        
         type_info = MBTI_TYPE_DESCRIPTIONS.get(mbti_type, {
+            "emoji": "",
             "name": "알 수 없음",
+            "catchphrase": "",
             "description": "타입 정보를 찾을 수 없습니다",
-            "recommendations": []
+            "recommendations": [],
+            "recommend": [],
+            "avoid": []
         })
         
         # 3. 기존 취향 테스트 삭제 (재테스트 시)
@@ -1587,10 +1595,11 @@ async def submit_taste_test(
         
         logger.info(f"Taste test saved for user {current_user.username} (type: {submission.test_type}, MBTI: {mbti_type})")
         
-        # 5. User 테이블에 MBTI 저장
+        # 5. User 테이블에 MBTI와 축 점수 저장
         current_user.taste_test_mbti_type = mbti_type
         current_user.taste_test_completed = True
         current_user.taste_test_type = submission.test_type
+        current_user.taste_test_axis_scores = axis_scores
         db.commit()
         
         # 6. User 프로필 업데이트 (백그라운드)
@@ -1607,7 +1616,12 @@ async def submit_taste_test(
             mbti_type=mbti_type,
             type_name=type_info["name"],
             description=type_info["description"],
-            recommendations=type_info["recommendations"]
+            recommendations=type_info["recommendations"],
+            axis_scores=axis_scores,
+            emoji=type_info.get("emoji"),
+            catchphrase=type_info.get("catchphrase"),
+            recommend=type_info.get("recommend"),
+            avoid=type_info.get("avoid")
         )
         
     except ValueError as e:

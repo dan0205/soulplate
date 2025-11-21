@@ -46,6 +46,8 @@ class User(Base):
     taste_test_mbti_type = Column(String(4), nullable=True, index=True)  # 'SAPA', 'MOCA' 등
     taste_test_completed = Column(Boolean, default=False, nullable=False)
     taste_test_type = Column(String, nullable=True)  # 'quick' or 'deep'
+    taste_test_axis_scores = Column(JSONB, nullable=True)  # 각 축의 확률 점수
+    # {"flavor_intensity": {"S": 73, "M": 27}, "dining_environment": {"A": 82, "O": 18}, ...}
     
     # Relationships
     reviews = relationship("Review", back_populates="user")

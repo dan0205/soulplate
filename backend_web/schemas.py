@@ -49,10 +49,15 @@ class TasteTestSubmit(BaseModel):
 
 class TasteTestResult(BaseModel):
     """취향 테스트 결과"""
-    mbti_type: str  # 예: "SQAF"
-    type_name: str  # 예: "미식가 감성파"
+    mbti_type: str  # 예: "SAPA"
+    type_name: str  # 예: "도파민 추구 미식회장"
     description: str
     recommendations: List[str]
+    axis_scores: Optional[dict] = None  # 각 축의 확률
+    emoji: Optional[str] = None  # 이모지
+    catchphrase: Optional[str] = None  # 캐치프레이즈
+    recommend: Optional[List[str]] = None  # 상세 추천 메뉴 & 장소
+    avoid: Optional[List[str]] = None  # 피해야 할 식당
 
 class UserStatusResponse(BaseModel):
     """사용자 상태 정보"""
