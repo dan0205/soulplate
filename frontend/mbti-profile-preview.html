@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulPlate - MBTI 프로필</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      cursor: pointer;
+    }
+
+    .back-button {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 0.95rem;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .back-button:hover {
+      background: #f0f0f0;
+    }
+
+    /* MBTI Type Card */
+    .mbti-card {
+      background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+      border-radius: 20px;
+      padding: 40px 30px;
+      margin-bottom: 30px;
+      color: white;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+    }
+
+    .type-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .type-icon {
+      font-size: 3rem;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .type-title {
+      font-size: 2rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .type-slogan {
+      font-size: 1.1rem;
+      text-align: center;
+      margin-bottom: 20px;
+      opacity: 0.95;
+      font-style: italic;
+    }
+
+    .type-description {
+      font-size: 1rem;
+      text-align: center;
+      opacity: 0.9;
+      line-height: 1.7;
+    }
+
+    /* Info Sections */
+    .info-section {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .section-title.recommended {
+      color: #2f9e44;
+    }
+
+    .section-title.avoid {
+      color: #e03131;
+    }
+
+    .info-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .info-list li {
+      padding: 10px 0;
+      padding-left: 20px;
+      position: relative;
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .info-list li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: #999;
+      font-weight: bold;
+    }
+
+    .info-list li strong {
+      color: #333;
+      font-weight: 600;
+    }
+
+    /* URL Copy Button */
+    .url-copy-button {
+      width: 100%;
+      background: #e03131;
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 30px;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(224, 49, 49, 0.3);
+    }
+
+    .url-copy-button:hover {
+      background: #c92a2a;
+      transform: translateY(-2px);
+    }
+
+    .url-copy-button:active {
+      transform: translateY(0);
+    }
+
+    /* Ratio Analysis Section */
+    .ratio-section {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .ratio-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 25px;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .axis-item {
+      margin-bottom: 30px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .axis-item:hover {
+      transform: translateX(5px);
+    }
+
+    .axis-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .axis-label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar-container {
+      display: flex;
+      height: 40px;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-segment {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: white;
+      transition: width 0.3s ease;
+    }
+
+    .progress-segment.primary {
+      background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+    }
+
+    .progress-segment.secondary {
+      background: linear-gradient(135deg, #20c997 0%, #0d9488 100%);
+    }
+
+    .axis-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .axis-label-left,
+    .axis-label-right {
+      font-weight: 500;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .action-button {
+      width: 100%;
+      background: #e03131;
+      color: white;
+      border: none;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 12px rgba(224, 49, 49, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .action-button:hover {
+      background: #c92a2a;
+      transform: translateY(-2px);
+    }
+
+    .action-button:active {
+      transform: translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 10px;
+      }
+
+      .mbti-card {
+        padding: 30px 20px;
+      }
+
+      .type-title {
+        font-size: 1.6rem;
+      }
+
+      .ratio-section {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">Soulplate</div>
+      <button class="back-button">뒤로가기</button>
+    </div>
+
+    <!-- MBTI Type Card -->
+    <div class="mbti-card">
+      <div class="type-badge">SAPO</div>
+      <div class="type-icon">🍷</div>
+      <div class="type-title">나를 위한 마라카세</div>
+      <div class="type-slogan">"내 취향은 소중하니까."</div>
+      <div class="type-description">
+        혼자서도 최고급으로 즐깁니다. 자극적인 맛을 우아하고 프라이빗하게 즐기는 고독한 미식가입니다.
+      </div>
+    </div>
+
+    <!-- Recommended Menu & Places -->
+    <div class="info-section">
+      <div class="section-title recommended">추천 메뉴 & 장소</div>
+      <ul class="info-list">
+        <li>
+          <strong>1인 셰프 바(Bar):</strong> 독한 위스키와 안주
+        </li>
+        <li>
+          <strong>프리미엄 혼고기:</strong> 최고급 특수부위
+        </li>
+        <li>
+          <strong>매운맛 오마카세:</strong> 퓨전 다이닝
+        </li>
+      </ul>
+    </div>
+
+    <!-- Restaurants to Avoid -->
+    <div class="info-section">
+      <div class="section-title avoid">피해야 할 식당</div>
+      <ul class="info-list">
+        <li>시끄러운 회식 장소 (기 빨림)</li>
+        <li>가성비 무한리필집 (질 떨어져서 싫음)</li>
+        <li>합석해야 하는 시장 국밥집</li>
+      </ul>
+    </div>
+
+    <!-- URL Copy Button -->
+    <button class="url-copy-button">URL 복사</button>
+
+    <!-- Ratio Analysis Section -->
+    <div class="ratio-section">
+      <div class="ratio-title">
+        🎯 내 음식 취향 비율 분석
+      </div>
+
+      <!-- Flavor Intensity -->
+      <div class="axis-item">
+        <div class="axis-label">맛 강도 (Flavor Intensity)</div>
+        <div class="progress-bar-container">
+          <div class="progress-segment primary" style="width: 79%;">S 79%</div>
+          <div class="progress-segment secondary" style="width: 21%;">M 21%</div>
+        </div>
+        <div class="axis-labels">
+          <span class="axis-label-left">강렬한 맛 (Strong)</span>
+          <span class="axis-label-right">부드러운 맛 (Mild)</span>
+        </div>
+      </div>
+
+      <!-- Dining Environment -->
+      <div class="axis-item">
+        <div class="axis-label">식사 환경 (Dining Environment)</div>
+        <div class="progress-bar-container">
+          <div class="progress-segment primary" style="width: 58%;">A 58%</div>
+          <div class="progress-segment secondary" style="width: 42%;">O 42%</div>
+        </div>
+        <div class="axis-labels">
+          <span class="axis-label-left">분위기 중시 (Atmosphere)</span>
+          <span class="axis-label-right">효율 중시 (Optimized)</span>
+        </div>
+      </div>
+
+      <!-- Price Sensitivity -->
+      <div class="axis-item">
+        <div class="axis-label">가격 민감도 (Price Sensitivity)</div>
+        <div class="progress-bar-container">
+          <div class="progress-segment primary" style="width: 58%;">P 58%</div>
+          <div class="progress-segment secondary" style="width: 42%;">C 42%</div>
+        </div>
+        <div class="axis-labels">
+          <span class="axis-label-left">프리미엄 선호 (Premium)</span>
+          <span class="axis-label-right">가성비 중시 (Cost-effective)</span>
+        </div>
+      </div>
+
+      <!-- Dining Company -->
+      <div class="axis-item">
+        <div class="axis-label">동행 선호도 (Dining Company)</div>
+        <div class="progress-bar-container">
+          <div class="progress-segment primary" style="width: 50%;">A 50%</div>
+          <div class="progress-segment secondary" style="width: 50%;">O 50%</div>
+        </div>
+        <div class="axis-labels">
+          <span class="axis-label-left">함께 (All together)</span>
+          <span class="axis-label-right">혼자 (On my own)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="action-button">
+        🔄 다시 테스트하기
+      </button>
+      <button class="action-button">
+        🔍 다른 취향 탐색하기
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // URL 복사 기능
+    document.querySelector('.url-copy-button').addEventListener('click', function() {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        const originalText = this.textContent;
+        this.textContent = '✓ URL이 복사되었습니다!';
+        setTimeout(() => {
+          this.textContent = originalText;
+        }, 2000);
+      }).catch(err => {
+        console.error('URL 복사 실패:', err);
+        alert('URL 복사에 실패했습니다.');
+      });
+    });
+
+    // 뒤로가기 버튼
+    document.querySelector('.back-button').addEventListener('click', function() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/';
+      }
+    });
+
+    // 축 항목 클릭 시 애니메이션
+    document.querySelectorAll('.axis-item').forEach(item => {
+      item.addEventListener('click', function() {
+        this.style.transform = 'scale(0.98)';
+        setTimeout(() => {
+          this.style.transform = '';
+        }, 200);
+      });
+    });
+  </script>
+</body>
+</html>
+

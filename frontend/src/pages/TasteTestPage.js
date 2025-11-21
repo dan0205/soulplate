@@ -107,7 +107,7 @@ function TasteTestPage() {
       
       // 0.5초 후 마이페이지로 리다이렉트 (MBTI 상세 페이지로 스크롤)
       setTimeout(() => {
-        navigate('/profile', { 
+        navigate('/my-profile', { 
           state: { scrollToMbti: true, showResult: true },
           replace: true
         });
