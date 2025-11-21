@@ -17,7 +17,6 @@ const MBTIDetailPage = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedAxis, setSelectedAxis] = useState(null);
   const [showOtherTypes, setShowOtherTypes] = useState(false);
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedType, setSelectedType] = useState(null);
@@ -64,11 +63,6 @@ const MBTIDetailPage = () => {
   const handleStartDeepTest = () => {
     setShowRetestOptions(false);
     navigate('/taste-test', { state: { testType: 'deep' } });
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(window.location.origin + '/profile/mbti');
-    toast.success('링크가 복사되었습니다!');
   };
 
   // 로딩 상태
@@ -179,157 +173,82 @@ const MBTIDetailPage = () => {
         </div>
       </div>
 
-      {/* 공유 버튼 */}
-      <div className="share-buttons">
-        <button className="btn-share" onClick={copyToClipboard}>
-          <i className="fas fa-link"></i> URL 복사
-        </button>
-      </div>
-
       {/* 4개 축 확률 분석 */}
       {profile.taste_test_axis_scores ? (
         <div className="probability-view">
-          <h3 className="probability-title">🎯 내 음식 취향 비율 분석</h3>
+          <h3 className="probability-title">내 음식 성향 분석표</h3>
           
-          <div 
-            className={`axis-item ${selectedAxis === 'flavor_intensity' ? 'expanded' : ''}`}
-            onClick={() => setSelectedAxis(selectedAxis === 'flavor_intensity' ? null : 'flavor_intensity')}
-          >
-            <div className="axis-name">맛 강도 (Flavor Intensity)</div>
-            <div className="axis-bar-container">
-              <div 
-                className="axis-left" 
-                style={{ width: `${profile.taste_test_axis_scores.flavor_intensity.S}%` }}
-              >
-                S {profile.taste_test_axis_scores.flavor_intensity.S}%
-              </div>
-              <div 
-                className="axis-right" 
-                style={{ width: `${profile.taste_test_axis_scores.flavor_intensity.M}%` }}
-              >
-                M {profile.taste_test_axis_scores.flavor_intensity.M}%
-              </div>
+          <div className="trait-group trait-flavor">
+            <div className="trait-info">
+              <span>맛의 강도</span>
+              <span className="trait-percentage highlight">
+                {profile.taste_test_axis_scores.flavor_intensity.S}% 강렬함
+              </span>
             </div>
-            <div className="axis-labels">
-              <span>강렬한 맛 (Strong)</span>
-              <span>부드러운 맛 (Mild)</span>
+            <div className="bar-track">
+              <div className="bar-fill" style={{ width: `${profile.taste_test_axis_scores.flavor_intensity.S}%` }}></div>
+              <div className="bar-circle" style={{ left: `${profile.taste_test_axis_scores.flavor_intensity.S}%` }}></div>
             </div>
-            {selectedAxis === 'flavor_intensity' && (
-              <div className="axis-detail-expanded">
-                <p>
-                  {profile.taste_test_axis_scores.flavor_intensity.S >= 50
-                    ? "강렬한 맛을 선호하며 맵고 짠 자극적인 음식을 즐깁니다. 순한 맛보다는 개성 있고 강한 풍미를 추구합니다."
-                    : "부드럽고 담백한 맛을 선호하며 건강한 식단을 중시합니다. 자극적인 음식보다는 은은하고 섬세한 맛을 좋아합니다."}
-                </p>
-              </div>
-            )}
+            <div className="trait-labels">
+              <span className="label-left">강렬함 (Strong)</span>
+              <span className="label-right">부드러움 (Mild)</span>
+            </div>
           </div>
 
-          <div 
-            className={`axis-item ${selectedAxis === 'dining_environment' ? 'expanded' : ''}`}
-            onClick={() => setSelectedAxis(selectedAxis === 'dining_environment' ? null : 'dining_environment')}
-          >
-            <div className="axis-name">식사 환경 (Dining Environment)</div>
-            <div className="axis-bar-container">
-              <div 
-                className="axis-left" 
-                style={{ width: `${profile.taste_test_axis_scores.dining_environment.A}%` }}
-              >
-                A {profile.taste_test_axis_scores.dining_environment.A}%
-              </div>
-              <div 
-                className="axis-right" 
-                style={{ width: `${profile.taste_test_axis_scores.dining_environment.O}%` }}
-              >
-                O {profile.taste_test_axis_scores.dining_environment.O}%
-              </div>
+          <div className="trait-group trait-env">
+            <div className="trait-info">
+              <span>식사 환경</span>
+              <span className="trait-percentage highlight">
+                {profile.taste_test_axis_scores.dining_environment.A}% 분위기
+              </span>
             </div>
-            <div className="axis-labels">
-              <span>분위기 중시 (Atmosphere)</span>
-              <span>효율 중시 (Optimized)</span>
+            <div className="bar-track">
+              <div className="bar-fill" style={{ width: `${profile.taste_test_axis_scores.dining_environment.A}%` }}></div>
+              <div className="bar-circle" style={{ left: `${profile.taste_test_axis_scores.dining_environment.A}%` }}></div>
             </div>
-            {selectedAxis === 'dining_environment' && (
-              <div className="axis-detail-expanded">
-                <p>
-                  {profile.taste_test_axis_scores.dining_environment.A >= 50
-                    ? "식사 공간의 분위기와 인테리어를 중요하게 생각합니다. 감성적이고 아름다운 공간에서 식사하는 것을 선호합니다."
-                    : "식사의 효율성과 실용성을 중시합니다. 빠르고 편리하게 맛있는 음식을 먹는 것이 중요합니다."}
-                </p>
-              </div>
-            )}
+            <div className="trait-labels">
+              <span className="label-left">분위기 (Ambiance)</span>
+              <span className="label-right">효율 (Optimized)</span>
+            </div>
           </div>
 
-          <div 
-            className={`axis-item ${selectedAxis === 'price_sensitivity' ? 'expanded' : ''}`}
-            onClick={() => setSelectedAxis(selectedAxis === 'price_sensitivity' ? null : 'price_sensitivity')}
-          >
-            <div className="axis-name">가격 민감도 (Price Sensitivity)</div>
-            <div className="axis-bar-container">
-              <div 
-                className="axis-left" 
-                style={{ width: `${profile.taste_test_axis_scores.price_sensitivity.P}%` }}
-              >
-                P {profile.taste_test_axis_scores.price_sensitivity.P}%
-              </div>
-              <div 
-                className="axis-right" 
-                style={{ width: `${profile.taste_test_axis_scores.price_sensitivity.C}%` }}
-              >
-                C {profile.taste_test_axis_scores.price_sensitivity.C}%
-              </div>
+          <div className="trait-group trait-price">
+            <div className="trait-info">
+              <span>가격 민감도</span>
+              <span className="trait-percentage highlight">
+                {profile.taste_test_axis_scores.price_sensitivity.P}% 프리미엄
+              </span>
             </div>
-            <div className="axis-labels">
-              <span>프리미엄 선호 (Premium)</span>
-              <span>가성비 중시 (Cost-effective)</span>
+            <div className="bar-track">
+              <div className="bar-fill" style={{ width: `${profile.taste_test_axis_scores.price_sensitivity.P}%` }}></div>
+              <div className="bar-circle" style={{ left: `${profile.taste_test_axis_scores.price_sensitivity.P}%` }}></div>
             </div>
-            {selectedAxis === 'price_sensitivity' && (
-              <div className="axis-detail-expanded">
-                <p>
-                  {profile.taste_test_axis_scores.price_sensitivity.P >= 50
-                    ? "가격보다 품질과 경험을 중시합니다. 프리미엄 재료와 서비스를 위해 기꺼이 더 지불할 의향이 있습니다."
-                    : "합리적인 가격과 가성비를 중요하게 생각합니다. 저렴하면서도 맛있는 음식을 찾는 것을 즐깁니다."}
-                </p>
-              </div>
-            )}
+            <div className="trait-labels">
+              <span className="label-left">프리미엄 (Premium)</span>
+              <span className="label-right">가성비 (Cost-effective)</span>
+            </div>
           </div>
 
-          <div 
-            className={`axis-item ${selectedAxis === 'dining_company' ? 'expanded' : ''}`}
-            onClick={() => setSelectedAxis(selectedAxis === 'dining_company' ? null : 'dining_company')}
-          >
-            <div className="axis-name">동행 선호도 (Dining Company)</div>
-            <div className="axis-bar-container">
-              <div 
-                className="axis-left" 
-                style={{ width: `${profile.taste_test_axis_scores.dining_company.A}%` }}
-              >
-                A {profile.taste_test_axis_scores.dining_company.A}%
-              </div>
-              <div 
-                className="axis-right" 
-                style={{ width: `${profile.taste_test_axis_scores.dining_company.O}%` }}
-              >
-                O {profile.taste_test_axis_scores.dining_company.O}%
-              </div>
+          <div className="trait-group trait-social">
+            <div className="trait-info">
+              <span>동행 선호도</span>
+              <span className="trait-percentage highlight">
+                {profile.taste_test_axis_scores.dining_company.O}% 혼자
+              </span>
             </div>
-            <div className="axis-labels">
-              <span>함께 (All together)</span>
-              <span>혼자 (On my own)</span>
+            <div className="bar-track">
+              <div className="bar-fill" style={{ width: `${100 - profile.taste_test_axis_scores.dining_company.O}%` }}></div>
+              <div className="bar-circle" style={{ left: `${100 - profile.taste_test_axis_scores.dining_company.O}%` }}></div>
             </div>
-            {selectedAxis === 'dining_company' && (
-              <div className="axis-detail-expanded">
-                <p>
-                  {profile.taste_test_axis_scores.dining_company.A >= 50
-                    ? "친구나 가족과 함께 식사하는 것을 좋아합니다. 왁자지껄한 분위기에서 음식을 나누며 즐기는 것을 선호합니다."
-                    : "혼자만의 시간을 즐기며 식사합니다. 조용히 자신만의 페이스로 음식을 즐기는 것을 좋아합니다."}
-                </p>
-              </div>
-            )}
+            <div className="trait-labels">
+              <span className="label-left">함께 (Together)</span>
+              <span className="label-right">혼자 (Solo)</span>
+            </div>
           </div>
         </div>
       ) : (
         <div className="probability-view">
-          <h3 className="probability-title">🎯 내 음식 취향 비율 분석</h3>
+          <h3 className="probability-title">내 음식 성향 분석표</h3>
           <div className="no-axis-data">
             <p style={{ textAlign: 'center', color: '#666', padding: '40px 20px' }}>
               확률 분석 데이터가 없습니다. 다시 테스트를 진행해주세요.
