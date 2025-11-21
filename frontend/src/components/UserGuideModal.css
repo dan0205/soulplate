@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1003;
+  z-index: 2000;
   padding: 20px;
   backdrop-filter: blur(4px);
   animation: userGuideFadeIn 0.3s ease-out;
