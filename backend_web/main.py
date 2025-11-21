@@ -32,6 +32,7 @@ from taste_test_questions import (
     QUICK_TEST_QUESTIONS, 
     DEEP_TEST_QUESTIONS,
     calculate_mbti_type,
+    calculate_mbti_with_probabilities_and_absa,
     MBTI_TYPE_DESCRIPTIONS
 )
 
@@ -1553,7 +1554,6 @@ async def submit_taste_test(
     
     try:
         # 1. MBTI 타입, 확률, 합성 ABSA를 모두 계산
-        from backend_web.taste_test_questions import calculate_mbti_with_probabilities_and_absa
         result = calculate_mbti_with_probabilities_and_absa(
             submission.answers,
             submission.test_type
