@@ -29,6 +29,9 @@ const MBTIDetailPage = () => {
   const loadProfile = async () => {
     try {
       const response = await userAPI.getMyProfile();
+      console.log('Profile data:', response.data);
+      console.log('taste_test_axis_scores:', response.data.taste_test_axis_scores);
+      console.log('taste_test_completed:', response.data.taste_test_completed);
       setProfile(response.data);
     } catch (err) {
       console.error('Failed to load profile:', err);
@@ -183,7 +186,7 @@ const MBTIDetailPage = () => {
       </div>
 
       {/* 4개 축 확률 분석 */}
-      {profile.taste_test_axis_scores && (
+      {profile.taste_test_axis_scores ? (
         <div className="probability-view">
           <h3 className="probability-title">🎯 내 음식 취향 비율 분석</h3>
           
@@ -321,6 +324,15 @@ const MBTIDetailPage = () => {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      ) : (
+        <div className="probability-view">
+          <h3 className="probability-title">🎯 내 음식 취향 비율 분석</h3>
+          <div className="no-axis-data">
+            <p style={{ textAlign: 'center', color: '#666', padding: '40px 20px' }}>
+              확률 분석 데이터가 없습니다. 다시 테스트를 진행해주세요.
+            </p>
           </div>
         </div>
       )}

@@ -7,6 +7,7 @@
   min-height: 100dvh;
   background: var(--bg-primary);
   padding: 15px;
+  padding-bottom: 50px;
   max-width: 1000px;
   margin: 0 auto;
   overflow-y: auto;
@@ -316,6 +317,21 @@
   100% {
     background-position: -200% 0;
   }
+}
+
+/* 확률 데이터 없음 메시지 */
+.no-axis-data {
+  background: #f9f9f9;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 2px dashed #ddd;
+}
+
+.no-axis-data p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 /* 반응형 - 태블릿 */
