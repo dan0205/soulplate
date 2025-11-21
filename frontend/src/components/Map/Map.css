@@ -193,6 +193,7 @@ body:has(.snap-100) .floating-search-bar {
 
 /* reach-portal의 z-index 제한 (하단 시트가 모달 위로 올라오지 않도록) */
 reach-portal {
+  position: relative !important;
   z-index: 999 !important;
 }
 

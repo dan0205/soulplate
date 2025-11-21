@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import './TasteTestModal.css';
 
@@ -20,7 +21,7 @@ function TasteTestModal({ onClose }) {
     onClose();
   };
 
-  return (
+  return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>×</button>
@@ -54,7 +55,8 @@ function TasteTestModal({ onClose }) {
 
         <p className="modal-hint">💡 나중에 언제든 다시 할 수 있어요</p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

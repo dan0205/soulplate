@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { userAPI } from '../services/api';
@@ -381,7 +382,7 @@ const MBTIDetailPage = () => {
       </div>
 
       {/* 타입 상세 모달 */}
-      {showTypeModal && selectedType && (
+      {showTypeModal && selectedType && ReactDOM.createPortal(
         <div 
           className={`type-detail-modal ${showTypeModal ? 'show' : ''}`}
           onClick={(e) => {
@@ -438,7 +439,8 @@ const MBTIDetailPage = () => {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

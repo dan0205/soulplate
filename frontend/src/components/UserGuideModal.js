@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import './UserGuideModal.css';
 
 function UserGuideModal({ onClose }) {
@@ -26,7 +27,7 @@ function UserGuideModal({ onClose }) {
     onClose();
   };
 
-  return (
+  return ReactDOM.createPortal(
     <div className="user-guide-modal-overlay">
       <div className="user-guide-modal-content" onClick={(e) => e.stopPropagation()}>
         <button className="user-guide-modal-close" onClick={handleClose}>×</button>
@@ -76,7 +77,8 @@ function UserGuideModal({ onClose }) {
 
         <p className="user-guide-modal-hint">💡 이 가이드는 세션당 한 번만 표시됩니다</p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
