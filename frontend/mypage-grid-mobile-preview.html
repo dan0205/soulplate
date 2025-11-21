@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마이페이지 그리드 모바일 개선안 프리뷰</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+
+    .tab-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .tab-button {
+      padding: 12px 24px;
+      border: none;
+      background: #f5f5f5;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+      color: #666;
+    }
+
+    .tab-button.active {
+      background: #FF6B6B;
+      color: white;
+    }
+
+    .tab-button:hover {
+      background: #FF5252;
+      color: white;
+    }
+
+    .preview-section {
+      display: none;
+    }
+
+    .preview-section.active {
+      display: block;
+    }
+
+    .preview-title {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #FF6B6B;
+    }
+
+    .preview-description {
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    /* 모바일 프리뷰 영역 */
+    .mobile-preview {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 2px dashed #ddd;
+    }
+
+    .mobile-frame {
+      max-width: 375px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .mobile-header {
+      text-align: center;
+      padding: 15px;
+      background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      color: white;
+    }
+
+    .mobile-header h2 {
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .mobile-header p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .btn-explore {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: all 0.2s;
+    }
+
+    .btn-explore:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* 옵션 1: 4열 그리드 */
+    .grid-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .type-card {
+      background: #FF6B6B;
+      padding: 12px 8px;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+      box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    }
+
+    .type-card:hover {
+      background: #FF5252;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    }
+
+    .type-code {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .type-name {
+      font-size: 10px;
+      opacity: 0.95;
+      line-height: 1.3;
+    }
+
+    /* 옵션 2: 가로 스크롤 */
+    .scroll-container {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: #FF6B6B #f0f0f0;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    .scroll-container::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .scroll-container::-webkit-scrollbar-track {
+      background: #f0f0f0;
+      border-radius: 10px;
+    }
+
+    .scroll-container::-webkit-scrollbar-thumb {
+      background: #FF6B6B;
+      border-radius: 10px;
+    }
+
+    .scroll-grid {
+      display: flex;
+      gap: 12px;
+      padding: 5px;
+      min-width: max-content;
+    }
+
+    .scroll-card {
+      background: #FF6B6B;
+      padding: 16px 20px;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+      box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+
+    .scroll-card:hover {
+      background: #FF5252;
+      transform: translateY(-2px);
+    }
+
+    .scroll-code {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .scroll-name {
+      font-size: 11px;
+      opacity: 0.95;
+      line-height: 1.4;
+    }
+
+    /* 옵션 3: 3열 그리드 */
+    .grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .type-card-3col {
+      background: #FF6B6B;
+      padding: 14px 10px;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+      box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    }
+
+    .type-card-3col:hover {
+      background: #FF5252;
+      transform: translateY(-2px);
+    }
+
+    .type-code-3col {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .type-name-3col {
+      font-size: 11px;
+      opacity: 0.95;
+      line-height: 1.3;
+    }
+
+    /* 옵션 4: 아코디언 그룹 */
+    .accordion-group {
+      margin-bottom: 10px;
+    }
+
+    .accordion-header {
+      background: #FF6B6B;
+      color: white;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .accordion-header:hover {
+      background: #FF5252;
+    }
+
+    .accordion-icon {
+      transition: transform 0.3s;
+    }
+
+    .accordion-header.active .accordion-icon {
+      transform: rotate(180deg);
+    }
+
+    .accordion-content {
+      display: none;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .accordion-content.show {
+      display: grid;
+    }
+
+    .accordion-card {
+      background: #FF6B6B;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+      box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+    }
+
+    .accordion-card:hover {
+      background: #FF5252;
+      transform: translateY(-2px);
+    }
+
+    .accordion-code {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .accordion-name {
+      font-size: 10px;
+      opacity: 0.95;
+      line-height: 1.3;
+    }
+
+    /* 옵션 5: 슬라이더/캐러셀 */
+    .carousel-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    .carousel-wrapper {
+      display: flex;
+      transition: transform 0.3s ease;
+    }
+
+    .carousel-page {
+      min-width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 5px;
+    }
+
+    .carousel-nav {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .carousel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ddd;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .carousel-dot.active {
+      background: #FF6B6B;
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 107, 107, 0.8);
+      color: white;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: all 0.3s;
+    }
+
+    .carousel-arrow:hover {
+      background: rgba(255, 82, 82, 1);
+    }
+
+    .carousel-arrow.prev {
+      left: 5px;
+    }
+
+    .carousel-arrow.next {
+      right: 5px;
+    }
+
+    /* 옵션 6: 컴팩트 리스트 */
+    .compact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .compact-item {
+      background: #FF6B6B;
+      padding: 12px 15px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+      box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+    }
+
+    .compact-item:hover {
+      background: #FF5252;
+      transform: translateX(5px);
+    }
+
+    .compact-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .compact-code {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      min-width: 50px;
+    }
+
+    .compact-name {
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .compact-arrow {
+      font-size: 18px;
+      opacity: 0.7;
+    }
+
+    /* 데스크톱 설명 */
+    .desktop-info {
+      background: #e3f2fd;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 30px;
+      border-left: 4px solid #2196f3;
+    }
+
+    .desktop-info h3 {
+      color: #1976d2;
+      margin-bottom: 10px;
+    }
+
+    .desktop-info ul {
+      color: #555;
+      line-height: 1.8;
+      padding-left: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+
+      .tab-container {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+
+      .tab-button {
+        font-size: 12px;
+        padding: 10px 16px;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧭 마이페이지 그리드 모바일 개선안</h1>
+
+    <div class="tab-container">
+      <button class="tab-button active" onclick="showTab(1)">옵션 1: 4열 그리드</button>
+      <button class="tab-button" onclick="showTab(2)">옵션 2: 가로 스크롤</button>
+      <button class="tab-button" onclick="showTab(3)">옵션 3: 3열 그리드</button>
+      <button class="tab-button" onclick="showTab(4)">옵션 4: 아코디언</button>
+      <button class="tab-button" onclick="showTab(5)">옵션 5: 슬라이더</button>
+      <button class="tab-button" onclick="showTab(6)">옵션 6: 컴팩트 리스트</button>
+    </div>
+
+    <!-- 옵션 1: 4열 그리드 -->
+    <div class="preview-section active" id="tab1">
+      <h2 class="preview-title">옵션 1: 4열 그리드 (4x4 레이아웃)</h2>
+      <p class="preview-description">
+        모바일에서 4열로 배치하여 더 컴팩트하고 균형잡힌 레이아웃을 제공합니다. 
+        스크롤 길이가 줄어들어 한 화면에 더 많은 정보를 볼 수 있습니다.
+      </p>
+      <div class="mobile-preview">
+        <div class="mobile-frame">
+          <div class="mobile-header">
+            <h2>음식 취향</h2>
+            <p>SQAF - 미식가 감성파</p>
+          </div>
+          <button class="btn-explore" onclick="toggleGrid('grid1')">🔍 다른 취향 탐색하기</button>
+          <div class="grid-4col" id="grid1">
+            <!-- 타입 카드들이 여기에 동적으로 생성됩니다 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 옵션 2: 가로 스크롤 -->
+    <div class="preview-section" id="tab2">
+      <h2 class="preview-title">옵션 2: 가로 스크롤 카드 뷰</h2>
+      <p class="preview-description">
+        가로로 스와이프 가능한 카드 형태로, 모바일 사용자에게 친숙한 인터페이스를 제공합니다. 
+        각 카드가 더 크게 보여 가독성이 좋습니다.
+      </p>
+      <div class="mobile-preview">
+        <div class="mobile-frame">
+          <div class="mobile-header">
+            <h2>음식 취향</h2>
+            <p>SQAF - 미식가 감성파</p>
+          </div>
+          <button class="btn-explore" onclick="toggleGrid('grid2')">🔍 다른 취향 탐색하기</button>
+          <div class="scroll-container" id="grid2" style="display: none;">
+            <div class="scroll-grid">
+              <!-- 타입 카드들이 여기에 동적으로 생성됩니다 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 옵션 3: 3열 그리드 -->
+    <div class="preview-section" id="tab3">
+      <h2 class="preview-title">옵션 3: 3열 그리드 (3x5 레이아웃)</h2>
+      <p class="preview-description">
+        3열로 배치하여 각 카드가 더 넓게 보입니다. 카드 내 텍스트가 더 읽기 쉽고, 
+        균형잡힌 레이아웃을 제공합니다.
+      </p>
+      <div class="mobile-preview">
+        <div class="mobile-frame">
+          <div class="mobile-header">
+            <h2>음식 취향</h2>
+            <p>SQAF - 미식가 감성파</p>
+          </div>
+          <button class="btn-explore" onclick="toggleGrid('grid3')">🔍 다른 취향 탐색하기</button>
+          <div class="grid-3col" id="grid3" style="display: none;">
+            <!-- 타입 카드들이 여기에 동적으로 생성됩니다 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 옵션 4: 아코디언 -->
+    <div class="preview-section" id="tab4">
+      <h2 class="preview-title">옵션 4: 아코디언 그룹핑</h2>
+      <p class="preview-description">
+        MBTI 축별로 그룹화하여 접었다 펼칠 수 있는 아코디언 형태로 제공합니다. 
+        사용자가 원하는 카테고리만 펼쳐서 볼 수 있어 효율적입니다.
+      </p>
+      <div class="mobile-preview">
+        <div class="mobile-frame">
+          <div class="mobile-header">
+            <h2>음식 취향</h2>
+            <p>SQAF - 미식가 감성파</p>
+          </div>
+          <button class="btn-explore" onclick="toggleGrid('grid4')">🔍 다른 취향 탐색하기</button>
+          <div id="grid4" style="display: none;">
+            <!-- 아코디언 그룹들이 여기에 동적으로 생성됩니다 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 옵션 5: 슬라이더 -->
+    <div class="preview-section" id="tab5">
+      <h2 class="preview-title">옵션 5: 슬라이더/캐러셀</h2>
+      <p class="preview-description">
+        페이지네이션 형태로 여러 페이지에 나누어 표시합니다. 
+        한 화면에 4x4 그리드로 보여주고, 화살표나 도트로 페이지를 넘길 수 있습니다.
+      </p>
+      <div class="mobile-preview">
+        <div class="mobile-frame">
+          <div class="mobile-header">
+            <h2>음식 취향</h2>
+            <p>SQAF - 미식가 감성파</p>
+          </div>
+          <button class="btn-explore" onclick="toggleGrid('grid5')">🔍 다른 취향 탐색하기</button>
+          <div id="grid5" style="display: none;">
+            <div class="carousel-container">
+              <button class="carousel-arrow prev" onclick="carouselPrev()">‹</button>
+              <div class="carousel-wrapper" id="carouselWrapper">
+                <!-- 캐러셀 페이지들이 여기에 동적으로 생성됩니다 -->
+              </div>
+              <button class="carousel-arrow next" onclick="carouselNext()">›</button>
+            </div>
+            <div class="carousel-nav" id="carouselNav">
+              <!-- 도트들이 여기에 동적으로 생성됩니다 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 옵션 6: 컴팩트 리스트 -->
+    <div class="preview-section" id="tab6">
+      <h2 class="preview-title">옵션 6: 컴팩트 리스트</h2>
+      <p class="preview-description">
+        세로로 나열된 리스트 형태로, 각 항목이 한 줄에 표시됩니다. 
+        스크롤이 필요하지만 모든 정보를 한눈에 볼 수 있습니다.
+      </p>
+      <div class="mobile-preview">
+        <div class="mobile-frame">
+          <div class="mobile-header">
+            <h2>음식 취향</h2>
+            <p>SQAF - 미식가 감성파</p>
+          </div>
+          <button class="btn-explore" onclick="toggleGrid('grid6')">🔍 다른 취향 탐색하기</button>
+          <div class="compact-list" id="grid6" style="display: none;">
+            <!-- 리스트 항목들이 여기에 동적으로 생성됩니다 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="desktop-info">
+      <h3>💡 구현 시 고려사항</h3>
+      <ul>
+        <li>모든 옵션은 모바일에서 더 나은 사용자 경험을 제공하도록 설계되었습니다.</li>
+        <li>현재 타입(SQAF)은 제외하고 15개의 타입이 표시됩니다.</li>
+        <li>각 카드를 클릭하면 타입 상세 모달이 열립니다.</li>
+        <li>반응형 디자인으로 다양한 모바일 화면 크기에 대응합니다.</li>
+        <li>CSS 미디어 쿼리를 사용하여 데스크톱과 모바일을 구분할 수 있습니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // MBTI 타입 데이터
+    const MBTI_TYPES = {
+      "SAPA": { "emoji": "🔥", "name": "도파민 추구 미식회장" },
+      "SAPO": { "emoji": "🍷", "name": "나를 위한 마라카세" },
+      "SACA": { "emoji": "📸", "name": "가성비 핫플 사냥꾼" },
+      "SACO": { "emoji": "🤳", "name": "프로 혼밥 인스타그래머" },
+      "SOPA": { "emoji": "⚡", "name": "속전속결 맛집 파괴자" },
+      "SOPO": { "emoji": "🛵", "name": "1인분 10만원 배달러" },
+      "SOCA": { "emoji": "🍖", "name": "무한리필 원정대장" },
+      "SOCO": { "emoji": "🏪", "name": "편의점 만렙 귀차니스트" },
+      "MAPA": { "emoji": "🥗", "name": "청담동 브런치 모임장" },
+      "MAPO": { "emoji": "🧘", "name": "고독한 미슐랭 탐험가" },
+      "MACA": { "emoji": "🧸", "name": "연남동 감성 지킴이" },
+      "MACO": { "emoji": "🌿", "name": "숨은 골목 맛집 발굴러" },
+      "MOPA": { "emoji": "🧭", "name": "실패 없는 맛집 네비게이션" },
+      "MOPO": { "emoji": "💼", "name": "성공한 자의 간편식" },
+      "MOCA": { "emoji": "🍚", "name": "기사식당 섭외 담당" },
+      "MOCO": { "emoji": "🥪", "name": "삼각김밥 소믈리에" }
+    };
+
+    const currentType = "SQAF"; // 현재 타입 (제외됨)
+    const otherTypes = Object.keys(MBTI_TYPES).filter(type => type !== currentType);
+
+    // 탭 전환
+    function showTab(tabNumber) {
+      document.querySelectorAll('.preview-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+      });
+      
+      document.getElementById(`tab${tabNumber}`).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // 그리드 토글
+    function toggleGrid(gridId) {
+      const grid = document.getElementById(gridId);
+      if (grid.style.display === 'none' || !grid.style.display) {
+        grid.style.display = grid.classList.contains('scroll-container') || grid.classList.contains('compact-list') ? 'block' : 'grid';
+        renderGrid(gridId);
+      } else {
+        grid.style.display = 'none';
+      }
+    }
+
+    // 그리드 렌더링
+    function renderGrid(gridId) {
+      const grid = document.getElementById(gridId);
+      
+      if (gridId === 'grid1') {
+        // 4열 그리드
+        grid.innerHTML = otherTypes.map(typeCode => {
+          const type = MBTI_TYPES[typeCode];
+          return `
+            <div class="type-card" onclick="showTypeDetail('${typeCode}')">
+              <div class="type-code">${typeCode}</div>
+              <div class="type-name">${type.name}</div>
+            </div>
+          `;
+        }).join('');
+      } else if (gridId === 'grid2') {
+        // 가로 스크롤
+        const scrollGrid = grid.querySelector('.scroll-grid');
+        scrollGrid.innerHTML = otherTypes.map(typeCode => {
+          const type = MBTI_TYPES[typeCode];
+          return `
+            <div class="scroll-card" onclick="showTypeDetail('${typeCode}')">
+              <div class="scroll-code">${typeCode}</div>
+              <div class="scroll-name">${type.name}</div>
+            </div>
+          `;
+        }).join('');
+      } else if (gridId === 'grid3') {
+        // 3열 그리드
+        grid.innerHTML = otherTypes.map(typeCode => {
+          const type = MBTI_TYPES[typeCode];
+          return `
+            <div class="type-card-3col" onclick="showTypeDetail('${typeCode}')">
+              <div class="type-code-3col">${typeCode}</div>
+              <div class="type-name-3col">${type.name}</div>
+            </div>
+          `;
+        }).join('');
+      } else if (gridId === 'grid4') {
+        // 아코디언
+        const groups = {
+          'S (Strong)': otherTypes.filter(t => t.startsWith('S')),
+          'M (Mild)': otherTypes.filter(t => t.startsWith('M'))
+        };
+        
+        grid.innerHTML = Object.entries(groups).map(([groupName, types]) => {
+          return `
+            <div class="accordion-group">
+              <div class="accordion-header" onclick="toggleAccordion(this)">
+                ${groupName} (${types.length}개)
+                <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                ${types.map(typeCode => {
+                  const type = MBTI_TYPES[typeCode];
+                  return `
+                    <div class="accordion-card" onclick="showTypeDetail('${typeCode}')">
+                      <div class="accordion-code">${typeCode}</div>
+                      <div class="accordion-name">${type.name}</div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else if (gridId === 'grid5') {
+        // 슬라이더
+        const itemsPerPage = 16;
+        const pages = Math.ceil(otherTypes.length / itemsPerPage);
+        const wrapper = document.getElementById('carouselWrapper');
+        const nav = document.getElementById('carouselNav');
+        
+        wrapper.innerHTML = '';
+        nav.innerHTML = '';
+        
+        for (let i = 0; i < pages; i++) {
+          const page = document.createElement('div');
+          page.className = 'carousel-page';
+          const startIdx = i * itemsPerPage;
+          const endIdx = Math.min(startIdx + itemsPerPage, otherTypes.length);
+          
+          page.innerHTML = otherTypes.slice(startIdx, endIdx).map(typeCode => {
+            const type = MBTI_TYPES[typeCode];
+            return `
+              <div class="type-card" onclick="showTypeDetail('${typeCode}')">
+                <div class="type-code">${typeCode}</div>
+                <div class="type-name">${type.name}</div>
+              </div>
+            `;
+          }).join('');
+          
+          wrapper.appendChild(page);
+          
+          const dot = document.createElement('div');
+          dot.className = `carousel-dot ${i === 0 ? 'active' : ''}`;
+          dot.onclick = () => goToPage(i);
+          nav.appendChild(dot);
+        }
+        
+        currentPage = 0;
+      } else if (gridId === 'grid6') {
+        // 컴팩트 리스트
+        grid.innerHTML = otherTypes.map(typeCode => {
+          const type = MBTI_TYPES[typeCode];
+          return `
+            <div class="compact-item" onclick="showTypeDetail('${typeCode}')">
+              <div class="compact-left">
+                <div class="compact-code">${typeCode}</div>
+                <div class="compact-name">${type.name}</div>
+              </div>
+              <div class="compact-arrow">›</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // 아코디언 토글
+    function toggleAccordion(header) {
+      header.classList.toggle('active');
+      const content = header.nextElementSibling;
+      content.classList.toggle('show');
+    }
+
+    // 캐러셀 네비게이션
+    let currentPage = 0;
+    const itemsPerPage = 16;
+    const totalPages = Math.ceil(otherTypes.length / itemsPerPage);
+
+    function carouselPrev() {
+      currentPage = (currentPage - 1 + totalPages) % totalPages;
+      updateCarousel();
+    }
+
+    function carouselNext() {
+      currentPage = (currentPage + 1) % totalPages;
+      updateCarousel();
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      updateCarousel();
+    }
+
+    function updateCarousel() {
+      const wrapper = document.getElementById('carouselWrapper');
+      wrapper.style.transform = `translateX(-${currentPage * 100}%)`;
+      
+      document.querySelectorAll('.carousel-dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === currentPage);
+      });
+    }
+
+    // 타입 상세 보기
+    function showTypeDetail(typeCode) {
+      const type = MBTI_TYPES[typeCode];
+      alert(`${typeCode} - ${type.name}\n\n${type.emoji} ${type.name}의 상세 정보를 보여줍니다.`);
+    }
+
+    // 페이지 로드 시 첫 번째 그리드 렌더링
+    window.addEventListener('DOMContentLoaded', () => {
+      renderGrid('grid1');
+    });
+  </script>
+</body>
+</html>

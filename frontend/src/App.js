@@ -13,6 +13,7 @@ import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import MyProfilePage from './pages/MyProfilePage';
 import UserProfilePage from './pages/UserProfilePage';
+import MBTIDetailPage from './pages/MBTIDetailPage';
 import TasteTestPage from './pages/TasteTestPage';
 import TasteTestResultPage from './pages/TasteTestResultPage';
 import { useKakaoLoader } from 'react-kakao-maps-sdk';
@@ -72,6 +73,14 @@ function App() {
             element={
               <PrivateRoute>
                 <MyProfilePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile/mbti"
+            element={
+              <PrivateRoute>
+                <MBTIDetailPage />
               </PrivateRoute>
             }
           />

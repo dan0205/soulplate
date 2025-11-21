@@ -24,12 +24,7 @@ const MyProfilePage = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showDeleteTestConfirm, setShowDeleteTestConfirm] = useState(false);
-  const [showTypeModal, setShowTypeModal] = useState(false);
-  const [selectedType, setSelectedType] = useState(null);
-  const [showOtherTypes, setShowOtherTypes] = useState(false);
-  const [showRetestOptions, setShowRetestOptions] = useState(false);
   const [visibleReviewCount, setVisibleReviewCount] = useState(5);
-  const [showProbability, setShowProbability] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -92,11 +87,6 @@ const MyProfilePage = () => {
     return features.slice(0, 5);
   };
 
-  const handleDeleteTest = () => {
-    setShowDeleteTestConfirm(true);
-    setShowRetestOptions(false);
-  };
-
   const handleDeleteTestConfirm = async () => {
     try {
       await tasteTestAPI.delete();
@@ -113,20 +103,6 @@ const MyProfilePage = () => {
     }
   };
 
-  const toggleOtherTypes = () => {
-    setShowOtherTypes(!showOtherTypes);
-  };
-
-  const openTypeModal = (typeCode) => {
-    setSelectedType(typeCode);
-    setShowTypeModal(true);
-  };
-
-  const closeTypeModal = () => {
-    setShowTypeModal(false);
-    setSelectedType(null);
-  };
-
   const handleLoadMoreReviews = (e) => {
     e.preventDefault();
     if (visibleReviewCount < reviews.length) {
@@ -138,25 +114,6 @@ const MyProfilePage = () => {
       setVisibleReviewCount(prev => prev + 5);
     }
   };
-
-  const toggleRetestOptions = () => {
-    setShowRetestOptions(!showRetestOptions);
-  };
-
-  const handleStartQuickTest = () => {
-    setShowRetestOptions(false);
-    navigate('/taste-test', { state: { testType: 'quick' } });
-  };
-
-  const handleStartDeepTest = () => {
-    setShowRetestOptions(false);
-    navigate('/taste-test', { state: { testType: 'deep' } });
-  };
-
-  // 다른 취향 타입 목록 생성 (현재 타입 제외)
-  const otherTypes = Object.keys(MBTI_TYPE_DESCRIPTIONS).filter(
-    type => type !== profile?.taste_test_mbti_type
-  );
 
   if (loading) {
     return (
@@ -248,145 +205,11 @@ const MyProfilePage = () => {
                 )}
                 
                 <div className="mbti-button-group">
-                  {profile.taste_test_axis_scores && (
-                    <button className="btn-detail-view" onClick={() => setShowProbability(!showProbability)}>
-                      <i className="fas fa-chart-bar"></i> {showProbability ? '간단히 보기' : '자세히 보기'}
-                    </button>
-                  )}
-                  <button className="btn-retest-inline" onClick={toggleRetestOptions}>
-                    🔄 다시 테스트하기
-                  </button>
-                </div>
-                
-                <div className={`retest-options-container ${showRetestOptions ? 'show' : ''}`}>
-                  <button className="retest-option-btn" onClick={handleStartQuickTest}>
-                    ⚡ 간단 테스트 (8문항, ~1분)
-                  </button>
-                  <button className="retest-option-btn" onClick={handleStartDeepTest}>
-                    🔍 심화 테스트 (20문항, ~3-4분)
+                  <button className="btn-detail-view" onClick={() => navigate('/profile/mbti')}>
+                    <i className="fas fa-info-circle"></i> 자세히 보기
                   </button>
                 </div>
               </div>
-            </div>
-
-            {showProbability && profile.taste_test_axis_scores && (
-              <div className="probability-view">
-                <h3 className="probability-title">🎯 내 음식 취향 비율 분석</h3>
-                
-                <div className="axis-item">
-                  <div className="axis-name">맛 강도 (Flavor Intensity)</div>
-                  <div className="axis-bar-container">
-                    <div 
-                      className="axis-left" 
-                      style={{ width: `${profile.taste_test_axis_scores.flavor_intensity.S}%` }}
-                    >
-                      S {profile.taste_test_axis_scores.flavor_intensity.S}%
-                    </div>
-                    <div 
-                      className="axis-right" 
-                      style={{ width: `${profile.taste_test_axis_scores.flavor_intensity.M}%` }}
-                    >
-                      M {profile.taste_test_axis_scores.flavor_intensity.M}%
-                    </div>
-                  </div>
-                  <div className="axis-labels">
-                    <span>강렬한 맛 (Strong)</span>
-                    <span>부드러운 맛 (Mild)</span>
-                  </div>
-                </div>
-
-                <div className="axis-item">
-                  <div className="axis-name">식사 환경 (Dining Environment)</div>
-                  <div className="axis-bar-container">
-                    <div 
-                      className="axis-left" 
-                      style={{ width: `${profile.taste_test_axis_scores.dining_environment.A}%` }}
-                    >
-                      A {profile.taste_test_axis_scores.dining_environment.A}%
-                    </div>
-                    <div 
-                      className="axis-right" 
-                      style={{ width: `${profile.taste_test_axis_scores.dining_environment.O}%` }}
-                    >
-                      O {profile.taste_test_axis_scores.dining_environment.O}%
-                    </div>
-                  </div>
-                  <div className="axis-labels">
-                    <span>분위기 중시 (Atmosphere)</span>
-                    <span>효율 중시 (Optimized)</span>
-                  </div>
-                </div>
-
-                <div className="axis-item">
-                  <div className="axis-name">가격 민감도 (Price Sensitivity)</div>
-                  <div className="axis-bar-container">
-                    <div 
-                      className="axis-left" 
-                      style={{ width: `${profile.taste_test_axis_scores.price_sensitivity.P}%` }}
-                    >
-                      P {profile.taste_test_axis_scores.price_sensitivity.P}%
-                    </div>
-                    <div 
-                      className="axis-right" 
-                      style={{ width: `${profile.taste_test_axis_scores.price_sensitivity.C}%` }}
-                    >
-                      C {profile.taste_test_axis_scores.price_sensitivity.C}%
-                    </div>
-                  </div>
-                  <div className="axis-labels">
-                    <span>프리미엄 선호 (Premium)</span>
-                    <span>가성비 중시 (Cost-effective)</span>
-                  </div>
-                </div>
-
-                <div className="axis-item">
-                  <div className="axis-name">동행 선호도 (Dining Company)</div>
-                  <div className="axis-bar-container">
-                    <div 
-                      className="axis-left" 
-                      style={{ width: `${profile.taste_test_axis_scores.dining_company.A}%` }}
-                    >
-                      A {profile.taste_test_axis_scores.dining_company.A}%
-                    </div>
-                    <div 
-                      className="axis-right" 
-                      style={{ width: `${profile.taste_test_axis_scores.dining_company.O}%` }}
-                    >
-                      O {profile.taste_test_axis_scores.dining_company.O}%
-                    </div>
-                  </div>
-                  <div className="axis-labels">
-                    <span>함께 (All together)</span>
-                    <span>혼자 (On my own)</span>
-                  </div>
-                </div>
-
-                <button className="btn-explore-types" onClick={toggleOtherTypes}>
-                  🔍 다른 취향 탐색하기
-                </button>
-              </div>
-            )}
-
-            {!showProbability && (
-              <button className="btn-explore-types" onClick={toggleOtherTypes} style={{ marginTop: '20px' }}>
-                🔍 다른 취향 탐색하기
-              </button>
-            )}
-
-            <div className={`other-types-grid ${showOtherTypes ? 'show' : ''}`}>
-              {otherTypes.map((typeCode) => {
-                const typeInfo = getMBTIInfo(typeCode);
-                return (
-                  <div
-                    key={typeCode}
-                    className="other-type-card"
-                    onClick={() => openTypeModal(typeCode)}
-                  >
-                    <div className="other-type-code">{typeCode}</div>
-                    <div className="other-type-name">{typeInfo.name}</div>
-                  </div>
-                );
-              })}
             </div>
           </>
         ) : (
@@ -414,9 +237,8 @@ const MyProfilePage = () => {
               </button>
             </div>
           </div>
-        )}
+      )}
       </div>
-
 
       <div className="reviews-section">
         <h2>내가 작성한 리뷰 ({reviews.length})</h2>
@@ -470,67 +292,6 @@ const MyProfilePage = () => {
           </>
         )}
       </div>
-
-      {/* 타입 상세 모달 */}
-      {showTypeModal && selectedType && (
-        <div 
-          className={`type-detail-modal ${showTypeModal ? 'show' : ''}`}
-          onClick={(e) => {
-            if (e.target.classList.contains('type-detail-modal')) {
-              closeTypeModal();
-            }
-          }}
-        >
-          <div className="type-detail-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeTypeModal}>×</button>
-            <div className="modal-mbti-box">
-              <div className="modal-mbti-header">
-                <div className="modal-mbti-type">{selectedType}</div>
-                <div className="modal-mbti-title">
-                  <span className="modal-mbti-emoji">{getMBTIInfo(selectedType).emoji || '🍽️'}</span>
-                  <span className="modal-mbti-name">{getMBTIInfo(selectedType).name}</span>
-                </div>
-                {getMBTIInfo(selectedType).catchphrase && (
-                  <div className="modal-mbti-catchphrase">"{getMBTIInfo(selectedType).catchphrase}"</div>
-                )}
-                <div className="modal-mbti-description">
-                  {getMBTIInfo(selectedType).description}
-                </div>
-              </div>
-              
-              {getMBTIInfo(selectedType).recommend && getMBTIInfo(selectedType).recommend.length > 0 && (
-                <div className="modal-info-section">
-                  <div className="modal-info-title modal-recommend">
-                    <i className="fas fa-thumbs-up"></i> 추천 메뉴 & 장소
-                  </div>
-                  <div className="modal-info-content">
-                    <ul>
-                      {getMBTIInfo(selectedType).recommend.map((rec, idx) => (
-                        <li key={idx} dangerouslySetInnerHTML={{ __html: rec.replace(': ', ':</strong> ').replace(/^([^:]+):/, '<strong>$1:</strong>') }} />
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-              
-              {getMBTIInfo(selectedType).avoid && getMBTIInfo(selectedType).avoid.length > 0 && (
-                <div className="modal-info-section">
-                  <div className="modal-info-title modal-avoid">
-                    <i className="fas fa-ban"></i> 피해야 할 식당
-                  </div>
-                  <div className="modal-info-content">
-                    <ul>
-                      {getMBTIInfo(selectedType).avoid.map((item, idx) => (
-                        <li key={idx}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 삭제 확인 모달 */}
       <ConfirmModal
