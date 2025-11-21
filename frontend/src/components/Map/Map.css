@@ -201,6 +201,16 @@ body:has(.snap-100) .floating-search-bar {
   z-index: 1003;
 }
 
+/* 하단 시트의 실제 오버레이 z-index 명시 */
+[data-rsbs-overlay] {
+  z-index: 999 !important;
+}
+
+/* 100% 확장 시 오버레이 z-index 상승 */
+[data-rsbs-overlay]:has(.snap-100) {
+  z-index: 1003 !important;
+}
+
 /* 바텀시트 터치 이벤트 제어 - 세로 드래그만 허용하여 지도 움직임 방지 */
 [data-rsbs-overlay],
 [data-rsbs-backdrop],
