@@ -79,6 +79,7 @@ class UserProfileResponse(BaseModel):
     taste_test_completed: bool = False
     taste_test_type: Optional[str] = None  # 'quick' or 'deep'
     taste_test_mbti_type: Optional[str] = None  # 'ABCD' 형태
+    taste_test_axis_scores: Optional[dict] = None  # 각 축의 확률
     
     class Config:
         from_attributes = True 

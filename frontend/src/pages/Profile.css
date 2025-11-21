@@ -607,7 +607,7 @@
 }
 
 .other-type-card {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  background: #FF6B6B;
   padding: 16px;
   border-radius: 12px;
   cursor: pointer;
@@ -619,7 +619,7 @@
 }
 
 .other-type-card:hover {
-  background: linear-gradient(135deg, #FF5252 0%, #FF7E43 100%);
+  background: #FF5252;
   border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
@@ -683,19 +683,22 @@
   width: 100%;
   padding: 10px 16px;
   margin-bottom: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
+  background: white;
+  color: #333;
   background: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
 .retest-option-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #f5f5f5;
+  border-color: #FF6B6B;
 }
 
 .retest-option-btn:active {
@@ -983,7 +986,7 @@
 }
 
 .mbti-card-header-detailed {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  background: #FF6B6B;
   color: white;
   padding: 30px;
   text-align: center;
@@ -1067,14 +1070,16 @@
 
 .mbti-info-content ul {
   list-style: none;
-  padding-left: 0;
+  padding-left: 20px;
   margin: 0;
+  text-align: left;
 }
 
 .mbti-info-content li {
   padding: 6px 0;
   line-height: 1.6;
   color: #333;
+  text-align: left;
 }
 
 .mbti-info-content li strong {
@@ -1105,7 +1110,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  background: #FF6B6B;
   color: white;
   box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
   display: flex;
@@ -1115,28 +1120,32 @@
 }
 
 .btn-detail-view:hover {
+  background: #FF5252;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
 }
 
 .mbti-card-body-detailed .btn-retest-inline {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  background: #FF6B6B;
   color: white;
   border: none;
+  display: inline-block;
+  width: auto;
+  padding: 12px 24px;
 }
 
 .mbti-card-body-detailed .btn-retest-inline:hover {
-  background: linear-gradient(135deg, #FF5252 0%, #FF7E43 100%);
+  background: #FF5252;
 }
 
 .btn-explore-types {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%) !important;
+  background: #FF6B6B !important;
   color: white !important;
   border: none !important;
 }
 
 .btn-explore-types:hover {
-  background: linear-gradient(135deg, #FF5252 0%, #FF7E43 100%) !important;
+  background: #FF5252 !important;
 }
 
 /* 확률 뷰 */
@@ -1230,7 +1239,7 @@
 }
 
 .modal-mbti-header {
-  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  background: #FF6B6B;
   color: white;
   padding: 30px;
   text-align: center;
@@ -1259,10 +1268,13 @@
 }
 
 .modal-info-section {
-  margin-bottom: 20px;
-  padding: 0 30px;
+  margin-bottom: 0;
+  padding: 20px 30px;
   background: white;
-  padding-top: 20px;
+}
+
+.modal-info-section:first-of-type {
+  padding-top: 30px;
 }
 
 .modal-info-section:last-of-type {
@@ -1299,14 +1311,16 @@
 
 .modal-info-content ul {
   list-style: none;
-  padding-left: 0;
+  padding-left: 20px;
   margin: 0;
+  text-align: left;
 }
 
 .modal-info-content li {
   padding: 6px 0;
   line-height: 1.6;
   color: #333;
+  text-align: left;
 }
 
 .modal-info-content li strong {

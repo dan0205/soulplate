@@ -550,7 +550,8 @@ async def get_my_profile(
         absa_features=current_user.absa_features,
         taste_test_completed=taste_test_completed,
         taste_test_type=taste_test_type,
-        taste_test_mbti_type=mbti_type
+        taste_test_mbti_type=mbti_type,
+        taste_test_axis_scores=current_user.taste_test_axis_scores
     )
 
 @app.get("/api/users/{user_id}/profile", response_model=schemas.UserProfileResponse)
@@ -576,7 +577,8 @@ async def get_user_profile(
         absa_features=user.absa_features,
         taste_test_completed=taste_test_completed,
         taste_test_type=taste_test_type,
-        taste_test_mbti_type=mbti_type
+        taste_test_mbti_type=mbti_type,
+        taste_test_axis_scores=user.taste_test_axis_scores
     )
 
 @app.get("/api/users/{user_id}/reviews", response_model=List[schemas.UserReviewResponse])
