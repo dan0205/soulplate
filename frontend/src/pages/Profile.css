@@ -607,19 +607,22 @@
 }
 
 .other-type-card {
-  background: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
   padding: 16px;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
   border: 2px solid transparent;
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
 }
 
 .other-type-card:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: linear-gradient(135deg, #FF5252 0%, #FF7E43 100%);
   border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
 }
 
 .other-type-card:active {
@@ -631,12 +634,14 @@
   font-weight: 700;
   margin-bottom: 8px;
   letter-spacing: 2px;
+  color: white;
 }
 
 .other-type-name {
   font-size: 13px;
-  opacity: 0.9;
+  opacity: 0.95;
   line-height: 1.4;
+  color: white;
 }
 
 /* 재테스트 버튼 (음식 취향 섹션 내부) */
@@ -973,6 +978,8 @@
 .mbti-card-detailed {
   border: none !important;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  background: transparent !important;
+  padding: 0 !important;
 }
 
 .mbti-card-header-detailed {
@@ -981,6 +988,7 @@
   padding: 30px;
   text-align: center;
   border-radius: 16px 16px 0 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .mbti-type-badge {
@@ -1024,6 +1032,8 @@
   padding: 25px;
   background: white;
   border-radius: 0 0 16px 16px;
+  color: #333;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .mbti-info-section {
@@ -1052,6 +1062,7 @@
   padding: 15px;
   border-radius: 10px;
   border: 1px solid #eee;
+  color: #333;
 }
 
 .mbti-info-content ul {
@@ -1063,6 +1074,11 @@
 .mbti-info-content li {
   padding: 6px 0;
   line-height: 1.6;
+  color: #333;
+}
+
+.mbti-info-content li strong {
+  color: #333;
 }
 
 .mbti-info-content li:before {
@@ -1101,6 +1117,26 @@
 .btn-detail-view:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.mbti-card-body-detailed .btn-retest-inline {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  color: white;
+  border: none;
+}
+
+.mbti-card-body-detailed .btn-retest-inline:hover {
+  background: linear-gradient(135deg, #FF5252 0%, #FF7E43 100%);
+}
+
+.btn-explore-types {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-explore-types:hover {
+  background: linear-gradient(135deg, #FF5252 0%, #FF7E43 100%) !important;
 }
 
 /* 확률 뷰 */
@@ -1183,13 +1219,24 @@
 }
 
 /* 모달 상세 스타일 */
+.type-detail-content {
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.modal-mbti-box {
+  padding: 0 !important;
+  background: transparent !important;
+}
+
 .modal-mbti-header {
   background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
   color: white;
   padding: 30px;
   text-align: center;
   border-radius: 16px 16px 0 0;
-  margin: -20px -20px 20px -20px;
+  margin: 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .modal-mbti-title {
@@ -1213,6 +1260,15 @@
 
 .modal-info-section {
   margin-bottom: 20px;
+  padding: 0 30px;
+  background: white;
+  padding-top: 20px;
+}
+
+.modal-info-section:last-of-type {
+  padding-bottom: 30px;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 .modal-info-title {
@@ -1222,6 +1278,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  color: #333;
 }
 
 .modal-recommend {
@@ -1237,6 +1294,7 @@
   padding: 15px;
   border-radius: 10px;
   border: 1px solid #eee;
+  color: #333;
 }
 
 .modal-info-content ul {
@@ -1248,6 +1306,11 @@
 .modal-info-content li {
   padding: 6px 0;
   line-height: 1.6;
+  color: #333;
+}
+
+.modal-info-content li strong {
+  color: #333;
 }
 
 .modal-info-content li:before {
