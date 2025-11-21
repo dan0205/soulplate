@@ -8,6 +8,9 @@
   height: 100dvh; /* 최신 브라우저 */
   background: var(--bg-primary);
   overflow: hidden; /* 스크롤 방지 */
+  position: fixed; /* 오버스크롤 완전 차단 */
+  top: 0;
+  left: 0;
 }
 
 /* 메인 영역 (모바일) */

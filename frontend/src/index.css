@@ -68,9 +68,9 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
-  overflow: hidden; /* 전체 페이지 스크롤 방지 */
-  position: fixed; /* 오버스크롤 완전 차단 */
+  min-height: 100%;
+  overflow-x: hidden; /* 가로 스크롤만 방지 */
+  overflow-y: auto; /* 세로 스크롤 허용 */
 }
 
 body {
@@ -86,8 +86,7 @@ body {
 
 #root {
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
 }
 
 code {
