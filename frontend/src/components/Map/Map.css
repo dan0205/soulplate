@@ -191,6 +191,21 @@ body:has(.snap-100) .floating-search-bar {
   }
 }
 
+/* reach-portal의 z-index 제한 (하단 시트가 모달 위로 올라오지 않도록) */
+reach-portal {
+  z-index: 999 !important;
+}
+
+/* data-rsbs-root의 z-index 명시 */
+[data-rsbs-root] {
+  z-index: 999 !important;
+}
+
+/* data-rsbs-root가 snap-100을 포함할 때만 z-index 상승 */
+[data-rsbs-root]:has(.snap-100) {
+  z-index: 1003 !important;
+}
+
 /* 하단 시트 스타일 */
 .map-bottom-sheet {
   z-index: 999;
