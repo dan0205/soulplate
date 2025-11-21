@@ -3,7 +3,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { userAPI, tasteTestAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +14,7 @@ import './Profile.css';
 
 const MyProfilePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   
   const [profile, setProfile] = useState(null);
@@ -31,6 +32,26 @@ const MyProfilePage = () => {
     loadReviews(0, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 취향 테스트 완료 후 스크롤 및 하이라이트
+  useEffect(() => {
+    if (location.state?.scrollToMbti) {
+      setTimeout(() => {
+        const mbtiSection = document.querySelector('.taste-test-section');
+        if (mbtiSection) {
+          mbtiSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // 하이라이트 효과
+          if (location.state?.showResult) {
+            mbtiSection.classList.add('highlight-result');
+            setTimeout(() => {
+              mbtiSection.classList.remove('highlight-result');
+            }, 2000);
+          }
+        }
+      }, 300);
+    }
+  }, [location.state]);
 
   const loadProfile = async () => {
     try {

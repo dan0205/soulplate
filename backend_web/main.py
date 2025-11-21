@@ -31,7 +31,6 @@ from database import engine, get_db, SessionLocal
 from taste_test_questions import (
     QUICK_TEST_QUESTIONS, 
     DEEP_TEST_QUESTIONS,
-    answers_to_absa,
     calculate_mbti_type,
     MBTI_TYPE_DESCRIPTIONS
 )
@@ -1511,14 +1510,15 @@ async def get_taste_test_questions(test_type: str = "quick"):
     else:
         raise HTTPException(status_code=400, detail="Invalid test_type. Use 'quick' or 'deep'")
     
-    # absa_mapping 제외하고 반환 (클라이언트에 불필요)
+    # 클라이언트에 필요한 정보만 반환
     simplified_questions = []
     for q in questions:
         simplified_questions.append({
             "id": q["id"],
-            "aspect": q["aspect"],
+            "axis": q["axis"],
+            "section": q["section"],
             "question": q["question"],
-            "labels": q["labels"]
+            "options": q["options"]
         })
     
     return {
@@ -1539,7 +1539,7 @@ async def submit_taste_test(
     if submission.test_type not in ["quick", "deep"]:
         raise HTTPException(status_code=400, detail="Invalid test_type")
     
-    expected_count = 8 if submission.test_type == "quick" else 20
+    expected_count = 8 if submission.test_type == "quick" else 24
     if len(submission.answers) != expected_count:
         raise HTTPException(
             status_code=400, 
@@ -1552,15 +1552,17 @@ async def submit_taste_test(
             raise HTTPException(status_code=400, detail="Answers must be between 1 and 5")
     
     try:
-        # 1. 답변을 ABSA 특징으로 변환
-        absa_features = answers_to_absa(submission.answers, submission.test_type)
-        logger.info(f"Taste test ABSA features generated: {len(absa_features)} features")
+        # 1. MBTI 타입, 확률, 합성 ABSA를 모두 계산
+        from backend_web.taste_test_questions import calculate_mbti_with_probabilities_and_absa
+        result = calculate_mbti_with_probabilities_and_absa(
+            submission.answers,
+            submission.test_type
+        )
+        mbti_type = result["mbti_type"]
+        axis_scores = result["axis_scores"]
+        absa_features = result["absa_features"]  # 합성된 ABSA (Cold Start 해결)
         
-        # 2. MBTI 타입과 확률 계산
-        from backend_web.taste_test_questions import calculate_mbti_with_probabilities
-        mbti_result = calculate_mbti_with_probabilities(absa_features)
-        mbti_type = mbti_result["type"]
-        axis_scores = mbti_result["axis_scores"]
+        logger.info(f"Taste test calculated: MBTI={mbti_type}, ABSA features={len(absa_features)}")
         
         type_info = MBTI_TYPE_DESCRIPTIONS.get(mbti_type, {
             "emoji": "",

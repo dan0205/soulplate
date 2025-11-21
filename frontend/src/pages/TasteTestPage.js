@@ -103,11 +103,15 @@ function TasteTestPage() {
         answers: answers
       });
       
-      // 결과 페이지로 이동 (히스토리 스택에서 테스트 페이지 제거)
-      navigate('/taste-test/result', { 
-        state: { result: response.data, testType },
-        replace: true
-      });
+      toast.success('취향 테스트가 완료되었습니다! 🎉');
+      
+      // 0.5초 후 마이페이지로 리다이렉트 (MBTI 상세 페이지로 스크롤)
+      setTimeout(() => {
+        navigate('/profile', { 
+          state: { scrollToMbti: true, showResult: true },
+          replace: true
+        });
+      }, 500);
     } catch (err) {
       console.error('테스트 제출 실패:', err);
       toast.dismiss();
@@ -164,6 +168,23 @@ function TasteTestPage() {
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
+  // 섹션 정보 가져오기
+  const getSectionInfo = (questionIndex) => {
+    if (testType === 'quick') {
+      if (questionIndex < 2) return { number: 1, title: '맛의 강도', emoji: '🌶️' };
+      if (questionIndex < 4) return { number: 2, title: '분위기 vs 효율', emoji: '✨' };
+      if (questionIndex < 6) return { number: 3, title: '비용 기준', emoji: '💰' };
+      return { number: 4, title: '식사 인원', emoji: '👥' };
+    } else {
+      if (questionIndex < 6) return { number: 1, title: '맛의 강도', emoji: '🌶️' };
+      if (questionIndex < 12) return { number: 2, title: '분위기 vs 효율', emoji: '✨' };
+      if (questionIndex < 18) return { number: 3, title: '비용 기준', emoji: '💰' };
+      return { number: 4, title: '식사 인원', emoji: '👥' };
+    }
+  };
+
+  const currentSection = getSectionInfo(currentQuestionIndex);
+
   return (
     <div className="taste-test-container">
       <div className="taste-test-header">
@@ -171,6 +192,11 @@ function TasteTestPage() {
         <div className="test-type-badge">
           {testType === 'quick' ? '⚡ 간단 테스트' : '🔍 심화 테스트'}
         </div>
+      </div>
+
+      {/* 섹션 표시 */}
+      <div className="section-indicator">
+        {currentSection.emoji} Section {currentSection.number}: {currentSection.title}
       </div>
 
       <div className="progress-bar">
@@ -184,29 +210,16 @@ function TasteTestPage() {
         <div className="question-number">Q{currentQuestionIndex + 1}</div>
         <h3 className="question-text">{currentQuestion.question}</h3>
 
-        <div className="likert-scale">
-          {[1, 2, 3, 4, 5].map((value) => (
+        {/* 텍스트 기반 선택지 */}
+        <div className="options-list">
+          {currentQuestion.options && currentQuestion.options.map((option, index) => (
             <button
-              key={value}
-              className={`likert-button ${answers[currentQuestionIndex] === value ? 'selected' : ''}`}
-              onClick={() => handleAnswer(value)}
-            >
-              <div className="likert-value">{value}</div>
-              <div className="likert-label">{currentQuestion.labels[value - 1]}</div>
-            </button>
-          ))}
-        </div>
-
-        {/* 이모지 버전 (선택적) */}
-        <div className="likert-emoji-scale" style={{ display: 'none' }}>
-          {['😞', '😕', '😐', '🙂', '😍'].map((emoji, index) => (
-            <button
-              key={index + 1}
-              className={`likert-emoji-button ${answers[currentQuestionIndex] === index + 1 ? 'selected' : ''}`}
+              key={index}
+              className={`option-button ${answers[currentQuestionIndex] === index + 1 ? 'selected' : ''}`}
               onClick={() => handleAnswer(index + 1)}
             >
-              <span className="emoji">{emoji}</span>
-              <div className="likert-label">{currentQuestion.labels[index]}</div>
+              <span className="option-number">{index + 1}</span>
+              <span className="option-text">{option}</span>
             </button>
           ))}
         </div>
