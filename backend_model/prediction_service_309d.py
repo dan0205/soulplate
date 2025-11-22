@@ -65,8 +65,8 @@ class PredictionService:
         
         logger.info(f"[Scaler] 로딩: {scaler_path}")
         
-        # HuggingFace에서 다운로드 시도
-        hf_path = ensure_model_file("models/scaler_params_309d.json", scaler_path)
+        # HuggingFace에서 다운로드 시도 (루트 디렉토리에서)
+        hf_path = ensure_model_file("scaler_params_309d.json", scaler_path)
         
         if hf_path and os.path.exists(hf_path):
             with open(hf_path, 'r') as f:
@@ -100,7 +100,7 @@ class PredictionService:
         # DeepFM 로딩
         try:
             deepfm_path = 'models/deepfm_ranking_309d.pth'
-            hf_path = ensure_model_file("models/deepfm_ranking_309d.pth", deepfm_path)
+            hf_path = ensure_model_file("deepfm_ranking_309d.pth", deepfm_path)
             actual_path = hf_path if hf_path else deepfm_path
             
             self.deepfm_model = DeepFM(input_dim=309, embed_dim=16, hidden_dims=[256, 128, 64])
@@ -115,7 +115,7 @@ class PredictionService:
         # Multi-Tower 로딩
         try:
             mt_path = 'models/multitower_ranking_309d.pth'
-            hf_path = ensure_model_file("models/multitower_ranking_309d.pth", mt_path)
+            hf_path = ensure_model_file("multitower_ranking_309d.pth", mt_path)
             actual_path = hf_path if hf_path else mt_path
             
             self.multitower_model = MultiTowerModel(
