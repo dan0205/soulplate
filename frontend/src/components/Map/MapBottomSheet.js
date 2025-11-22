@@ -136,14 +136,14 @@ const MapBottomSheet = ({
         }
         setSnapIndex(newSnapIndex);
         
-        // 🔥 10%일 때는 무조건 hint 모드로 전환
-        if (newSnapIndex === 0 && sheetMode !== 'hint') {
-          console.log('🔄 [ResizeObserver] sheetMode → hint');
+        // 🔥 10%일 때는 list → hint로만 전환 (detail 모드는 유지)
+        if (newSnapIndex === 0 && sheetMode === 'list') {
+          console.log('🔄 [ResizeObserver] sheetMode: list → hint');
           setSheetMode('hint');
         }
         // 🔥 snap이 50% 이상이고 hint 모드면 자동으로 list 모드로 전환
         else if (newSnapIndex >= 1 && sheetMode === 'hint') {
-          console.log('🔄 [ResizeObserver] sheetMode → list');
+          console.log('🔄 [ResizeObserver] sheetMode: hint → list');
           setSheetMode('list');
         }
       }
