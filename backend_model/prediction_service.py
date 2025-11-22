@@ -37,17 +37,48 @@ class PredictionService:
         # 텍스트 임베딩 서비스
         self.text_embedding_service = None
         
+        # 전역 평균 임베딩 (신규 유저/가게 fallback용)
+        self.global_user_avg = None
+        self.global_business_avg = None
+        self._load_global_avg_embeddings()
+        
         # ABSA 피처 키 (순서 유지)
         self.absa_keys = self._get_absa_keys()
     
+    def _load_global_avg_embeddings(self):
+        """전역 평균 임베딩 로딩 (신규 유저/가게 fallback용)"""
+        user_path = 'data/global_avg_user_embedding.npy'
+        business_path = 'data/global_avg_business_embedding.npy'
+        
+        try:
+            if os.path.exists(user_path):
+                self.global_user_avg = np.load(user_path)
+                logger.info(f"[Global Avg] User 임베딩 로딩 완료: {self.global_user_avg.shape}")
+            else:
+                self.global_user_avg = np.zeros(100, dtype=np.float32)
+                logger.warning(f"[Global Avg] User 임베딩 파일 없음, 0 벡터 사용")
+            
+            if os.path.exists(business_path):
+                self.global_business_avg = np.load(business_path)
+                logger.info(f"[Global Avg] Business 임베딩 로딩 완료: {self.global_business_avg.shape}")
+            else:
+                self.global_business_avg = np.zeros(100, dtype=np.float32)
+                logger.warning(f"[Global Avg] Business 임베딩 파일 없음, 0 벡터 사용")
+        except Exception as e:
+            logger.error(f"[Global Avg] 로딩 실패: {e}")
+            self.global_user_avg = np.zeros(100, dtype=np.float32)
+            self.global_business_avg = np.zeros(100, dtype=np.float32)
+    
     def _load_scaler_params(self):
-        """Scaler 파라미터 로딩 (mean, std)"""
-        scaler_path = 'models/scaler_params.json'
+        """Scaler 파라미터 로딩 (mean, std) - 309d 버전 우선"""
+        # 309d 버전 우선 시도
+        scaler_path = 'models/scaler_params_309d.json'
+        fallback_path = 'models/scaler_params.json'
         
         logger.info(f"[Scaler] 파라미터 로딩 시도: {scaler_path}")
         
         # HuggingFace에서 다운로드 시도
-        hf_path = ensure_model_file("models/scaler_params.json", scaler_path)
+        hf_path = ensure_model_file("models/scaler_params_309d.json", scaler_path)
         
         loaded_path = None
         if hf_path and os.path.exists(hf_path):
@@ -60,6 +91,11 @@ class PredictionService:
             logger.info(f"[Scaler] 로컬에서 로딩: {scaler_path}")
             with open(scaler_path, 'r') as f:
                 self.scaler_params = json.load(f)
+        elif os.path.exists(fallback_path):
+            loaded_path = fallback_path
+            logger.info(f"[Scaler] Fallback 로딩: {fallback_path}")
+            with open(fallback_path, 'r') as f:
+                self.scaler_params = json.load(f)
         else:
             logger.error(f"[Scaler] ❌ 파일을 찾을 수 없음: {scaler_path}")
             print(f"  [WARNING] Scaler params 파일 없음: {scaler_path}")
@@ -68,16 +104,9 @@ class PredictionService:
         
         # 로딩 성공 시 내용 확인
         if self.scaler_params:
-            logger.info(f"[Scaler] ✅ 로딩 성공")
+            logger.info(f"[Scaler] ✅ 로딩 성공 from {loaded_path}")
             logger.info(f"[Scaler] User params keys: {list(self.scaler_params.get('user', {}).keys())}")
             logger.info(f"[Scaler] Business params keys: {list(self.scaler_params.get('business', {}).keys())}")
-            
-            # useful 파라미터 확인 (핵심 피처)
-            if 'user' in self.scaler_params and 'useful' in self.scaler_params['user']:
-                useful_params = self.scaler_params['user']['useful']
-                logger.info(f"[Scaler] useful mean={useful_params['mean']:.2f}, std={useful_params['std']:.2f}")
-            else:
-                logger.warning(f"[Scaler] ⚠️ useful 파라미터가 없음!")
         else:
             logger.error(f"[Scaler] ❌ 로딩 실패")
         
@@ -200,48 +229,53 @@ class PredictionService:
     
     def prepare_combined_features(self, user_data, business_data, review_text=None):
         """
-        학습 데이터와 동일한 형식으로 전체 피처 준비
+        학습 데이터와 동일한 형식으로 전체 피처 준비 (309차원)
         
-        학습 데이터 구조:
-        [텍스트 임베딩 100개] + [useful, compliment, fans, average_stars, yelping_since_days, 
-         stars, latitude, longitude] + [User ABSA 51개 + Business ABSA 51개] = 210개
+        피처 구성:
+        1. User 텍스트 임베딩 (100) - 유저가 작성한 리뷰들의 평균 임베딩
+        2. Business 텍스트 임베딩 (100) - 가게에 달린 리뷰들의 평균 임베딩
+        3. User 통계 (5) - review_count, useful, compliment, fans, average_stars (log+scaled)
+        4. Business 통계 (2) - review_count, stars (log+scaled)
+        5. User ABSA (51)
+        6. Business ABSA (51)
+        총 309개
         
         Args:
             user_data: User 데이터 (dict)
             business_data: Business 데이터 (dict)
-            review_text: User-Business 쌍의 리뷰 텍스트 (optional)
+            review_text: (사용 안함 - 309d에서는 필요 없음)
         
         Returns:
-            전체 210개 피처
+            전체 309개 피처
         """
         features = []
         
-        # 1. 텍스트 임베딩 (100개) - 맨 앞!
-        if self.text_embedding_service is not None:
-            # 방법 1: 리뷰 텍스트가 제공된 경우
-            if review_text:
-                text_emb = self.text_embedding_service.get_average_embedding([review_text])
-            # 방법 2: User의 평균 임베딩 사용 (fallback)
-            elif 'text_embedding' in user_data and user_data['text_embedding'] is not None:
-                text_emb = np.array(user_data['text_embedding'], dtype=np.float32)
-            # 방법 3: 텍스트가 없으면 0 벡터
-            else:
-                text_emb = np.zeros(100, dtype=np.float32)
-            
-            features.extend(text_emb.tolist())
+        # 1. User 텍스트 임베딩 (100개)
+        if 'text_embedding' in user_data and user_data['text_embedding'] is not None:
+            user_text_emb = np.array(user_data['text_embedding'], dtype=np.float32)
         else:
-            # 텍스트 임베딩 서비스가 없으면 0 벡터
-            features.extend([0.0] * 100)
+            # 신규 유저는 전역 평균 사용
+            user_text_emb = self.global_user_avg
+        features.extend(user_text_emb.tolist())
         
-        # 2. 기본 피처 (8개) - review_count 제외! + Log Transform + Standard Scaling
-        # User 피처 (5개)
+        # 2. Business 텍스트 임베딩 (100개)
+        if 'text_embedding' in business_data and business_data['text_embedding'] is not None:
+            business_text_emb = np.array(business_data['text_embedding'], dtype=np.float32)
+        else:
+            # 신규 가게는 전역 평균 사용
+            business_text_emb = self.global_business_avg
+        features.extend(business_text_emb.tolist())
+        
+        # 3. User 통계 (5개) - Log + Scaled
+        user_review_count = user_data.get('review_count', 0)
         useful = user_data.get('useful', 0)
         compliment = user_data.get('compliment', 0)
         fans = user_data.get('fans', 0)
         average_stars = user_data.get('average_stars', 0.0)
-        yelping_since_days = user_data.get('yelping_since_days', 0)
         
-        # Log Transform (학습 시와 동일)
+        # Log Transform
+        user_review_count_log = np.log1p(user_review_count)
+        useful_log = np.log1p(useful)
         compliment_log = np.log1p(compliment)
         fans_log = np.log1p(fans)
         
@@ -249,67 +283,61 @@ class PredictionService:
         if self.scaler_params:
             user_params = self.scaler_params['user']
             
-            # 스케일링 전 로그 (디버깅용)
-            logger.debug(f"[Scaling] User 원본 값 - useful: {useful:.2f}, compliment_log: {compliment_log:.2f}, fans_log: {fans_log:.2f}")
-            
-            useful_scaled = (useful - user_params['useful']['mean']) / user_params['useful']['std']
-            compliment_scaled = (compliment_log - user_params['compliment']['mean']) / user_params['compliment']['std']
-            fans_scaled = (fans_log - user_params['fans']['mean']) / user_params['fans']['std']
+            user_review_count_scaled = (user_review_count_log - user_params['user_review_count_log']['mean']) / user_params['user_review_count_log']['std']
+            useful_scaled = (useful_log - user_params['useful_log']['mean']) / user_params['useful_log']['std']
+            compliment_scaled = (compliment_log - user_params['compliment_log']['mean']) / user_params['compliment_log']['std']
+            fans_scaled = (fans_log - user_params['fans_log']['mean']) / user_params['fans_log']['std']
             average_stars_scaled = (average_stars - user_params['average_stars']['mean']) / user_params['average_stars']['std']
-            yelping_since_days_scaled = (yelping_since_days - user_params['yelping_since_days']['mean']) / user_params['yelping_since_days']['std']
             
-            # 스케일링 후 로그 (디버깅용)
-            logger.debug(f"[Scaling] User 스케일링 후 - useful: {useful_scaled:.2f}, compliment: {compliment_scaled:.2f}, fans: {fans_scaled:.2f}")
+            features.extend([
+                user_review_count_scaled,
+                useful_scaled,
+                compliment_scaled,
+                fans_scaled,
+                average_stars_scaled
+            ])
         else:
-            # Scaler 없으면 에러 발생
-            logger.error(f"[Scaling] ❌ scaler_params가 None입니다! 스케일링 불가능")
-            logger.error(f"[Scaling] 원본 값: useful={useful}, compliment={compliment}, fans={fans}")
-            raise ValueError("scaler_params is required for prediction. Please ensure scaler_params.json is loaded correctly.")
+            logger.error(f"[Scaling] ❌ scaler_params가 None입니다!")
+            raise ValueError("scaler_params is required for prediction")
         
-        # Business 피처 (3개) - review_count 제외!
+        # 4. Business 통계 (2개) - Log + Scaled
+        business_review_count = business_data.get('review_count', 0)
         stars = business_data.get('stars', 0.0)
-        latitude = business_data.get('latitude', 0.0)
-        longitude = business_data.get('longitude', 0.0)
+        
+        # Log Transform
+        business_review_count_log = np.log1p(business_review_count)
         
         # Standard Scaling
         if self.scaler_params:
             business_params = self.scaler_params['business']
             
-            # 스케일링 전 로그 (디버깅용)
-            logger.debug(f"[Scaling] Business 원본 값 - stars: {stars:.2f}, lat: {latitude:.4f}, lng: {longitude:.4f}")
+            business_review_count_scaled = (business_review_count_log - business_params['business_review_count_log']['mean']) / business_params['business_review_count_log']['std']
+            stars_scaled = (stars - business_params['business_stars']['mean']) / business_params['business_stars']['std']
             
-            stars_scaled = (stars - business_params['stars']['mean']) / business_params['stars']['std']
-            latitude_scaled = (latitude - business_params['latitude']['mean']) / business_params['latitude']['std']
-            longitude_scaled = (longitude - business_params['longitude']['mean']) / business_params['longitude']['std']
-            
-            # 스케일링 후 로그 (디버깅용)
-            logger.debug(f"[Scaling] Business 스케일링 후 - stars: {stars_scaled:.2f}, lat: {latitude_scaled:.2f}, lng: {longitude_scaled:.2f}")
+            features.extend([
+                business_review_count_scaled,
+                stars_scaled
+            ])
         else:
-            # Scaler 없으면 에러 발생
-            logger.error(f"[Scaling] ❌ scaler_params가 None입니다! 스케일링 불가능")
-            logger.error(f"[Scaling] 원본 값: stars={stars}, latitude={latitude}, longitude={longitude}")
-            raise ValueError("scaler_params is required for prediction. Please ensure scaler_params.json is loaded correctly.")
+            logger.error(f"[Scaling] ❌ scaler_params가 None입니다!")
+            raise ValueError("scaler_params is required for prediction")
         
-        features.extend([
-            useful_scaled, compliment_scaled, fans_scaled, average_stars_scaled, yelping_since_days_scaled,
-            stars_scaled, latitude_scaled, longitude_scaled
-        ])
-        
-        # 3. User ABSA 피처 (51개)
+        # 5. User ABSA 피처 (51개)
         user_absa = user_data.get('absa_features', {})
         for key in self.absa_keys:
             features.append(user_absa.get(key, 0.0))
         
-        # 4. Business ABSA 피처 (51개)
+        # 6. Business ABSA 피처 (51개)
         business_absa = business_data.get('absa_features', {})
         for key in self.absa_keys:
             features.append(business_absa.get(key, 0.0))
         
-        # 5. 패딩 (모델이 212차원으로 학습됨, 현재 210개이므로 2개 추가)
-        # TODO: 모델을 210차원으로 재학습하면 이 부분 제거 가능
-        features.extend([0.0, 0.0])
+        # 패딩 없음! 정확히 309차원
+        final_features = np.array(features, dtype=np.float32)
         
-        return np.array(features, dtype=np.float32)
+        logger.info(f"[피처] 생성 완료: {final_features.shape} (309차원)")
+        
+        return final_features
     
     def predict_rating(self, user_data, business_data, review_text=None):
         """

@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 from contextlib import asynccontextmanager
 
-from prediction_service import get_prediction_service
+from prediction_service_309d import get_prediction_service
 from absa_service import get_absa_service
 from pydantic import BaseModel
 from typing import Optional, List

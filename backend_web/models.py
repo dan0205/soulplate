@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime, timezone
 
-from database import Base
+from backend_web.database import Base
 
 # Base = 기본 클래스. 이 클래스는 데이터베이스 테이블과 연결됨을 인식하게 해줌 
 # __tablename__ = 디비에 생성될 실제 테이블의 이름 
@@ -49,6 +49,10 @@ class User(Base):
     taste_test_axis_scores = Column(JSONB, nullable=True)  # 각 축의 확률 점수
     # {"flavor_intensity": {"S": 73, "M": 27}, "dining_environment": {"A": 82, "O": 18}, ...}
     
+    # 인구통계 정보 (미래 사용을 위해 저장, 현재 모델 학습에는 미사용)
+    age = Column(Integer, nullable=True)  # 나이
+    gender = Column(String(10), nullable=True)  # 'M', 'F', 'Other', None
+    
     # Relationships
     reviews = relationship("Review", back_populates="user")
     # 한 명의 유저는 여러 개의 리뷰를 가질 수 있다 
@@ -78,6 +82,9 @@ class Business(Base):
     
     # ABSA 피처 (JSON: 51개 aspect-sentiment 평균값)
     absa_features = Column(JSONB, nullable=True)
+    
+    # 텍스트 임베딩 (JSON: 100차원 평균 벡터)
+    text_embedding = Column(JSONB, nullable=True)
     
     # Relationships
     reviews = relationship("Review", back_populates="business")

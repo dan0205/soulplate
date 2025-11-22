@@ -34,8 +34,13 @@ scripts/
 # Data files
 data/raw/*
 data/processed/*
+data/training/*.csv
+data/training/*.pkl
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+
+# Embeddings (large files)
+*.npy
 
 # Models
 models/*.pth
