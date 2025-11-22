@@ -79,17 +79,24 @@ const MapBottomSheet = ({
 
   // selectedRestaurant 변경 시 detail 모드로 전환 + 10%일 때 50%로 자동 확장
   useEffect(() => {
+    console.log('🎯 [useEffect1] 트리거됨 - selectedRestaurant:', !!selectedRestaurant, 'snapIndex:', snapIndex, 'sheetMode:', sheetMode);
+    
     if (selectedRestaurant) {
       setSheetMode('detail');
       // 10% 상태에서 마커 클릭 시 50%로 확장
       // ⚠️ sheetMode가 'hint'일 때만 자동 확장 (사용자가 수동으로 내린 경우 제외)
       if (snapIndex === 0 && sheetMode === 'hint' && sheetRef.current) {
+        console.log('🚀 [useEffect1] 조건 충족! 50%로 자동 확장 예약');
         setTimeout(() => {
+          console.log('🚀 [useEffect1] 50%로 확장 실행!');
           sheetRef.current.snapTo(({ snapPoints }) => snapPoints[1]);
         }, 100);
+      } else {
+        console.log('⛔ [useEffect1] 자동 확장 조건 불충족 - snapIndex:', snapIndex, 'sheetMode:', sheetMode);
       }
     } else if (sheetMode === 'detail') {
       // 선택 해제 시 list 모드로
+      console.log('🔄 [useEffect1] 선택 해제 → list 모드');
       setSheetMode('list');
     }
   }, [selectedRestaurant, snapIndex, sheetMode]);
@@ -102,27 +109,41 @@ const MapBottomSheet = ({
         const windowHeight = window.innerHeight;
         const ratio = height / windowHeight;
         
+        // 🔍 디버깅: ratio 값 출력
+        console.log('📏 [ResizeObserver] ratio:', ratio.toFixed(3), 'height:', height, 'windowHeight:', windowHeight);
+        
         let newSnapIndex;
         // snap index 업데이트 (임계값 조정: 선택 매장 콘텐츠가 많을 때도 10%로 스냅되도록)
         if (ratio < 0.3) {
           newSnapIndex = 0; // 10%
+          console.log('🔽 [ResizeObserver] ratio < 0.3 감지! → 10%로 스냅 시도');
           if (snapIndex !== 0 && sheetRef.current) {
+            console.log('✅ [ResizeObserver] snapTo(10%) 실행!');
             sheetRef.current.snapTo(({ snapPoints }) => snapPoints[0]);
+          } else {
+            console.log('⚠️ [ResizeObserver] snapTo 실행 안됨 - snapIndex:', snapIndex);
           }
         } else if (ratio < 0.7) {
           newSnapIndex = 1; // 50%
+          console.log('🔽 [ResizeObserver] ratio 0.3~0.7 → 50% 상태');
         } else {
           newSnapIndex = 2; // 100%
+          console.log('🔽 [ResizeObserver] ratio >= 0.7 → 100% 상태');
         }
         
+        if (newSnapIndex !== snapIndex) {
+          console.log('🔄 [ResizeObserver] snapIndex 변경:', snapIndex, '→', newSnapIndex);
+        }
         setSnapIndex(newSnapIndex);
         
         // 🔥 10%일 때는 무조건 hint 모드로 전환
         if (newSnapIndex === 0 && sheetMode !== 'hint') {
+          console.log('🔄 [ResizeObserver] sheetMode → hint');
           setSheetMode('hint');
         }
         // 🔥 snap이 50% 이상이고 hint 모드면 자동으로 list 모드로 전환
         else if (newSnapIndex >= 1 && sheetMode === 'hint') {
+          console.log('🔄 [ResizeObserver] sheetMode → list');
           setSheetMode('list');
         }
       }
