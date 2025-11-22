@@ -10,7 +10,7 @@ import numpy as np
 import os
 import json
 import logging
-from .model_loader import ensure_absa_model
+from model_loader import ensure_absa_model
 
 logger = logging.getLogger(__name__)
 

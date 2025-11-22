@@ -5,10 +5,10 @@
 
 import torch
 import numpy as np
-from .models.deepfm_ranking import DeepFM
-from .models.multitower_ranking import MultiTowerModel
-from .utils.text_embedding import TextEmbeddingService
-from .model_loader import ensure_model_file
+from models.deepfm_ranking import DeepFM
+from models.multitower_ranking import MultiTowerModel
+from utils.text_embedding import TextEmbeddingService
+from model_loader import ensure_model_file
 import pickle
 import json
 import os

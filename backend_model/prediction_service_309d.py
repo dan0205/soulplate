@@ -4,9 +4,9 @@
 
 import torch
 import numpy as np
-from .models.deepfm_ranking import DeepFM
-from .models.multitower_ranking import MultiTowerModel
-from .model_loader import ensure_model_file
+from models.deepfm_ranking import DeepFM
+from models.multitower_ranking import MultiTowerModel
+from model_loader import ensure_model_file
 import json
 import os
 import logging
