@@ -136,6 +136,12 @@ const MapBottomSheet = ({
         }
         setSnapIndex(newSnapIndex);
         
+        // 🆕 detail 모드에서 10%로 내려가면 선택 해제
+        if (newSnapIndex === 0 && sheetMode === 'detail' && onClose) {
+          console.log('🔽 [ResizeObserver] detail 모드 10%로 내림 → 선택 해제');
+          onClose(); // selectedRestaurant를 null로 만듦
+        }
+        
         // 🔥 10%일 때는 list → hint로만 전환 (detail 모드는 유지)
         if (newSnapIndex === 0 && sheetMode === 'list') {
           console.log('🔄 [ResizeObserver] sheetMode: list → hint');
@@ -176,7 +182,7 @@ const MapBottomSheet = ({
       clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [sheetMode]); // sheetMode 변경 감지
+  }, [sheetMode, snapIndex, onClose]); // sheetMode, snapIndex, onClose 변경 감지
 
   const handleHintClick = () => {
     setSheetMode('list');
