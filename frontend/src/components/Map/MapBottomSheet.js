@@ -82,7 +82,8 @@ const MapBottomSheet = ({
     if (selectedRestaurant) {
       setSheetMode('detail');
       // 10% 상태에서 마커 클릭 시 50%로 확장
-      if (snapIndex === 0 && sheetRef.current) {
+      // ⚠️ sheetMode가 'hint'일 때만 자동 확장 (사용자가 수동으로 내린 경우 제외)
+      if (snapIndex === 0 && sheetMode === 'hint' && sheetRef.current) {
         setTimeout(() => {
           sheetRef.current.snapTo(({ snapPoints }) => snapPoints[1]);
         }, 100);
@@ -91,7 +92,7 @@ const MapBottomSheet = ({
       // 선택 해제 시 list 모드로
       setSheetMode('list');
     }
-  }, [selectedRestaurant, snapIndex]);
+  }, [selectedRestaurant, snapIndex, sheetMode]);
 
   // ResizeObserver로 snap 상태 감지
   useEffect(() => {
@@ -102,8 +103,8 @@ const MapBottomSheet = ({
         const ratio = height / windowHeight;
         
         let newSnapIndex;
-        // snap index 업데이트
-        if (ratio < 0.2) {
+        // snap index 업데이트 (임계값 조정: 선택 매장 콘텐츠가 많을 때도 10%로 스냅되도록)
+        if (ratio < 0.3) {
           newSnapIndex = 0; // 10%
           if (snapIndex !== 0 && sheetRef.current) {
             sheetRef.current.snapTo(({ snapPoints }) => snapPoints[0]);
