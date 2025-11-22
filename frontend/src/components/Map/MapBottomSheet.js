@@ -136,9 +136,9 @@ const MapBottomSheet = ({
         }
         setSnapIndex(newSnapIndex);
         
-        // 🆕 detail 모드에서 10%로 내려가면 선택 해제
-        if (newSnapIndex === 0 && sheetMode === 'detail' && onClose) {
-          console.log('🔽 [ResizeObserver] detail 모드 10%로 내림 → 선택 해제');
+        // 🆕 detail 모드에서 50% → 10%로 드래그했을 때만 선택 해제
+        if (newSnapIndex === 0 && snapIndex === 1 && sheetMode === 'detail' && onClose) {
+          console.log('🔽 [ResizeObserver] detail 50% → 10% 드래그 감지 → 선택 해제');
           onClose(); // selectedRestaurant를 null로 만듦
         }
         
