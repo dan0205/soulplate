@@ -514,6 +514,74 @@
   box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
 }
 
+/* 취향 테스트 빈 상태 - 카드 스타일 */
+.taste-test-empty-state {
+  padding: 50px 30px;
+  background: white;
+  border-radius: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.taste-test-empty-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.taste-test-empty-header h2 {
+  font-size: 26px;
+  color: #212529;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.taste-test-empty-header p {
+  font-size: 15px;
+  color: #6c757d;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.taste-test-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.taste-test-option-card {
+  padding: 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 2px solid #e9ecef;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.taste-test-option-card:hover,
+.taste-test-option-card:active {
+  border-color: #ff6b6b;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.2);
+}
+
+.test-card-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.test-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 8px;
+}
+
+.test-card-desc {
+  font-size: 13px;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
 .mbti-type-large {
   font-size: 48px;
   font-weight: 800;
@@ -964,6 +1032,18 @@
     margin: 0 -30px;
     padding: 20px 30px;
   }
+
+  .taste-test-empty-state {
+    padding: 60px 40px;
+  }
+
+  .taste-test-empty-header h2 {
+    font-size: 28px;
+  }
+
+  .taste-test-empty-header p {
+    font-size: 16px;
+  }
 }
 
 /* 데스크톱 (1024px 이상) */
@@ -1371,6 +1451,22 @@
   .axis-left,
   .axis-right {
     font-size: 0.85rem;
+  }
+
+  .taste-test-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .taste-test-empty-state {
+    padding: 40px 20px;
+  }
+
+  .taste-test-empty-header h2 {
+    font-size: 22px;
+  }
+
+  .taste-test-empty-header p {
+    font-size: 14px;
   }
 }
 

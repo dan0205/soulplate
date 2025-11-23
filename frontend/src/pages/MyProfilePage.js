@@ -234,28 +234,28 @@ const MyProfilePage = () => {
             </div>
           </>
         ) : (
-          <div className="mbti-box-red" style={{ textAlign: 'center', padding: '40px 20px' }}>
-            <div style={{ fontSize: '24px', marginBottom: '20px', color: '#666' }}>
-              🍽️ 취향 테스트를 진행해주세요
+          <div className="taste-test-empty-state">
+            <div className="taste-test-empty-header">
+              <h2>취향 테스트로 시작하기</h2>
+              <p>원하는 방식으로 테스트를 시작해보세요</p>
             </div>
-            <div style={{ fontSize: '16px', color: '#888', marginBottom: '30px' }}>
-              간단한 질문으로 당신의 음식 취향을 알아보세요!
-            </div>
-            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button 
-                className="btn-retest-inline" 
+            <div className="taste-test-cards">
+              <div 
+                className="taste-test-option-card"
                 onClick={() => navigate('/taste-test', { state: { testType: 'quick' } })}
-                style={{ padding: '12px 24px', fontSize: '16px' }}
               >
-                ⚡ 간단 테스트 시작
-              </button>
-              <button 
-                className="btn-retest-inline" 
+                <div className="test-card-icon">⚡</div>
+                <div className="test-card-title">간단 테스트</div>
+                <div className="test-card-desc">8개 질문<br />약 2분 소요</div>
+              </div>
+              <div 
+                className="taste-test-option-card"
                 onClick={() => navigate('/taste-test', { state: { testType: 'deep' } })}
-                style={{ padding: '12px 24px', fontSize: '16px' }}
               >
-                🔍 심화 테스트 시작
-              </button>
+                <div className="test-card-icon">🔍</div>
+                <div className="test-card-title">심화 테스트</div>
+                <div className="test-card-desc">24개 질문<br />약 5분 소요</div>
+              </div>
             </div>
           </div>
       )}
