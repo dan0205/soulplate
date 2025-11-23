@@ -76,6 +76,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     logout,
     handleOAuthCallback,
+    loadUser, // 사용자 정보 재로드 함수 추가
     isAuthenticated: !!user,
   }; // 위에서 만든 모든 상태와 함수를 value라는 객체 하나로 묶는다 
   // isAuthenticated: !!user = user 객체가 있으면 true, 없으면 false 

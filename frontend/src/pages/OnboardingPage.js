@@ -11,7 +11,7 @@ import './OnboardingPage.css';
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loadUser } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     age: '',
@@ -129,6 +129,11 @@ const OnboardingPage = () => {
       });
 
       toast.success('프로필 설정이 완료되었습니다!');
+      
+      // 사용자 정보를 다시 로드하여 profile_completed 상태 업데이트
+      await loadUser();
+      
+      // 홈페이지로 이동
       navigate('/', { replace: true });
     } catch (error) {
       console.error('Profile completion error:', error);
