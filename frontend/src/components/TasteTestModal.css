@@ -84,6 +84,7 @@
   margin-bottom: 20px;
 }
 
+
 .test-option {
   display: flex;
   align-items: flex-start;
@@ -93,12 +94,14 @@
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s;
+  border: 2px solid transparent;
 }
 
 .test-option:hover {
   background: #fff5f5;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+  border-color: #ff6b6b;
 }
 
 .test-icon {
@@ -109,9 +112,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff8888 100%);
+  background: transparent;
   border-radius: 12px;
-  color: white;
 }
 
 .modal-content .test-info {
@@ -134,6 +136,22 @@
   color: #666;
   line-height: 1.6;
   margin: 0;
+}
+
+.test-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.test-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #ff6b6b;
+  color: white;
+  font-size: 12px;
+  border-radius: 8px;
+  font-weight: 600;
 }
 
 .btn-skip-modal {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { tasteTestAPI } from '../services/api';
@@ -19,11 +19,21 @@ function TasteTestPage() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
   const [pendingExit, setPendingExit] = useState(false);
+  const autoProgressTimerRef = useRef(null);
 
   useEffect(() => {
     loadQuestions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testType]);
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (autoProgressTimerRef.current) {
+        clearTimeout(autoProgressTimerRef.current);
+      }
+    };
+  }, []);
 
   // 뒤로가기 및 페이지 이탈 방지
   useEffect(() => {
@@ -73,6 +83,20 @@ function TasteTestPage() {
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = value;
     setAnswers(newAnswers);
+
+    // 기존 타이머가 있다면 취소
+    if (autoProgressTimerRef.current) {
+      clearTimeout(autoProgressTimerRef.current);
+    }
+
+    // 0.5초 후 자동으로 다음으로 이동
+    autoProgressTimerRef.current = setTimeout(() => {
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      } else {
+        submitTest();
+      }
+    }, 500);
   };
 
   const handleNext = () => {
@@ -90,6 +114,12 @@ function TasteTestPage() {
   };
 
   const handlePrevious = () => {
+    // 자동 진행 타이머 취소
+    if (autoProgressTimerRef.current) {
+      clearTimeout(autoProgressTimerRef.current);
+      autoProgressTimerRef.current = null;
+    }
+
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
@@ -188,15 +218,9 @@ function TasteTestPage() {
   return (
     <div className="taste-test-container">
       <div className="taste-test-header">
-        <h2>🍽️ 음식 취향 테스트</h2>
         <div className="test-type-badge">
           {testType === 'quick' ? '⚡ 간단 테스트' : '🔍 심화 테스트'}
         </div>
-      </div>
-
-      {/* 섹션 표시 */}
-      <div className="section-indicator">
-        {currentSection.emoji} Section {currentSection.number}: {currentSection.title}
       </div>
 
       <div className="progress-bar">
@@ -225,31 +249,23 @@ function TasteTestPage() {
         </div>
       </div>
 
-      <div className="navigation-buttons">
-        <button 
-          className="btn-secondary" 
+      <div className="navigation-links">
+        <a 
           onClick={handlePrevious}
-          disabled={currentQuestionIndex === 0}
+          className={currentQuestionIndex === 0 ? 'disabled' : ''}
         >
-          이전
-        </button>
-
-        <button 
-          className="btn-skip" 
-          onClick={handleSkip}
-        >
+          ← 이전
+        </a>
+        <span className="divider" />
+        <a onClick={handleSkip}>
           나중에 하기
-        </button>
-
-        <button 
-          className="btn-primary" 
-          onClick={handleNext}
-          disabled={submitting}
-        >
+        </a>
+        <span className="divider" />
+        <a onClick={handleNext}>
           {currentQuestionIndex === questions.length - 1 
-            ? (submitting ? '제출 중...' : '완료') 
-            : '다음'}
-        </button>
+            ? (submitting ? '제출 중...' : '완료 →') 
+            : '다음 →'}
+        </a>
       </div>
 
       {/* 테스트 종료 확인 모달 */}

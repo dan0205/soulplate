@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from './ConfirmModal';
+import TasteTestModal from './TasteTestModal';
 import './FloatingProfileButton.css';
 
 const FloatingProfileButton = ({ username, onLogout }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showTasteTestModal, setShowTasteTestModal] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -40,6 +42,11 @@ const FloatingProfileButton = ({ username, onLogout }) => {
   const handleRecentReviews = () => {
     setShowMenu(false);
     navigate('/recent-reviews');
+  };
+
+  const handleTasteTest = () => {
+    setShowMenu(false);
+    setShowTasteTestModal(true);
   };
 
   const handleLogout = () => {
@@ -79,6 +86,13 @@ const FloatingProfileButton = ({ username, onLogout }) => {
             <span>내 프로필</span>
           </button>
           <button 
+            className="profile-menu-item taste-test"
+            onClick={handleTasteTest}
+          >
+            <span className="menu-icon">🍽️</span>
+            <span>취향 테스트</span>
+          </button>
+          <button 
             className="profile-menu-item"
             onClick={handleRecentReviews}
           >
@@ -106,6 +120,11 @@ const FloatingProfileButton = ({ username, onLogout }) => {
         onConfirm={handleLogoutConfirm}
         onCancel={() => setShowLogoutConfirm(false)}
       />
+
+      {/* 취향 테스트 모달 */}
+      {showTasteTestModal && (
+        <TasteTestModal onClose={() => setShowTasteTestModal(false)} />
+      )}
     </div>
   );
 };

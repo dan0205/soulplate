@@ -15,12 +15,6 @@
   margin-bottom: 30px;
 }
 
-.taste-test-header h2 {
-  font-size: 28px;
-  margin-bottom: 10px;
-  color: #333;
-}
-
 .test-type-badge {
   display: inline-block;
   padding: 8px 16px;
@@ -31,24 +25,11 @@
   font-weight: 500;
 }
 
-/* 섹션 표시 */
-.section-indicator {
-  text-align: center;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  font-size: 16px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
 .progress-bar {
   width: 100%;
-  height: 40px;
+  height: 8px;
   background: #f0f0f0;
-  border-radius: 20px;
+  border-radius: 4px;
   position: relative;
   margin-bottom: 40px;
   overflow: hidden;
@@ -58,17 +39,16 @@
   height: 100%;
   background: linear-gradient(90deg, #ff6b6b, #ff8e53);
   transition: width 0.3s ease;
-  border-radius: 20px;
+  border-radius: 4px;
 }
 
 .progress-text {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: -25px;
+  right: 0;
   font-weight: 600;
-  color: #333;
-  font-size: 14px;
+  color: #999;
+  font-size: 13px;
 }
 
 .question-section {
@@ -214,14 +194,14 @@
 
 .option-button:hover {
   background: #f0f0f0;
-  border-color: #667eea;
+  border-color: #ff6b6b;
   transform: translateX(4px);
 }
 
 .option-button.selected {
-  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+  border-color: #ff6b6b;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
 }
 
 .option-number {
@@ -233,12 +213,12 @@
   background: white;
   border-radius: 50%;
   font-weight: 600;
-  color: #667eea;
+  color: #ff6b6b;
   flex-shrink: 0;
 }
 
 .option-button.selected .option-number {
-  background: #667eea;
+  background: #ff6b6b;
   color: white;
 }
 
@@ -249,65 +229,40 @@
   color: #333;
 }
 
-.navigation-buttons {
+/* 텍스트 링크 네비게이션 */
+.navigation-links {
   display: flex;
-  gap: 12px;
+  gap: 20px;
   justify-content: center;
+  align-items: center;
+  padding: 20px 0;
 }
 
-.btn-primary,
-.btn-secondary,
-.btn-skip {
-  padding: 14px 32px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
+.navigation-links a {
+  font-size: 14px;
+  color: #999;
+  text-decoration: none;
   cursor: pointer;
   transition: all 0.2s;
+  padding: 8px 12px;
+  border-radius: 6px;
 }
 
-.btn-primary {
-  background: #ff6b6b;
-  color: white;
-  min-width: 120px;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #ff5252;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
-}
-
-.btn-primary:disabled {
-  background: #ddd;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: white;
-  color: #666;
-  border: 2px solid #ddd;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  border-color: #666;
+.navigation-links a:hover {
   color: #333;
+  background: #f0f0f0;
 }
 
-.btn-secondary:disabled {
-  opacity: 0.5;
+.navigation-links a.disabled {
+  opacity: 0.3;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
-.btn-skip {
-  background: transparent;
-  color: #999;
-}
-
-.btn-skip:hover {
-  color: #666;
-  text-decoration: underline;
+.navigation-links .divider {
+  width: 1px;
+  height: 14px;
+  background: #ddd;
 }
 
 .loading,
@@ -326,15 +281,6 @@
 @media (max-width: 768px) {
   .taste-test-container {
     padding: 20px 16px;
-  }
-
-  .taste-test-header h2 {
-    font-size: 24px;
-  }
-
-  .section-indicator {
-    font-size: 14px;
-    padding: 10px 16px;
   }
 
   .question-section {
@@ -377,14 +323,13 @@
     font-size: 14px;
   }
 
-  .navigation-buttons {
-    flex-direction: column;
+  .navigation-links {
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
-  .btn-primary,
-  .btn-secondary,
-  .btn-skip {
-    width: 100%;
+  .navigation-links a {
+    font-size: 13px;
   }
 }
 
