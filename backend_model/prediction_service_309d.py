@@ -119,8 +119,8 @@ class PredictionService:
             actual_path = hf_path if hf_path else mt_path
             
             self.multitower_model = MultiTowerModel(
-                user_input_dim=154,
-                business_input_dim=155,
+                user_input_dim=156,  # User: 100 + 5 + 51
+                business_input_dim=153,  # Business: 100 + 2 + 51
                 tower_dims=[128, 64],
                 interaction_dims=[64, 32]
             )
@@ -141,17 +141,24 @@ class PredictionService:
     
     def prepare_combined_features(self, user_data, business_data, review_text=None):
         """
-        309차원 피처 준비
+        309차원 피처 준비 (User-Business 분리)
         
+        === User 피처 (156차원) ===
         1. User 텍스트 임베딩 (100)
-        2. Business 텍스트 임베딩 (100)
-        3. User 통계 (5): review_count, useful, compliment, fans, average_stars (log+scaled)
-        4. Business 통계 (2): review_count, stars (log+scaled)
-        5. User ABSA (51)
+        2. User 통계 (5): review_count, useful, compliment, fans, average_stars (log+scaled)
+        3. User ABSA (51)
+        
+        === Business 피처 (153차원) ===
+        4. Business 텍스트 임베딩 (100)
+        5. Business 통계 (2): review_count, stars (log+scaled)
         6. Business ABSA (51)
+        
+        User Tower: 0-155 (156차원)
+        Business Tower: 156-308 (153차원)
         """
         features = []
         
+        # === User 피처 (156) ===
         # 1. User 텍스트 임베딩 (100)
         if 'text_embedding' in user_data and user_data['text_embedding']:
             user_text_emb = np.array(user_data['text_embedding'], dtype=np.float32)
@@ -159,14 +166,7 @@ class PredictionService:
             user_text_emb = self.global_user_avg
         features.extend(user_text_emb.tolist())
         
-        # 2. Business 텍스트 임베딩 (100)
-        if 'text_embedding' in business_data and business_data['text_embedding']:
-            business_text_emb = np.array(business_data['text_embedding'], dtype=np.float32)
-        else:
-            business_text_emb = self.global_business_avg
-        features.extend(business_text_emb.tolist())
-        
-        # 3. User 통계 (5) - Log + Scaled
+        # 2. User 통계 (5) - Log + Scaled
         user_review_count = user_data.get('review_count', 0)
         useful = user_data.get('useful', 0)
         compliment = user_data.get('compliment', 0)
@@ -196,7 +196,20 @@ class PredictionService:
             average_stars_scaled
         ])
         
-        # 4. Business 통계 (2) - Log + Scaled
+        # 3. User ABSA (51)
+        user_absa = user_data.get('absa_features', {})
+        for key in self.absa_keys:
+            features.append(user_absa.get(key, 0.0))
+        
+        # === Business 피처 (153) ===
+        # 4. Business 텍스트 임베딩 (100)
+        if 'text_embedding' in business_data and business_data['text_embedding']:
+            business_text_emb = np.array(business_data['text_embedding'], dtype=np.float32)
+        else:
+            business_text_emb = self.global_business_avg
+        features.extend(business_text_emb.tolist())
+        
+        # 5. Business 통계 (2) - Log + Scaled
         business_review_count = business_data.get('review_count', 0)
         stars = business_data.get('stars', 0.0)
         
@@ -211,18 +224,13 @@ class PredictionService:
             stars_scaled
         ])
         
-        # 5. User ABSA (51)
-        user_absa = user_data.get('absa_features', {})
-        for key in self.absa_keys:
-            features.append(user_absa.get(key, 0.0))
-        
         # 6. Business ABSA (51)
         business_absa = business_data.get('absa_features', {})
         for key in self.absa_keys:
             features.append(business_absa.get(key, 0.0))
         
         final_features = np.array(features, dtype=np.float32)
-        logger.info(f"[피처] 309차원 생성 완료")
+        logger.info(f"[피처] 309차원 생성 완료 (User: 156, Business: 153)")
         
         return final_features
     
@@ -246,11 +254,11 @@ class PredictionService:
             except Exception as e:
                 logger.error(f"DeepFM 예측 실패: {e}")
         
-        # Multi-Tower 예측 (154 + 155)
+        # Multi-Tower 예측 (156 + 153)
         if self.multitower_model:
             try:
-                user_tower_input = combined_features[:154]
-                business_tower_input = combined_features[154:]
+                user_tower_input = combined_features[:156]
+                business_tower_input = combined_features[156:]
                 
                 mt_user_input = torch.FloatTensor(user_tower_input).unsqueeze(0).to(self.device)
                 mt_business_input = torch.FloatTensor(business_tower_input).unsqueeze(0).to(self.device)
