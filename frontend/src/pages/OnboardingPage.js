@@ -90,6 +90,19 @@ const OnboardingPage = () => {
       ...prev,
       [name]: error
     }));
+
+    // 높이 측정 로그 (디버깅용)
+    setTimeout(() => {
+      const helperTexts = document.querySelectorAll('.helper-text');
+      const formGroups = document.querySelectorAll('.form-group');
+      console.log('=== 높이 측정 ===');
+      helperTexts.forEach((el, i) => {
+        console.log(`helper-text[${i}]: ${el.offsetWidth}x${el.offsetHeight}px`);
+      });
+      formGroups.forEach((el, i) => {
+        console.log(`form-group[${i}]: ${el.offsetWidth}x${el.offsetHeight}px`);
+      });
+    }, 0);
   };
 
   // 폼 제출 가능 여부
