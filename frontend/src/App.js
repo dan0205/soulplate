@@ -16,6 +16,7 @@ import UserProfilePage from './pages/UserProfilePage';
 import MBTIDetailPage from './pages/MBTIDetailPage';
 import TasteTestPage from './pages/TasteTestPage';
 import TasteTestResultPage from './pages/TasteTestResultPage';
+import RecentReviewsPage from './pages/RecentReviewsPage';
 import { useKakaoLoader } from 'react-kakao-maps-sdk';
 
 function App() {
@@ -73,6 +74,14 @@ function App() {
             element={
               <PrivateRoute>
                 <MyProfilePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/recent-reviews"
+            element={
+              <PrivateRoute>
+                <RecentReviewsPage />
               </PrivateRoute>
             }
           />

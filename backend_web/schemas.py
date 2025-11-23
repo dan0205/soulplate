@@ -183,6 +183,22 @@ class UserReviewResponse(ReviewBase):
     class Config:
         from_attributes = True
 
+class RecentReviewResponse(BaseModel):
+    """최근 리뷰 페이지용 리뷰 정보 (답글 포함)"""
+    id: int
+    user_id: int
+    username: str
+    business_id: str
+    business_name: str
+    stars: Optional[float]  # 답글은 None
+    text: str
+    created_at: datetime
+    useful: int = 0
+    parent_review_id: Optional[int] = None  # 답글 여부 확인용
+    
+    class Config:
+        from_attributes = True
+
 # Recommendation Schemas
 class RecommendationRequest(BaseModel):
     top_k: int = Field(default=10, ge=1, le=50)

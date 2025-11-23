@@ -85,6 +85,7 @@ export const reviewAPI = {
   delete: (reviewId) => api.delete(`/reviews/${reviewId}`),
   createReply: (reviewId, data) => api.post(`/reviews/${reviewId}/replies`, data),
   getReplies: (reviewId) => api.get(`/reviews/${reviewId}/replies`),
+  getRecent: (params) => api.get('/reviews/recent', { params }),
 };
 
 export const userAPI = {

@@ -37,6 +37,11 @@ const FloatingProfileButton = ({ username, onLogout }) => {
     navigate('/my-profile');
   };
 
+  const handleRecentReviews = () => {
+    setShowMenu(false);
+    navigate('/recent-reviews');
+  };
+
   const handleLogout = () => {
     setShowMenu(false);
     setShowLogoutConfirm(true);
@@ -72,6 +77,13 @@ const FloatingProfileButton = ({ username, onLogout }) => {
           >
             <span className="menu-icon">👤</span>
             <span>내 프로필</span>
+          </button>
+          <button 
+            className="profile-menu-item"
+            onClick={handleRecentReviews}
+          >
+            <span className="menu-icon">📝</span>
+            <span>최근 리뷰</span>
           </button>
           <button 
             className="profile-menu-item logout"

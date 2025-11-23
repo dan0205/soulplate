@@ -1470,6 +1470,51 @@ async def get_replies(
     
     return result
 
+@app.get("/api/reviews/recent", response_model=List[schemas.RecentReviewResponse])
+async def get_recent_reviews(
+    skip: int = 0,
+    limit: int = 20,
+    db: Session = Depends(get_db)
+):
+    """
+    모든 사용자의 최근 리뷰 조회 (답글 포함)
+    - 취향 테스트 제외 (is_taste_test=False)
+    - 최신순 정렬
+    - User와 Business 정보 JOIN
+    """
+    from sqlalchemy.orm import joinedload
+    
+    # User와 Business 정보를 함께 조회 (N+1 쿼리 방지)
+    reviews = db.query(models.Review).options(
+        joinedload(models.Review.user),
+        joinedload(models.Review.business)
+    ).filter(
+        models.Review.is_taste_test == False  # 취향 테스트 제외
+    ).order_by(
+        models.Review.created_at.desc()  # 최신순 정렬
+    ).offset(skip).limit(limit).all()
+    
+    result = []
+    for review in reviews:
+        # 답글의 경우 business가 None일 수 있음
+        if review.business:
+            result.append({
+                "id": review.id,
+                "user_id": review.user_id,
+                "username": review.user.username,
+                "business_id": review.business.business_id,
+                "business_name": review.business.name,
+                "stars": review.stars,  # 답글은 None
+                "text": review.text,
+                "created_at": review.created_at,
+                "useful": review.useful or 0,
+                "parent_review_id": review.parent_review_id
+            })
+    
+    logger.info(f"Recent reviews loaded: {len(result)} reviews")
+    
+    return result
+
 # ============================================================================
 # Taste Test Endpoints
 # ============================================================================
