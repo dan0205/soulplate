@@ -29,6 +29,12 @@ const ReviewTab = ({ businessId }) => {
   // Kebab 메뉴 상태
   const [openMenu, setOpenMenu] = useState(null);
   
+  // openMenu 변경 감지
+  useEffect(() => {
+    console.log('openMenu changed to:', openMenu);
+    console.log('Scroll position after openMenu change:', window.scrollY);
+  }, [openMenu]);
+  
   // 삭제 확인 모달 상태
   const [deleteConfirmReviewId, setDeleteConfirmReviewId] = useState(null);
 
@@ -39,6 +45,13 @@ const ReviewTab = ({ businessId }) => {
   useEffect(() => {
     console.log('WritingMode changed:', writingMode);
     console.log('Current scroll position:', window.scrollY);
+    
+    // 하단 작성칸이 확장될 때 스크롤 변경 감지
+    if (writingMode) {
+      setTimeout(() => {
+        console.log('Scroll position after writingMode expanded:', window.scrollY);
+      }, 100);
+    }
   }, [writingMode]);
 
   const loadReviews = async (loadMore = false) => {
@@ -223,8 +236,12 @@ const ReviewTab = ({ businessId }) => {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Kebab button clicked');
+            console.log('Kebab button clicked, scroll before:', window.scrollY);
+            console.log('Current openMenu:', openMenu, 'Review ID:', review.id);
             setOpenMenu(isOpen ? null : review.id);
+            setTimeout(() => {
+              console.log('Scroll after setOpenMenu (timeout):', window.scrollY);
+            }, 100);
           }}
         >
           ⋮
@@ -340,8 +357,13 @@ const ReviewTab = ({ businessId }) => {
       {/* useful 버튼 */}
       <div className="review-minimal-footer">
         <button 
+          type="button"
           className="useful-btn"
-          onClick={() => handleUsefulClick(review.id)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleUsefulClick(review.id);
+          }}
         >
           👍 {review.useful || 0}명이 도움됨
         </button>
@@ -350,8 +372,13 @@ const ReviewTab = ({ businessId }) => {
       {/* 답글 토글 버튼 (최상위 리뷰만, 답글이 있는 경우) */}
       {!isReply && review.reply_count > 0 && (
         <button 
+          type="button"
           className="toggle-replies-btn"
-          onClick={() => toggleReplies(review.id)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleReplies(review.id);
+          }}
         >
           {expandedReplies.has(review.id) ? '▼' : '▶'} 답글 {review.reply_count}개
         </button>
@@ -399,6 +426,7 @@ const ReviewTab = ({ businessId }) => {
           {hasMore && (
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
               <button 
+                type="button"
                 className="review-load-more-link"
                 onClick={() => loadReviews(true)}
                 disabled={loading}
