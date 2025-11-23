@@ -14,6 +14,7 @@ if str(current_dir) not in sys.path:
 from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from typing import List, Optional
@@ -28,6 +29,8 @@ import models
 import schemas
 import auth
 from database import engine, get_db, SessionLocal
+from oauth_config import oauth
+from oauth_utils import extract_oauth_user_info, sanitize_username
 from taste_test_questions import (
     QUICK_TEST_QUESTIONS, 
     DEEP_TEST_QUESTIONS,
