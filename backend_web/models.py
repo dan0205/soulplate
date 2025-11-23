@@ -17,24 +17,30 @@ from database import Base
 # Column = 테이블의 열을 정의 
 
 class User(Base):
-    """사용자 모델 (Yelp 데이터 + 신규 회원 통합)"""
+    """사용자 모델 (OAuth 전용)"""
     __tablename__ = "users"
     
-    # 기본 인증 정보
+    # 기본 식별자
     id = Column(Integer, primary_key=True, index=True)
-    yelp_user_id = Column(String, unique=True, index=True, nullable=True)  # Yelp 데이터 매칭용
-    username = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String(50), unique=True, index=True, nullable=False)  # 2-50자, 영문/한글/숫자/_/-/공백
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     
-    # Yelp 통계 데이터
+    # OAuth 인증 (필수)
+    oauth_provider = Column(String, nullable=False)  # 'google', 'kakao' 등
+    oauth_id = Column(String, unique=True, index=True, nullable=False)  # Google sub
+    profile_picture = Column(String, nullable=True)  # 프로필 이미지 URL
+    
+    # 레거시 필드 (제거 예정)
+    yelp_user_id = Column(String, unique=True, index=True, nullable=True)  # Yelp 데이터 매칭용
+    hashed_password = Column(String, nullable=True)  # 더 이상 사용 안 함
+    
+    # 모델 예측 피처 (필수)
     review_count = Column(Integer, default=0)
     useful = Column(Integer, default=0)  # useful + funny + cool 통합
     compliment = Column(Integer, default=0)  # 11개 compliment 통합
     fans = Column(Integer, default=0)
     average_stars = Column(Float, default=0.0)
-    yelping_since_days = Column(Integer, default=0)  # 가입 경과일
     
     # ABSA 피처 (JSON: 51개 aspect-sentiment 평균값)
     absa_features = Column(JSONB, nullable=True)
@@ -42,16 +48,11 @@ class User(Base):
     # 텍스트 임베딩 (JSON: 100차원 평균 벡터)
     text_embedding = Column(JSONB, nullable=True)
     
-    # 취향 테스트 관련 필드
+    # 취향 테스트
     taste_test_mbti_type = Column(String(4), nullable=True, index=True)  # 'SAPA', 'MOCA' 등
     taste_test_completed = Column(Boolean, default=False, nullable=False)
     taste_test_type = Column(String, nullable=True)  # 'quick' or 'deep'
     taste_test_axis_scores = Column(JSONB, nullable=True)  # 각 축의 확률 점수
-    # {"flavor_intensity": {"S": 73, "M": 27}, "dining_environment": {"A": 82, "O": 18}, ...}
-    
-    # 인구통계 정보 (미래 사용을 위해 저장, 현재 모델 학습에는 미사용)
-    age = Column(Integer, nullable=True)  # 나이
-    gender = Column(String(10), nullable=True)  # 'M', 'F', 'Other', None
     
     # Relationships
     reviews = relationship("Review", back_populates="user")

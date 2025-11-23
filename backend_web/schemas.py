@@ -15,32 +15,27 @@ from datetime import datetime
 # Optional = 해당 필드가 T 타입이거나 None일 수 있음
 # Filed = 필드의 기본값 외에 추가적인 유효성 검사 규칙을 설정  
 
-# User Schemas
-# 사용자 인증 및 정보 조회를 위해 사용된다 
+# User Schemas (OAuth 전용)
 class UserBase(BaseModel):
-    username: str
+    username: str = Field(min_length=2, max_length=50)
     email: EmailStr
-
-class UserCreate(UserBase):
-    password: str
-    # 회원가입 API를 요청할 때 사용 
-    # UserBase를 상속받아서 username과 email을 포함하고, password를 받는다 
-
-class UserLogin(BaseModel):
-    username: str
-    password: str
-    # 로그인 API를 요청할 때 사용 
 
 class UserResponse(UserBase):
     id: int
     created_at: datetime
-    # 사용자 정보를 클라이언트에 응답할 때 사용 
+    oauth_provider: Optional[str] = None
+    profile_picture: Optional[str] = None
     
     class Config:
         from_attributes = True
-        # 매우 중요한 설정이다
-        # SQLAlchemy같은 ORM 객체를 받았을 때, user.id가 아닌 user['id']로 접근하려다
-        # 오류가 나는 걸 방지한다
+
+# OAuth 사용으로 인해 더 이상 사용하지 않음
+# class UserCreate(UserBase):
+#     password: str
+
+# class UserLogin(BaseModel):
+#     username: str
+#     password: str
 
 class TasteTestSubmit(BaseModel):
     """취향 테스트 제출"""

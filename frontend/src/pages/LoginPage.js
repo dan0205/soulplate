@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 import './Auth.css';
 
 const LoginPage = () => {
@@ -72,7 +73,13 @@ const LoginPage = () => {
           </button>
         </form>
         
-        <p className="auth-link">
+        <div className="auth-divider">
+          <span>또는</span>
+        </div>
+        
+        <GoogleLoginButton />
+        
+        <p className="auth-link" style={{ marginTop: '20px' }}>
           Don't have an account? <Link to="/register">Register</Link>
         </p>
         

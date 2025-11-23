@@ -75,12 +75,25 @@ export const AuthProvider = ({ children }) => {
     navigate('/login', { replace: true });
   };
 
+  const handleOAuthCallback = async (token) => {
+    try {
+      localStorage.setItem('access_token', token);
+      await loadUser();
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('OAuth callback error:', error);
+      localStorage.removeItem('access_token');
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
     login,
     register,
     logout,
+    handleOAuthCallback,
     isAuthenticated: !!user,
   }; // 위에서 만든 모든 상태와 함수를 value라는 객체 하나로 묶는다 
   // isAuthenticated: !!user = user 객체가 있으면 true, 없으면 false 

@@ -13,13 +13,13 @@ import axios from 'axios';
 
 // Axios 인스턴스 생성
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
+  baseURL: process.env.REACT_APP_API_URL || 'https://backendweb-production-14de.up.railway.app/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 // API 요청을 위한 기본 설정을 갖춘 axios 인스턴스를 생성한다 
-// baseURL: 'http://localhost:8000/api' = 매우 편리한 기능. /로 시작하는 상대 경로만 적어도,
+// baseURL: 백엔드 API의 기본 URL. /로 시작하는 상대 경로만 적어도,
 // axios가 자동으로 baseURL 뒤에 붙여서 전체 요청 URL을 만들어준다 
 // headers: { 'Content-Type': 'application/json' } = 서버에 보내는 데이터의 기본 형식을 JSON으로 지정한다 
 

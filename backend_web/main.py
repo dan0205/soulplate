@@ -349,17 +349,16 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # 로컬 개발
         "https://soulplate.vercel.app",  # 프로덕션
-    ],  # 프로덕션에서는 특정 도메인으로 제한
+        "https://*.vercel.app",  # Vercel 프리뷰 배포
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Cross Origin Resource Sharing 설정이다 
-# 브라우저 보안 정책상 기본적으로 localhost:3000에서 localhost:8000으로 API를 호출할수없다
-# 이 미들웨어는 allow_origins=["*"] 에서 요청을 허용하도록 설정하여
-# 개발 환경에서 프론트엔드와 백엔드가 원할하게 통신할 수 있게 해준다
+# Cross Origin Resource Sharing 설정
+# 브라우저 보안 정책상 다른 도메인에서 API 호출 시 CORS 허용이 필요
+# 프로덕션 환경에서 soulplate.vercel.app에서 API 호출을 허용
 # 프로덕션에서는 ["*"] 대신 실제 프론트엔드 도메인을 적어야한다
 
 
@@ -411,105 +410,129 @@ async def health_check():
 # Authentication Endpoints
 # ============================================================================
 
-@app.post("/api/auth/register", status_code=status.HTTP_201_CREATED)
-async def register(
-    user: schemas.UserCreate, 
+# ============================================================================
+# 기존 인증 엔드포인트 (OAuth 전환으로 더 이상 사용 안 함)
+# ============================================================================
+
+# @app.post("/api/auth/register", status_code=status.HTTP_201_CREATED)
+# async def register(...):
+#     """더 이상 사용 안 함 - OAuth로 대체"""
+#     pass
+
+# @app.post("/api/auth/login", response_model=schemas.Token)
+# async def login(...):
+#     """더 이상 사용 안 함 - OAuth로 대체"""
+#     pass
+
+# ============================================================================
+# OAuth 인증 엔드포인트
+# ============================================================================
+
+@app.get("/api/auth/google")
+async def google_login(request: Request):
+    """구글 로그인 시작"""
+    # OAuth 콜백 URL 생성
+    redirect_uri = request.url_for('google_callback')
+    # 구글 OAuth 페이지로 리다이렉트
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@app.get("/api/auth/google/callback")
+async def google_callback(
+    request: Request, 
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    """회원가입"""
-    from prediction_cache import calculate_and_store_predictions
-    
-    # 새 사용자를 생성한다
-    # 사용자가 입력한 username 등을 받고, UserResponse 객체를 출력한다 
-    # 중복 확인
-    db_user = db.query(models.User).filter(models.User.username == user.username).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
-    
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    # 사용자 생성
-    hashed_password = auth.get_password_hash(user.password)
-    # 사용자가 작성한 비밀번호를 해시한다 
-    db_user = models.User(
-        username=user.username,
-        email=user.email,
-        hashed_password=hashed_password,
-        # 신규 회원은 Yelp 데이터 없이 기본값으로 생성
-        yelp_user_id=None,
-        review_count=0,
-        useful=0,
-        compliment=0,
-        fans=0,
-        average_stars=0.0,
-        yelping_since_days=0,
-        absa_features=None
-    )
-    # models.User 객체를 생성해서 디비에 저장한다 
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    
-    logger.info(f"New user registered: {user.username} (ID: {db_user.id})")
-    
-    # 백그라운드에서 초기 예측 계산
-    background_tasks.add_task(calculate_and_store_predictions, db_user.id, db)
-    logger.info(f"Background task scheduled for initial predictions: user {db_user.id}")
-    
-    # 자동 로그인: 토큰 생성
-    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(
-        data={"sub": db_user.username}, expires_delta=access_token_expires
-    )
-    
-    # 토큰과 사용자 정보를 함께 반환
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": db_user
-    }
-
-@app.post("/api/auth/login", response_model=schemas.Token)
-async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), 
-    background_tasks: BackgroundTasks = None,
-    db: Session = Depends(get_db)
-):
-    """로그인"""
-    # 사용자 인증 후 JWT 액세스 토큰을 발급한다 
-    # Depends()는 FastAPI가 이 형식의 데이터를 자동으로 받아오게 한다 
-    user = db.query(models.User).filter(models.User.username == form_data.username).first()
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+    """구글 OAuth 콜백"""
+    try:
+        # 구글로부터 토큰 받기
+        token = await oauth.google.authorize_access_token(request)
+        
+        # 사용자 정보 가져오기
+        userinfo = token.get('userinfo')
+        if not userinfo:
+            userinfo = await oauth.google.userinfo(token=token)
+        
+        # 표준화된 사용자 정보 추출
+        user_data = extract_oauth_user_info(userinfo)
+        
+        if not user_data['oauth_id'] or not user_data['email']:
+            raise HTTPException(
+                status_code=400, 
+                detail="Failed to get user info from Google"
+            )
+        
+        # 기존 사용자 확인 (oauth_id 또는 email로)
+        user = db.query(models.User).filter(
+            (models.User.oauth_id == user_data['oauth_id']) | 
+            (models.User.email == user_data['email'])
+        ).first()
+        
+        if user:
+            # 기존 사용자 - OAuth 정보 업데이트
+            user.oauth_provider = 'google'
+            user.oauth_id = user_data['oauth_id']
+            user.profile_picture = user_data['picture']
+            db.commit()
+            db.refresh(user)
+            logger.info(f"Existing user logged in via Google: {user.username}")
+        else:
+            # 신규 사용자 - 생성
+            username = sanitize_username(
+                user_data['name'], 
+                user_data['email'], 
+                db
+            )
+            
+            user = models.User(
+                username=username,
+                email=user_data['email'],
+                oauth_provider='google',
+                oauth_id=user_data['oauth_id'],
+                profile_picture=user_data['picture'],
+                # OAuth 유저는 비밀번호 없음
+                hashed_password=None,
+                yelp_user_id=None,
+                # 기본값
+                review_count=0,
+                useful=0,
+                compliment=0,
+                fans=0,
+                average_stars=0.0,
+                absa_features=None,
+                text_embedding=None
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            logger.info(f"New user created via Google: {user.username} (ID: {user.id})")
+            
+            # 백그라운드에서 초기 예측 계산
+            from prediction_cache import calculate_and_store_predictions
+            background_tasks.add_task(calculate_and_store_predictions, user.id, db)
+        
+        # JWT 토큰 생성
+        access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = auth.create_access_token(
+            data={"sub": user.username}, 
+            expires_delta=access_token_expires
         )
-    
-    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    
-    logger.info(f"User logged in: {user.username}")
-    
-    # 예측값 확인 및 생성
-    from prediction_cache import check_predictions_exist, check_has_stale_predictions, calculate_and_store_predictions
-    
-    # Stale 우선 처리: Stale이 있으면 무조건 재계산 (Fresh 여부 무관)
-    if check_has_stale_predictions(user.id, db):
-        logger.info(f"사용자 {user.username}의 stale 예측이 있어 백그라운드 재계산 시작")
-        if background_tasks:
-            background_tasks.add_task(calculate_and_store_predictions, user.id, db)
-    elif not check_predictions_exist(user.id, db):
-        logger.info(f"사용자 {user.username}의 예측값이 없어 백그라운드 생성 시작")
-        if background_tasks:
-            background_tasks.add_task(calculate_and_store_predictions, user.id, db)
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+        
+        # 프론트엔드로 리디렉션 (토큰 포함)
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        return RedirectResponse(
+            url=f"{frontend_url}/auth/callback?token={access_token}"
+        )
+        
+    except Exception as e:
+        logger.error(f"Google OAuth error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # 에러 발생 시 프론트엔드 로그인 페이지로 리디렉션
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        return RedirectResponse(
+            url=f"{frontend_url}/login?error=oauth_failed"
+        )
 
 @app.get("/api/auth/me", response_model=schemas.UserResponse)
 async def get_current_user_info(current_user: models.User = Depends(auth.get_current_user)):
