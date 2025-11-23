@@ -151,7 +151,6 @@ async def calculate_and_store_predictions(user_id: int, db: Session):
             "compliment": user.compliment,
             "fans": user.fans,
             "average_stars": user.average_stars,
-            "yelping_since_days": user.yelping_since_days,
             "absa_features": user.absa_features or {}
         }
         

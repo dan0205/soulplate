@@ -308,7 +308,6 @@ async def get_ai_prediction(user: models.User, business: models.Business):
                         "compliment": user.compliment,
                         "fans": user.fans,
                         "average_stars": user.average_stars,
-                        "yelping_since_days": user.yelping_since_days,
                         "absa_features": user_absa
                     },
                     "business_data": {
