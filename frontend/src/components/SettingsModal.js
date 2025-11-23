@@ -180,10 +180,8 @@ const SettingsModal = ({ isOpen, onClose, currentUser, onUpdateSuccess }) => {
         await onUpdateSuccess();
       }
 
-      // 2초 후 모달 닫기
-      setTimeout(() => {
-        onClose();
-      }, 2000);
+      // 즉시 모달 닫기
+      onClose();
     } catch (error) {
       console.error('Profile update error:', error);
       if (error.response?.data?.detail === 'Username already exists') {
