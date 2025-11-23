@@ -72,13 +72,14 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        user_id: str = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
-    except JWTError:
+        user_id = int(user_id)  # 문자열을 정수로 변환
+    except (JWTError, ValueError):
         raise credentials_exception
     
-    user = db.query(models.User).filter(models.User.username == username).first()
+    user = db.query(models.User).filter(models.User.id == user_id).first()
     if user is None:
         raise credentials_exception
     return user
@@ -96,13 +97,14 @@ async def get_current_user_optional(
     
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        user_id: str = payload.get("sub")
+        if user_id is None:
             return None
-    except JWTError:
+        user_id = int(user_id)  # 문자열을 정수로 변환
+    except (JWTError, ValueError):
         return None
     
-    user = db.query(models.User).filter(models.User.username == username).first()
+    user = db.query(models.User).filter(models.User.id == user_id).first()
     return user
     # 로그인하지 않은 사용자도 접근 가능한 엔드포인트에서 사용
     # 토큰이 있으면 사용자 정보 반환, 없으면 None 반환

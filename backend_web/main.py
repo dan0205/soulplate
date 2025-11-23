@@ -585,7 +585,7 @@ async def google_callback(
         logger.info("Creating JWT token...")
         access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = auth.create_access_token(
-            data={"sub": user.username}, 
+            data={"sub": str(user.id)},  # user.id 사용 (username 변경되어도 토큰 유효)
             expires_delta=access_token_expires
         )
         logger.info("JWT token created successfully")
