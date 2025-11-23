@@ -115,7 +115,14 @@ const SettingsModal = ({ isOpen, onClose, currentUser, onUpdateSuccess }) => {
       const formGroups = document.querySelectorAll('.settings-modal-content .form-group');
       console.log('=== 설정 모달 높이 측정 ===');
       helperTexts.forEach((el, i) => {
+        const computedStyle = window.getComputedStyle(el);
         console.log(`helper-text[${i}]: ${el.offsetWidth}x${el.offsetHeight}px`);
+        console.log(`  - height: ${computedStyle.height}`);
+        console.log(`  - max-height: ${computedStyle.maxHeight}`);
+        console.log(`  - padding: ${computedStyle.padding}`);
+        console.log(`  - line-height: ${computedStyle.lineHeight}`);
+        console.log(`  - className: ${el.className}`);
+        console.log(`  - display: ${computedStyle.display}`);
       });
       formGroups.forEach((el, i) => {
         console.log(`form-group[${i}]: ${el.offsetWidth}x${el.offsetHeight}px`);
