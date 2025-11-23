@@ -2,14 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from './ConfirmModal';
 import TasteTestModal from './TasteTestModal';
+import SettingsModal from './SettingsModal';
+import { useAuth } from '../context/AuthContext';
 import './FloatingProfileButton.css';
 
 const FloatingProfileButton = ({ username, onLogout }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showTasteTestModal, setShowTasteTestModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
+  const { user, loadUser } = useAuth();
 
   // 외부 클릭 시 메뉴 닫기
   useEffect(() => {
@@ -49,9 +53,19 @@ const FloatingProfileButton = ({ username, onLogout }) => {
     setShowTasteTestModal(true);
   };
 
+  const handleSettings = () => {
+    setShowMenu(false);
+    setShowSettingsModal(true);
+  };
+
   const handleLogout = () => {
     setShowMenu(false);
     setShowLogoutConfirm(true);
+  };
+
+  const handleSettingsUpdate = async () => {
+    // 사용자 정보 새로고침
+    await loadUser();
   };
 
   const handleLogoutConfirm = () => {
@@ -100,6 +114,13 @@ const FloatingProfileButton = ({ username, onLogout }) => {
             <span>최근 리뷰</span>
           </button>
           <button 
+            className="profile-menu-item"
+            onClick={handleSettings}
+          >
+            <span className="menu-icon">⚙️</span>
+            <span>설정</span>
+          </button>
+          <button 
             className="profile-menu-item logout"
             onClick={handleLogout}
           >
@@ -125,6 +146,14 @@ const FloatingProfileButton = ({ username, onLogout }) => {
       {showTasteTestModal && (
         <TasteTestModal onClose={() => setShowTasteTestModal(false)} />
       )}
+
+      {/* 설정 모달 */}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        currentUser={user}
+        onUpdateSuccess={handleSettingsUpdate}
+      />
     </div>
   );
 };

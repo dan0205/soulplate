@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>설정 - Soulplate</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .settings-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      width: 100%;
+      padding: 40px 30px;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .settings-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .back-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .back-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateX(-3px);
+    }
+
+    .logo {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .settings-subtitle {
+      color: #666;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .avatar-section {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-label .required {
+      color: #e74c3c;
+      margin-left: 3px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-input.error {
+      border-color: #e74c3c;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      font-size: 13px;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .gender-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .gender-button {
+      flex: 1;
+      padding: 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .gender-button:hover {
+      border-color: #667eea;
+      background: #f5f7ff;
+    }
+
+    .gender-button.active {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .input-hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 35px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+
+    .btn-secondary:hover {
+      background: #f5f7ff;
+    }
+
+    .info-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 30px;
+    }
+
+    .info-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .info-list {
+      list-style: none;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.8;
+    }
+
+    .info-list li {
+      padding-left: 16px;
+      position: relative;
+    }
+
+    .info-list li:before {
+      content: "•";
+      position: absolute;
+      left: 4px;
+      color: #667eea;
+    }
+
+    .current-value {
+      background: #e8eaff;
+      color: #667eea;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .settings-container {
+        padding: 30px 20px;
+      }
+
+      .logo {
+        font-size: 28px;
+      }
+
+      .avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="back-button" onclick="goBack()">← 뒤로</button>
+
+  <div class="settings-container">
+    <div class="settings-header">
+      <div class="logo">⚙️ 설정</div>
+      <div class="settings-subtitle">프로필 정보를 수정할 수 있습니다</div>
+    </div>
+
+    <div class="avatar-section">
+      <div class="avatar" id="avatarDisplay">김</div>
+    </div>
+
+    <div class="success-message" id="successMessage">
+      ✓ 프로필이 성공적으로 업데이트되었습니다!
+    </div>
+
+    <form id="settingsForm" onsubmit="handleSubmit(event)">
+      <!-- Username -->
+      <div class="form-group">
+        <label class="form-label">
+          사용자 이름<span class="required">*</span>
+        </label>
+        <input 
+          type="text" 
+          class="form-input" 
+          id="username" 
+          value="김맛집"
+          placeholder="사용자 이름을 입력하세요"
+          oninput="validateUsername()"
+          required
+        />
+        <div class="input-hint">영문/한글/숫자/_/-/공백 사용 가능 (2-50자)</div>
+        <div class="error-message" id="usernameError"></div>
+      </div>
+
+      <!-- Age -->
+      <div class="form-group">
+        <label class="form-label">
+          나이<span class="required">*</span>
+        </label>
+        <input 
+          type="number" 
+          class="form-input" 
+          id="age" 
+          value="25"
+          min="14"
+          max="120"
+          placeholder="나이를 입력하세요"
+          oninput="validateAge()"
+          required
+        />
+        <div class="input-hint">14세 이상 입력 가능</div>
+        <div class="error-message" id="ageError"></div>
+      </div>
+
+      <!-- Gender -->
+      <div class="form-group">
+        <label class="form-label">
+          성별<span class="required">*</span>
+        </label>
+        <div class="gender-buttons">
+          <button 
+            type="button" 
+            class="gender-button active" 
+            data-gender="male"
+            onclick="selectGender('male')"
+          >
+            👨 남성
+          </button>
+          <button 
+            type="button" 
+            class="gender-button" 
+            data-gender="female"
+            onclick="selectGender('female')"
+          >
+            👩 여성
+          </button>
+        </div>
+        <div class="error-message" id="genderError"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="resetForm()">
+          취소
+        </button>
+        <button type="submit" class="btn btn-primary">
+          저장
+        </button>
+      </div>
+    </form>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <div class="info-title">
+        ℹ️ 정보
+      </div>
+      <ul class="info-list">
+        <li>사용자 이름은 다른 사용자에게 표시됩니다</li>
+        <li>나이와 성별 정보는 추천 시스템에 활용됩니다</li>
+        <li>변경사항은 즉시 적용됩니다</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // 초기 데이터 (서버에서 가져온 현재 값으로 설정)
+    const initialData = {
+      username: '김맛집',
+      age: 25,
+      gender: 'male'
+    };
+
+    let selectedGender = 'male';
+
+    // Username 유효성 검사
+    function validateUsername() {
+      const input = document.getElementById('username');
+      const error = document.getElementById('usernameError');
+      const value = input.value.trim();
+
+      if (value.length < 2) {
+        showError(input, error, '최소 2자 이상 입력해주세요');
+        return false;
+      }
+      if (value.length > 50) {
+        showError(input, error, '최대 50자까지 입력 가능합니다');
+        return false;
+      }
+      const validPattern = /^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ_\- ]+$/;
+      if (!validPattern.test(value)) {
+        showError(input, error, '영문/한글/숫자/_/-/공백만 사용 가능합니다');
+        return false;
+      }
+
+      hideError(input, error);
+      updateAvatar(value);
+      return true;
+    }
+
+    // Age 유효성 검사
+    function validateAge() {
+      const input = document.getElementById('age');
+      const error = document.getElementById('ageError');
+      const value = parseInt(input.value);
+
+      if (!value || isNaN(value)) {
+        showError(input, error, '나이를 입력해주세요');
+        return false;
+      }
+      if (value < 14) {
+        showError(input, error, '14세 이상만 가능합니다');
+        return false;
+      }
+      if (value > 120) {
+        showError(input, error, '올바른 나이를 입력해주세요');
+        return false;
+      }
+
+      hideError(input, error);
+      return true;
+    }
+
+    // Gender 선택
+    function selectGender(gender) {
+      selectedGender = gender;
+      const buttons = document.querySelectorAll('.gender-button');
+      buttons.forEach(btn => {
+        if (btn.dataset.gender === gender) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    // 에러 표시
+    function showError(input, errorDiv, message) {
+      input.classList.add('error');
+      errorDiv.textContent = message;
+      errorDiv.classList.add('show');
+    }
+
+    // 에러 숨기기
+    function hideError(input, errorDiv) {
+      input.classList.remove('error');
+      errorDiv.classList.remove('show');
+    }
+
+    // 아바타 업데이트
+    function updateAvatar(username) {
+      const avatar = document.getElementById('avatarDisplay');
+      if (username && username.length > 0) {
+        avatar.textContent = username.charAt(0).toUpperCase();
+      }
+    }
+
+    // 폼 제출
+    function handleSubmit(event) {
+      event.preventDefault();
+
+      // 모든 필드 유효성 검사
+      const isUsernameValid = validateUsername();
+      const isAgeValid = validateAge();
+
+      if (!isUsernameValid || !isAgeValid) {
+        return;
+      }
+
+      // 데이터 수집
+      const formData = {
+        username: document.getElementById('username').value.trim(),
+        age: parseInt(document.getElementById('age').value),
+        gender: selectedGender
+      };
+
+      console.log('저장할 데이터:', formData);
+
+      // 성공 메시지 표시
+      const successMessage = document.getElementById('successMessage');
+      successMessage.classList.add('show');
+
+      // 초기 데이터 업데이트
+      Object.assign(initialData, formData);
+
+      // 3초 후 성공 메시지 숨기기
+      setTimeout(() => {
+        successMessage.classList.remove('show');
+      }, 3000);
+
+      // 실제 구현에서는 여기서 API 호출
+      /*
+      fetch('/api/user/update-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        // 성공 처리
+        successMessage.classList.add('show');
+        setTimeout(() => {
+          successMessage.classList.remove('show');
+        }, 3000);
+      })
+      .catch(error => {
+        // 에러 처리
+        alert('저장 중 오류가 발생했습니다: ' + error.message);
+      });
+      */
+    }
+
+    // 폼 초기화
+    function resetForm() {
+      document.getElementById('username').value = initialData.username;
+      document.getElementById('age').value = initialData.age;
+      selectGender(initialData.gender);
+      
+      // 에러 메시지 모두 숨기기
+      document.querySelectorAll('.error-message').forEach(error => {
+        error.classList.remove('show');
+      });
+      document.querySelectorAll('.form-input').forEach(input => {
+        input.classList.remove('error');
+      });
+
+      updateAvatar(initialData.username);
+    }
+
+    // 뒤로 가기
+    function goBack() {
+      // 실제 구현에서는 react-router의 navigate(-1) 사용
+      if (confirm('변경사항을 저장하지 않고 나가시겠습니까?')) {
+        window.history.back();
+      }
+    }
+
+    // 페이지 로드 시 초기화
+    window.addEventListener('DOMContentLoaded', () => {
+      updateAvatar(initialData.username);
+    });
+  </script>
+</body>
+</html>
+
