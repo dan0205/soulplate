@@ -563,17 +563,10 @@ reach-portal {
 
 .review-header-top {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
-}
-
-.review-section-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
 }
 
 .review-header {

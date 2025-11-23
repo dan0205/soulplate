@@ -1053,7 +1053,7 @@ async def get_reviews(
     business_id: str,
     skip: int = 0,
     limit: int = 20,
-    sort: str = 'latest',  # 'latest' 또는 'useful'
+    sort: str = 'latest',  # 'latest', 'useful', 'stars_desc', 'stars_asc'
     db: Session = Depends(get_db)
 ):
     """비즈니스 리뷰 목록 조회 (정렬, 사용자 리뷰 수, ABSA 감정, 답글 개수 포함)"""
@@ -1087,6 +1087,10 @@ async def get_reviews(
     # 정렬 옵션
     if sort == 'useful':
         query = query.order_by(models.Review.useful.desc())
+    elif sort == 'stars_desc':
+        query = query.order_by(models.Review.stars.desc())
+    elif sort == 'stars_asc':
+        query = query.order_by(models.Review.stars.asc())
     else:  # 'latest'
         query = query.order_by(models.Review.created_at.desc())
     

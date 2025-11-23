@@ -437,7 +437,6 @@ const ReviewTab = ({ businessId }) => {
     <div className="review-tab">
       {/* 상단 헤더 */}
       <div className="review-header-top">
-        <h3 className="review-section-title">리뷰</h3>
         <select 
           className="review-sort"
           value={sortBy}
@@ -445,6 +444,8 @@ const ReviewTab = ({ businessId }) => {
         >
           <option value="latest">최신순</option>
           <option value="useful">추천순</option>
+          <option value="stars_desc">별점 높은 순</option>
+          <option value="stars_asc">별점 낮은 순</option>
         </select>
       </div>
 
