@@ -732,28 +732,33 @@ reach-portal {
 }
 
 .review-item {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid #f0f0f0;
   display: block;
   position: relative;
   transition: all 0.2s ease;
 }
 
+.review-item:last-child {
+  border-bottom: none;
+}
+
 .review-item:hover {
   background: #fafafa;
+  margin: 0 -20px;
+  padding: 20px;
+  border-radius: 8px;
 }
 
 /* 답글 스타일 */
 .reply-item {
-  margin-left: 20px;
   margin-top: 8px;
-  border: none;
-  background: transparent;
-  padding: 16px 0 16px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  border-left: 3px solid #f0f0f0;
+  padding: 16px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.reply-item:last-child {
+  border-bottom: none;
 }
 
 /* 답글 작성 대상 강조 */
@@ -814,6 +819,7 @@ reach-portal {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 4px;
 }
 
 .review-stars {
@@ -902,6 +908,7 @@ reach-portal {
 /* Kebab 메뉴 스타일 */
 .kebab-menu {
   margin-left: auto;
+  position: relative;
   z-index: 10;
 }
 
@@ -981,13 +988,15 @@ reach-portal {
   color: var(--primary-dark);
 }
 
-/* 답글 목록 (review-content 안에 있음) */
+/* 답글 목록 */
 .replies-list {
   margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 0;
   width: 100%;
+  padding-left: 0;
+  border-left: none;
 }
 
 /* 하단 고정 작성칸 (화면 하단 고정) */

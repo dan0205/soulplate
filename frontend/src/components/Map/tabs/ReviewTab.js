@@ -174,10 +174,6 @@ const ReviewTab = ({ businessId }) => {
     setFormData({ stars: review.stars || 5, text: review.text });
     setWritingMode('edit');
     setOpenMenu(null);
-    // 작성칸으로 스크롤
-    setTimeout(() => {
-      document.querySelector('.bottom-write-bar')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
   };
 
   // 답글 시작
@@ -186,10 +182,6 @@ const ReviewTab = ({ businessId }) => {
     setFormData({ stars: 5, text: '' });
     setWritingMode('reply');
     setOpenMenu(null);
-    // 작성칸으로 스크롤
-    setTimeout(() => {
-      document.querySelector('.bottom-write-bar')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
   };
 
   const handleUserClick = (userId) => {
