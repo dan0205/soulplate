@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { authAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import './SettingsModal.css';
@@ -205,7 +206,7 @@ const SettingsModal = ({ isOpen, onClose, currentUser, onUpdateSuccess }) => {
 
   if (!isOpen) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div 
       className="settings-modal-overlay" 
       ref={modalRef}
@@ -310,7 +311,8 @@ const SettingsModal = ({ isOpen, onClose, currentUser, onUpdateSuccess }) => {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
