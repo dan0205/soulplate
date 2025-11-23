@@ -147,8 +147,9 @@
 .test-badge {
   display: inline-block;
   padding: 4px 10px;
-  background: #ff6b6b;
-  color: white;
+  background: transparent;
+  color: #999;
+  border: 1px solid #ff6b6b;
   font-size: 12px;
   border-radius: 8px;
   font-weight: 600;
@@ -201,21 +202,41 @@
   }
 
   .test-option {
-    flex-direction: column;
-    text-align: center;
-    padding: 20px;
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    padding: 14px;
+    gap: 12px;
   }
 
   .test-icon {
-    margin: 0 auto;
+    width: 40px;
+    height: 40px;
+    font-size: 28px;
+    margin: 0;
   }
 
   .modal-content .test-info h3 {
-    font-size: 17px;
+    font-size: 16px;
+    margin-bottom: 4px;
   }
 
   .modal-content .test-info p {
-    font-size: 14px;
+    font-size: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 4px 0;
+  }
+
+  .test-meta {
+    margin-top: 6px;
+  }
+
+  .test-badge {
+    font-size: 11px;
+    padding: 3px 8px;
   }
 }
 

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모바일 모달 디자인 옵션</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .option-wrapper {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .option-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ff6b6b;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-desc {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 11px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* 모바일 프레임 */
+        .mobile-frame {
+            width: 100%;
+            max-width: 375px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 모달 공통 스타일 */
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 24px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            margin: 0 0 8px;
+            color: #ff6b6b;
+        }
+
+        .modal-header p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .test-option {
+            background: #f8f9fa;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .test-option:active {
+            border-color: #ff6b6b;
+            background: #fff5f5;
+        }
+
+        .test-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .test-info h3 {
+            font-size: 16px;
+            margin: 0;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .test-info p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin: 6px 0 0;
+        }
+
+        .test-meta {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .test-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 11px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .btn-skip-modal {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            color: #999;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+
+        .modal-hint {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin: 10px 0 0;
+        }
+
+        /* 옵션 1: 설명 숨기기 */
+        .option-1 .test-option {
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            gap: 12px;
+        }
+
+        .option-1 .test-icon {
+            width: 40px;
+            height: 40px;
+        }
+
+        .option-1 .test-info p {
+            display: none;
+        }
+
+        .option-1 .test-meta {
+            margin-top: 4px;
+        }
+
+        /* 옵션 2: 설명 한 줄 */
+        .option-2 .test-option {
+            display: flex;
+            align-items: flex-start;
+            padding: 14px;
+            gap: 12px;
+        }
+
+        .option-2 .test-icon {
+            width: 40px;
+            height: 40px;
+        }
+
+        .option-2 .test-info p {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-size: 12px;
+            margin: 4px 0;
+        }
+
+        .option-2 .test-meta {
+            margin-top: 4px;
+        }
+
+        /* 옵션 3: 제목과 배지 한 줄 */
+        .option-3 .test-option {
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            gap: 12px;
+        }
+
+        .option-3 .test-icon {
+            width: 40px;
+            height: 40px;
+        }
+
+        .option-3 .test-info h3 {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            font-size: 15px;
+        }
+
+        .option-3 .test-info p {
+            display: none;
+        }
+
+        .option-3 .test-meta {
+            display: inline-flex;
+            margin-top: 0;
+        }
+
+        /* 옵션 4: 콤팩트 */
+        .option-4 .modal-content {
+            padding: 24px 20px;
+        }
+
+        .option-4 .test-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .option-4 .test-icon {
+            width: 34px;
+            height: 34px;
+            font-size: 24px;
+        }
+
+        .option-4 .test-info h3 {
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .option-4 .test-info p {
+            display: none;
+        }
+
+        .option-4 .test-meta {
+            margin-top: 3px;
+            gap: 4px;
+        }
+
+        .option-4 .test-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+        }
+
+        /* 현재 디자인 */
+        .current .test-option {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .current .test-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 8px;
+        }
+
+        .current .test-info h3 {
+            margin-bottom: 6px;
+        }
+
+        .current .test-meta {
+            margin-top: 10px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="page-title">📱 모바일 모달 디자인 옵션</h1>
+        <p class="page-subtitle">각 디자인을 비교해보세요 (모바일 화면 기준)</p>
+
+        <div class="options-grid">
+            <!-- 현재 디자인 -->
+            <div class="option-wrapper">
+                <div class="option-label">
+                    현재 디자인
+                    <span class="badge" style="background: #999;">Current</span>
+                </div>
+                <div class="option-desc">
+                    ❌ 너무 길어서 스크롤이 많이 필요함<br>
+                    ❌ 세로로 길게 늘어져 답답함
+                </div>
+                
+                <div class="mobile-frame">
+                    <div class="modal-content current">
+                        <button class="modal-close">×</button>
+                        
+                        <div class="modal-header">
+                            <h2>취향 테스트</h2>
+                            <p>음식 취향 테스트를 하시면<br/>맞춤 맛집 추천을 받을 수 있어요!</p>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="test-option">
+                                <div class="test-icon">⚡</div>
+                                <div class="test-info">
+                                    <h3>간단 테스트</h3>
+                                    <p>빠르게 음식 취향을 파악하고 싶다면 간단 테스트를 추천해요. 8개의 핵심 질문으로 당신의 취향을 분석합니다.</p>
+                                    <div class="test-meta">
+                                        <span class="test-badge">⏱️ 약 2분</span>
+                                        <span class="test-badge">📝 8문항</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="test-option">
+                                <div class="test-icon">🔍</div>
+                                <div class="test-info">
+                                    <h3>심화 테스트</h3>
+                                    <p>더 정확하고 상세한 맞춤 추천을 원한다면 심화 테스트를 선택하세요. 24개의 질문으로 깊이 있는 분석을 제공합니다.</p>
+                                    <div class="test-meta">
+                                        <span class="test-badge">⏱️ 약 5분</span>
+                                        <span class="test-badge">📝 24문항</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-skip-modal">나중에 하기 →</button>
+                        <p class="modal-hint">💡 나중에 언제든 다시 할 수 있어요</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 옵션 1 -->
+            <div class="option-wrapper">
+                <div class="option-label">
+                    옵션 1: 설명 숨기기
+                    <span class="badge">추천 ⭐</span>
+                </div>
+                <div class="option-desc">
+                    ✅ 가장 깔끔하고 짧음<br>
+                    ✅ 핵심 정보만 표시<br>
+                    ✅ 스크롤 없이 한눈에
+                </div>
+                
+                <div class="mobile-frame">
+                    <div class="modal-content option-1">
+                        <button class="modal-close">×</button>
+                        
+                        <div class="modal-header">
+                            <h2>취향 테스트</h2>
+                            <p>음식 취향 테스트를 하시면<br/>맞춤 맛집 추천을 받을 수 있어요!</p>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="test-option">
+                                <div class="test-icon">⚡</div>
+                                <div class="test-info">
+                                    <h3>간단 테스트</h3>
+                                    <p>빠르게 음식 취향을 파악하고 싶다면 간단 테스트를 추천해요. 8개의 핵심 질문으로 당신의 취향을 분석합니다.</p>
+                                    <div class="test-meta">
+                                        <span class="test-badge">⏱️ 약 2분</span>
+                                        <span class="test-badge">📝 8문항</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="test-option">
+                                <div class="test-icon">🔍</div>
+                                <div class="test-info">
+                                    <h3>심화 테스트</h3>
+                                    <p>더 정확하고 상세한 맞춤 추천을 원한다면 심화 테스트를 선택하세요. 24개의 질문으로 깊이 있는 분석을 제공합니다.</p>
+                                    <div class="test-meta">
+                                        <span class="test-badge">⏱️ 약 5분</span>
+                                        <span class="test-badge">📝 24문항</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-skip-modal">나중에 하기 →</button>
+                        <p class="modal-hint">💡 나중에 언제든 다시 할 수 있어요</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 옵션 2 -->
+            <div class="option-wrapper">
+                <div class="option-label">
+                    옵션 2: 설명 한 줄
+                </div>
+                <div class="option-desc">
+                    ✅ 약간의 설명 유지<br>
+                    ✅ 적당한 길이<br>
+                    ⚠️ 설명이 잘릴 수 있음
+                </div>
+                
+                <div class="mobile-frame">
+                    <div class="modal-content option-2">
+                        <button class="modal-close">×</button>
+                        
+                        <div class="modal-header">
+                            <h2>취향 테스트</h2>
+                            <p>음식 취향 테스트를 하시면<br/>맞춤 맛집 추천을 받을 수 있어요!</p>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="test-option">
+                                <div class="test-icon">⚡</div>
+                                <div class="test-info">
+                                    <h3>간단 테스트</h3>
+                                    <p>빠르게 음식 취향을 파악하고 싶다면 간단 테스트를 추천해요. 8개의 핵심 질문으로 당신의 취향을 분석합니다.</p>
+                                    <div class="test-meta">
+                                        <span class="test-badge">⏱️ 약 2분</span>
+                                        <span class="test-badge">📝 8문항</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="test-option">
+                                <div class="test-icon">🔍</div>
+                                <div class="test-info">
+                                    <h3>심화 테스트</h3>
+                                    <p>더 정확하고 상세한 맞춤 추천을 원한다면 심화 테스트를 선택하세요. 24개의 질문으로 깊이 있는 분석을 제공합니다.</p>
+                                    <div class="test-meta">
+                                        <span class="test-badge">⏱️ 약 5분</span>
+                                        <span class="test-badge">📝 24문항</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-skip-modal">나중에 하기 →</button>
+                        <p class="modal-hint">💡 나중에 언제든 다시 할 수 있어요</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 옵션 3 -->
+            <div class="option-wrapper">
+                <div class="option-label">
+                    옵션 3: 제목+배지 한 줄
+                </div>
+                <div class="option-desc">
+                    ✅ 아주 짧고 간결<br>
+                    ⚠️ 배지가 제목과 섞여 복잡해 보일 수 있음
+                </div>
+                
+                <div class="mobile-frame">
+                    <div class="modal-content option-3">
+                        <button class="modal-close">×</button>
+                        
+                        <div class="modal-header">
+                            <h2>취향 테스트</h2>
+                            <p>음식 취향 테스트를 하시면<br/>맞춤 맛집 추천을 받을 수 있어요!</p>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="test-option">
+                                <div class="test-icon">⚡</div>
+                                <div class="test-info">
+                                    <h3>
+                                        간단 테스트
+                                        <div class="test-meta">
+                                            <span class="test-badge">⏱️ 약 2분</span>
+                                            <span class="test-badge">📝 8문항</span>
+                                        </div>
+                                    </h3>
+                                    <p>빠르게 음식 취향을 파악하고 싶다면 간단 테스트를 추천해요. 8개의 핵심 질문으로 당신의 취향을 분석합니다.</p>
+                                </div>
+                            </div>
+
+                            <div class="test-option">
+                                <div class="test-icon">🔍</div>
+                                <div class="test-info">
+                                    <h3>
+                                        심화 테스트
+                                        <div class="test-meta">
+                                            <span class="test-badge">⏱️ 약 5분</span>
+                                            <span class="test-badge">📝 24문항</span>
+                                        </div>
+                                    </h3>
+                                    <p>더 정확하고 상세한 맞춤 추천을 원한다면 심화 테스트를 선택하세요. 24개의 질문으로 깊이 있는 분석을 제공합니다.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-skip-modal">나중에 하기 →</button>
+                        <p class="modal-hint">💡 나중에 언제든 다시 할 수 있어요</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 옵션 4 -->
+            <div class="option-wrapper">
+                <div class="option-label">
+                    옵션 4: 콤팩트
+                </div>
+                <div class="option-desc">
+                    ✅ 가장 짧음<br>
+                    ✅ 공간 효율 최고<br>
+                    ⚠️ 너무 작아 보일 수 있음
+                </div>
+                
+                <div class="mobile-frame">
+                    <div class="modal-content option-4">
+                        <button class="modal-close">×</button>
+                        
+                        <div class="modal-header">
+                            <h2>취향 테스트</h2>
+                            <p>음식 취향 테스트를 하시면<br/>맞춤 맛집 추천을 받을 수 있어요!</p>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="test-option">
+                                <div class="test-icon">⚡</div>
+                                <div class="test-info">
+                                    <h3>간단 테스트</h3>
+                                    <p>빠르게 음식 취향을 파악하고 싶다면 간단 테스트를 추천해요. 8개의 핵심 질문으로 당신의 취향을 분석합니다.</p>
+                                    <div class="test-meta">
+                                        <span class="test-badge">⏱️ 약 2분</span>
+                                        <span class="test-badge">📝 8문항</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="test-option">
+                                <div class="test-icon">🔍</div>
+                                <div class="test-info">
+                                    <h3>심화 테스트</h3>
+                                    <p>더 정확하고 상세한 맞춤 추천을 원한다면 심화 테스트를 선택하세요. 24개의 질문으로 깊이 있는 분석을 제공합니다.</p>
+                                    <div class="test-meta">
+                                        <span class="test-badge">⏱️ 약 5분</span>
+                                        <span class="test-badge">📝 24문항</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-skip-modal">나중에 하기 →</button>
+                        <p class="modal-hint">💡 나중에 언제든 다시 할 수 있어요</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

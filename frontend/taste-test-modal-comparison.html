@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>취향 테스트 모달 디자인 비교</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .comparison-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            text-align: center;
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 40px;
+        }
+
+        .comparison-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .comparison-label {
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .label-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .label-badge.original {
+            background: #3498db;
+            color: white;
+        }
+
+        .label-badge.new {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        /* 모달 공통 스타일 */
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin: 0 auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .modal-header h2 {
+            font-size: 28px;
+            margin: 0 0 12px;
+        }
+
+        .modal-header p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .test-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .test-option:hover {
+            background: #fff5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+            border-color: #ff6b6b;
+        }
+
+        .test-icon {
+            font-size: 36px;
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .test-info {
+            flex: 1;
+        }
+
+        .test-info h3 {
+            font-size: 18px;
+            margin: 0 0 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .test-info p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .modal-hint {
+            text-align: center;
+            font-size: 13px;
+            color: #999;
+            margin: 12px 0 0;
+        }
+
+        /* 기존 디자인 */
+        .original .modal-header h2 {
+            color: #ff6b6b;
+        }
+
+        .original .test-icon {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8888 100%);
+            color: white;
+        }
+
+        .original .btn-skip-modal {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8888 100%);
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        .original .btn-skip-modal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+        }
+
+        /* 새 디자인 */
+        .new .modal-header h2 {
+            color: #ff6b6b;
+        }
+
+        .new .test-icon {
+            background: transparent;
+        }
+
+        .new .test-meta {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .new .test-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .new .btn-skip-modal {
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            color: #999;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 12px;
+        }
+
+        .new .btn-skip-modal:hover {
+            color: #666;
+            background: #f0f0f0;
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 1100px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="comparison-container">
+        <h1 class="page-title">취향 테스트 모달 디자인 비교</h1>
+
+        <div class="comparison-grid">
+            <!-- 기존 디자인 -->
+            <div class="comparison-item">
+                <div class="comparison-label">
+                    기존 디자인
+                    <span class="label-badge original">Original</span>
+                </div>
+
+                <div class="modal-content original">
+                    <button class="modal-close">×</button>
+                    
+                    <div class="modal-header">
+                        <h2>잠깐만요!</h2>
+                        <p>음식 취향 테스트를 하시면<br/>맞춤 맛집 추천을 받을 수 있어요!</p>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="test-option">
+                            <div class="test-icon">⚡</div>
+                            <div class="test-info">
+                                <h3>간단 테스트</h3>
+                                <p>빠르게 음식 취향을 파악하고 싶다면 간단 테스트를 추천해요. 8개의 핵심 질문으로 당신의 취향을 분석합니다.</p>
+                            </div>
+                        </div>
+
+                        <div class="test-option">
+                            <div class="test-icon">🔍</div>
+                            <div class="test-info">
+                                <h3>심화 테스트</h3>
+                                <p>더 정확하고 상세한 맞춤 추천을 원한다면 심화 테스트를 선택하세요. 24개의 질문으로 깊이 있는 분석을 제공합니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-skip-modal">
+                        나중에 하기 →
+                    </button>
+
+                    <p class="modal-hint">💡 나중에 언제든 다시 할 수 있어요</p>
+                </div>
+            </div>
+
+            <!-- 새 디자인 -->
+            <div class="comparison-item">
+                <div class="comparison-label">
+                    새 디자인
+                    <span class="label-badge new">New</span>
+                </div>
+
+                <div class="modal-content new">
+                    <button class="modal-close">×</button>
+                    
+                    <div class="modal-header">
+                        <h2>취향 테스트</h2>
+                        <p>음식 취향 테스트를 하시면<br/>맞춤 맛집 추천을 받을 수 있어요!</p>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="test-option">
+                            <div class="test-icon">⚡</div>
+                            <div class="test-info">
+                                <h3>간단 테스트</h3>
+                                <p>빠르게 음식 취향을 파악하고 싶다면 간단 테스트를 추천해요. 8개의 핵심 질문으로 당신의 취향을 분석합니다.</p>
+                                <div class="test-meta">
+                                    <span class="test-badge">⏱️ 약 2분</span>
+                                    <span class="test-badge">📝 8문항</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="test-option">
+                            <div class="test-icon">🔍</div>
+                            <div class="test-info">
+                                <h3>심화 테스트</h3>
+                                <p>더 정확하고 상세한 맞춤 추천을 원한다면 심화 테스트를 선택하세요. 24개의 질문으로 깊이 있는 분석을 제공합니다.</p>
+                                <div class="test-meta">
+                                    <span class="test-badge">⏱️ 약 5분</span>
+                                    <span class="test-badge">📝 24문항</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-skip-modal">
+                        나중에 하기 →
+                    </button>
+
+                    <p class="modal-hint">💡 나중에 언제든 다시 할 수 있어요</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; padding: 30px; background: rgba(255, 255, 255, 0.95); border-radius: 20px;">
+            <h2 style="font-size: 24px; font-weight: 700; color: #333; margin-bottom: 20px;">📊 차이점 비교</h2>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8f9fa;">
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">항목</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">기존 디자인</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">새 디자인</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">제목</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">"잠깐만요!"</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">"취향 테스트"</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">이모지 배경</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">빨간색 그라데이션</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">투명 (이모지만 표시)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">시간/문항 표시</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">없음</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">배지로 표시 (빨간색)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">나중에 하기 버튼</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">빨간색 버튼 (강조)</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">회색 텍스트 (덜 강조)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-weight: 600;">디자인 철학</td>
+                        <td style="padding: 12px;">활발하고 주목성 강조</td>
+                        <td style="padding: 12px;">깔끔하고 정보 중심</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+

@@ -113,12 +113,12 @@ body:has(.snap-100) .floating-profile-container {
 }
 
 .profile-menu-item.taste-test {
-  background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+  background: none;
   color: var(--text-primary);
 }
 
 .profile-menu-item.taste-test:hover {
-  background: linear-gradient(135deg, #ffebeb 0%, #ffd5d5 100%);
+  background: var(--bg-primary);
 }
 
 .profile-menu-item.logout {
