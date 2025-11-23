@@ -31,8 +31,9 @@ const ReviewTab = ({ businessId }) => {
   
   // openMenu 변경 감지
   useEffect(() => {
+    const bottomSheet = document.querySelector('[data-rsbs-scroll]');
     console.log('openMenu changed to:', openMenu);
-    console.log('Scroll position after openMenu change:', window.scrollY);
+    console.log('Bottom sheet scroll after openMenu change:', bottomSheet?.scrollTop || 0);
   }, [openMenu]);
   
   // 삭제 확인 모달 상태
@@ -43,13 +44,14 @@ const ReviewTab = ({ businessId }) => {
   }, [businessId, sortBy]);
 
   useEffect(() => {
+    const bottomSheet = document.querySelector('[data-rsbs-scroll]');
     console.log('WritingMode changed:', writingMode);
-    console.log('Current scroll position:', window.scrollY);
+    console.log('Bottom sheet scroll:', bottomSheet?.scrollTop || 0);
     
     // 하단 작성칸이 확장될 때 스크롤 변경 감지
     if (writingMode) {
       setTimeout(() => {
-        console.log('Scroll position after writingMode expanded:', window.scrollY);
+        console.log('Bottom sheet scroll after writingMode expanded:', bottomSheet?.scrollTop || 0);
       }, 100);
     }
   }, [writingMode]);
@@ -188,22 +190,24 @@ const ReviewTab = ({ businessId }) => {
 
   // 수정 시작
   const handleEditStart = (review) => {
-    console.log('handleEditStart called, scroll before:', window.scrollY);
+    const bottomSheet = document.querySelector('[data-rsbs-scroll]');
+    console.log('handleEditStart called, scroll before:', bottomSheet?.scrollTop || 0);
     setEditingReview(review);
     setFormData({ stars: review.stars || 5, text: review.text });
     setWritingMode('edit');
     setOpenMenu(null);
-    console.log('handleEditStart done, scroll after:', window.scrollY);
+    console.log('handleEditStart done, scroll after:', bottomSheet?.scrollTop || 0);
   };
 
   // 답글 시작
   const handleReplyStart = (reviewId) => {
-    console.log('handleReplyStart called, scroll before:', window.scrollY);
+    const bottomSheet = document.querySelector('[data-rsbs-scroll]');
+    console.log('handleReplyStart called, scroll before:', bottomSheet?.scrollTop || 0);
     setReplyingTo(reviewId);
     setFormData({ stars: 5, text: '' });
     setWritingMode('reply');
     setOpenMenu(null);
-    console.log('handleReplyStart done, scroll after:', window.scrollY);
+    console.log('handleReplyStart done, scroll after:', bottomSheet?.scrollTop || 0);
   };
 
   const handleUserClick = (userId) => {
@@ -236,12 +240,22 @@ const ReviewTab = ({ businessId }) => {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Kebab button clicked, scroll before:', window.scrollY);
+            
+            // 바텀시트 스크롤 위치 저장
+            const bottomSheet = document.querySelector('[data-rsbs-scroll]');
+            const scrollPos = bottomSheet?.scrollTop || 0;
+            console.log('Kebab clicked - Bottom sheet scroll before:', scrollPos);
             console.log('Current openMenu:', openMenu, 'Review ID:', review.id);
+            
             setOpenMenu(isOpen ? null : review.id);
-            setTimeout(() => {
-              console.log('Scroll after setOpenMenu (timeout):', window.scrollY);
-            }, 100);
+            
+            // 스크롤 위치 복원
+            requestAnimationFrame(() => {
+              if (bottomSheet && scrollPos > 0) {
+                bottomSheet.scrollTop = scrollPos;
+                console.log('Scroll restored to:', scrollPos);
+              }
+            });
           }}
         >
           ⋮
