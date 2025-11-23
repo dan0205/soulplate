@@ -466,6 +466,11 @@ async def google_login(request: Request):
         
         # OAuth 콜백 URL 생성
         redirect_uri = request.url_for('google_callback')
+        
+        # Railway는 HTTPS를 사용하므로 URL을 HTTPS로 변경
+        if 'x-forwarded-proto' in request.headers and request.headers['x-forwarded-proto'] == 'https':
+            redirect_uri = str(redirect_uri).replace('http://', 'https://')
+        
         logger.info(f"Redirect URI: {redirect_uri}")
         
         # 구글 OAuth 페이지로 리다이렉트
