@@ -22,6 +22,19 @@
   position: relative;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: modalSlideIn 0.3s ease-out;
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  /* 스크롤바 숨기기 (스크롤 기능은 유지) */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE, Edge */
+}
+
+/* Chrome, Safari 스크롤바 숨기기 */
+.modal-content::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes modalSlideIn {

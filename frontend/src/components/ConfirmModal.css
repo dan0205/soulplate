@@ -38,6 +38,15 @@
   max-height: 90dvh; /* 최신 브라우저 */
   overflow-y: auto;
   overflow-x: hidden;
+  
+  /* 스크롤바 숨기기 (스크롤 기능은 유지) */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE, Edge */
+}
+
+/* Chrome, Safari 스크롤바 숨기기 */
+.confirm-modal-content::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes confirmModalSlideIn {
