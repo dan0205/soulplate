@@ -9,7 +9,6 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import SplashScreen from './components/SplashScreen';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import HomePage from './pages/HomePage';
 import MyProfilePage from './pages/MyProfilePage';
@@ -61,7 +60,6 @@ function App() {
             />
             <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
           <Route path="/auth/callback" element={<OAuthCallbackPage />} />
           <Route
             path="/"

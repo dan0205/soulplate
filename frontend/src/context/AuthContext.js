@@ -46,29 +46,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (username, password) => {
-    const response = await authAPI.login(username, password);
-    // authAPI.login = POST /api/auth/login 요청을 보내는 함수 
-    const { access_token } = response.data;
-    localStorage.setItem('access_token', access_token);
-    await loadUser();
-    return response.data;
-  };
-
-  const register = async (userData) => {
-    const response = await authAPI.register(userData);
-    // outhAPI.register = POST /api/auth/register를 호출해서 새 계정을 생성 
-    
-    // 회원가입 성공 시 자동 로그인
-    const { access_token } = response.data;
-    if (access_token) {
-      localStorage.setItem('access_token', access_token);
-      await loadUser();
-    }
-    
-    return response.data;
-  };
-
   const logout = () => {
     localStorage.removeItem('access_token');
     setUser(null);
@@ -90,8 +67,6 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
-    login,
-    register,
     logout,
     handleOAuthCallback,
     isAuthenticated: !!user,
