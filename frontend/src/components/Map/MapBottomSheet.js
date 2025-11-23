@@ -55,7 +55,9 @@ const RestaurantListItem = ({ restaurant, onClick }) => {
           {restaurant.distance !== null && restaurant.distance !== undefined && (
             <span> · {formatDistance(restaurant.distance)}</span>
           )}
-          <span> · 리뷰 {restaurant.review_count || 0}개</span>
+          {restaurant.review_count > 0 && (
+            <span> · 리뷰 {restaurant.review_count}개</span>
+          )}
         </div>
       </div>
     </div>
@@ -364,7 +366,7 @@ const MapBottomSheet = ({
             <div className="content-50-only">
               <div className="restaurant-meta">
                 <span className="category">{selectedRestaurant.categories}</span>
-                {selectedRestaurant.review_count && (
+                {selectedRestaurant.review_count > 0 && (
                   <span className="review-count"> · 리뷰 {selectedRestaurant.review_count}개</span>
                 )}
               </div>
