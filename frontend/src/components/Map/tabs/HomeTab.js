@@ -15,8 +15,12 @@ const HomeTab = ({ restaurant }) => {
         <button 
           className="action-btn"
           onClick={() => {
-            toast.dismiss();
-            toast('전화번호 준비 중입니다');
+            if (restaurant.phone) {
+              window.location.href = `tel:${restaurant.phone}`;
+            } else {
+              toast.dismiss();
+              toast('전화번호 정보가 없습니다');
+            }
           }}
         >
           📞 전화
@@ -37,7 +41,7 @@ const HomeTab = ({ restaurant }) => {
 
         <div className="info-item">
           <div className="info-label">📞 전화번호</div>
-          <div className="info-value">준비 중입니다</div>
+          <div className="info-value">{restaurant.phone || '정보 없음'}</div>
         </div>
       </div>
 

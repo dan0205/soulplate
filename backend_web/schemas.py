@@ -126,6 +126,7 @@ class BusinessResponse(BusinessBase):
     state: Optional[str]
     latitude: Optional[float]
     longitude: Optional[float]
+    phone: Optional[str] = None
     absa_features: Optional[Dict[str, float]] = None  # 전체 ABSA 피처 (Detail용)
     top_features: Optional[List[ABSAFeature]] = None  # 상위 특징 (리스트용)
     absa_food_avg: Optional[float] = None  # ABSA 음식 평균 점수

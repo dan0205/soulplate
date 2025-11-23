@@ -81,6 +81,7 @@ class Business(Base):
     state = Column(String, nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
+    phone = Column(String, nullable=True)
     
     # ABSA 피처 (JSON: 51개 aspect-sentiment 평균값)
     absa_features = Column(JSONB, nullable=True)

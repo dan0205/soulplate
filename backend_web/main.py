@@ -952,6 +952,7 @@ async def get_businesses_in_bounds(
             "latitude": business.latitude,
             "longitude": business.longitude,
             "address": business.address,
+            "phone": business.phone,
             "absa_food_avg": business.absa_features.get('음식_긍정', 0) if business.absa_features else 0,
             "absa_service_avg": business.absa_features.get('서비스_긍정', 0) if business.absa_features else 0,
             "absa_atmosphere_avg": business.absa_features.get('분위기_긍정', 0) if business.absa_features else 0,
@@ -1103,6 +1104,7 @@ async def get_businesses(
             "state": business.state,
             "latitude": business.latitude,
             "longitude": business.longitude,
+            "phone": business.phone,
             "top_features": get_top_absa_features(absa_dict),
             "absa_food_avg": absa_dict.get('음식_긍정', 0) if absa_dict else 0,
             "absa_service_avg": absa_dict.get('서비스_긍정', 0) if absa_dict else 0,
@@ -1164,6 +1166,7 @@ async def get_business(
         "state": business.state,
         "latitude": business.latitude,
         "longitude": business.longitude,
+        "phone": business.phone,
         "absa_features": absa_dict,  # 전체 ABSA 피처
         "top_features": get_top_absa_features(absa_dict)  # 상위 특징도 포함
     }
