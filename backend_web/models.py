@@ -31,10 +31,6 @@ class User(Base):
     oauth_id = Column(String, unique=True, index=True, nullable=False)  # Google sub
     profile_picture = Column(String, nullable=True)  # 프로필 이미지 URL
     
-    # 레거시 필드 (제거 예정)
-    yelp_user_id = Column(String, unique=True, index=True, nullable=True)  # Yelp 데이터 매칭용
-    hashed_password = Column(String, nullable=True)  # 더 이상 사용 안 함
-    
     # 모델 예측 피처 (필수)
     review_count = Column(Integer, default=0)
     useful = Column(Integer, default=0)  # useful + funny + cool 통합
@@ -53,6 +49,9 @@ class User(Base):
     taste_test_completed = Column(Boolean, default=False, nullable=False)
     taste_test_type = Column(String, nullable=True)  # 'quick' or 'deep'
     taste_test_axis_scores = Column(JSONB, nullable=True)  # 각 축의 확률 점수
+    
+    # 온보딩
+    profile_completed = Column(Boolean, default=False, nullable=False)  # 프로필 입력 완료 여부
     
     # Relationships
     reviews = relationship("Review", back_populates="user")

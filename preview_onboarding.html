@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulPlate - 프로필 설정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 33%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #ff6b6b;
+            font-size: 14px;
+        }
+
+        .optional {
+            color: #999;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .info-icon {
+            width: 16px;
+            height: 16px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: help;
+            font-weight: bold;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input.valid {
+            border-color: #51cf66;
+            padding-right: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='%2351cf66'%3E%3Cpath d='M8.5 14.5l-4-4 1.4-1.4 2.6 2.6 6.6-6.6 1.4 1.4z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .form-input.invalid {
+            border-color: #ff6b6b;
+        }
+
+        .helper-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .helper-text.success {
+            color: #51cf66;
+        }
+
+        .helper-text.error {
+            color: #ff6b6b;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .radio-option {
+            position: relative;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .radio-option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .radio-option input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .radio-option input[type="radio"]:checked {
+            border-color: #667eea;
+            background: #667eea;
+        }
+
+        .radio-option input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .radio-option input[type="radio"]:checked ~ .radio-label {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .radio-option.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .radio-label {
+            font-size: 15px;
+            color: #333;
+            flex: 1;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9ff;
+        }
+
+        .age-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .age-input-wrapper .form-input {
+            width: 100px;
+            text-align: center;
+        }
+
+        .age-input-wrapper span {
+            color: #666;
+            font-size: 15px;
+        }
+
+        .character-count {
+            font-size: 12px;
+            color: #999;
+            float: right;
+        }
+
+        .google-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .google-profile img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .google-profile-info {
+            flex: 1;
+        }
+
+        .google-profile-info .name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .google-profile-info .email {
+            font-size: 13px;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .logo {
+                font-size: 28px;
+            }
+
+            .subtitle {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SoulPlate</div>
+            <div class="subtitle">당신의 음식 취향을 발견하는 여정 🍽️</div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <!-- Google 프로필 정보 표시 -->
+        <div class="google-profile">
+            <img src="https://ui-avatars.com/api/?name=홍길동&background=667eea&color=fff&size=120" alt="Profile">
+            <div class="google-profile-info">
+                <div class="name">홍길동님, 환영합니다!</div>
+                <div class="email">hong.gildong@gmail.com</div>
+            </div>
+        </div>
+
+        <form id="onboardingForm">
+            <!-- Username -->
+            <div class="form-group">
+                <label class="form-label">
+                    닉네임 
+                    <span class="info-icon" title="다른 사용자에게 표시되는 이름입니다">ⓘ</span>
+                    <span class="required">*</span>
+                    <span class="character-count"><span id="usernameCount">0</span>/50</span>
+                </label>
+                <input 
+                    type="text" 
+                    class="form-input" 
+                    id="username" 
+                    placeholder="닉네임을 입력하세요 (2-50자)"
+                    value="홍길동"
+                    maxlength="50"
+                    required
+                >
+                <div class="helper-text" id="usernameHelper">
+                    💡 2-50자, 영문/한글/숫자/_/-/공백 사용 가능
+                </div>
+            </div>
+
+            <!-- Age -->
+            <div class="form-group">
+                <label class="form-label">
+                    나이 
+                    <span class="optional">(선택)</span>
+                </label>
+                <div class="age-input-wrapper">
+                    <input 
+                        type="number" 
+                        class="form-input" 
+                        id="age" 
+                        placeholder="나이"
+                        min="14"
+                        max="120"
+                    >
+                    <span>세</span>
+                </div>
+                <div class="helper-text">
+                    💡 14세 이상만 가입 가능합니다
+                </div>
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+                <label class="form-label">
+                    성별 
+                    <span class="optional">(선택)</span>
+                </label>
+                <div class="radio-group">
+                    <label class="radio-option" id="genderMale">
+                        <input type="radio" name="gender" value="male">
+                        <span class="radio-label">남성</span>
+                    </label>
+                    <label class="radio-option" id="genderFemale">
+                        <input type="radio" name="gender" value="female">
+                        <span class="radio-label">여성</span>
+                    </label>
+                    <label class="radio-option" id="genderOther">
+                        <input type="radio" name="gender" value="other">
+                        <span class="radio-label">기타</span>
+                    </label>
+                    <label class="radio-option" id="genderPreferNot">
+                        <input type="radio" name="gender" value="prefer_not_to_say">
+                        <span class="radio-label">응답하지 않음</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                완료하고 시작하기 🚀
+            </button>
+
+            <button type="button" class="btn btn-secondary" id="skipBtn">
+                나중에 입력하기
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // DOM 요소
+        const form = document.getElementById('onboardingForm');
+        const usernameInput = document.getElementById('username');
+        const ageInput = document.getElementById('age');
+        const submitBtn = document.getElementById('submitBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const usernameHelper = document.getElementById('usernameHelper');
+        const usernameCount = document.getElementById('usernameCount');
+        const progressBar = document.getElementById('progressBar');
+        const genderRadios = document.querySelectorAll('input[name="gender"]');
+
+        // 초기 문자 수 표시
+        usernameCount.textContent = usernameInput.value.length;
+
+        // Username 유효성 검사
+        function validateUsername(value) {
+            // 길이 체크
+            if (value.length < 2) {
+                return { valid: false, message: '❌ 최소 2자 이상 입력해주세요' };
+            }
+            if (value.length > 50) {
+                return { valid: false, message: '❌ 최대 50자까지 입력 가능합니다' };
+            }
+
+            // 허용 문자 체크 (영문, 한글, 숫자, _, -, 공백)
+            const validPattern = /^[a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ_\- ]+$/;
+            if (!validPattern.test(value)) {
+                return { valid: false, message: '❌ 영문/한글/숫자/_/-/공백만 사용 가능합니다' };
+            }
+
+            return { valid: true, message: '✓ 사용 가능한 닉네임입니다' };
+        }
+
+        // Age 유효성 검사
+        function validateAge(value) {
+            if (!value) return { valid: true }; // 선택 사항이므로 비어있어도 OK
+
+            const age = parseInt(value);
+            if (age < 14) {
+                return { valid: false, message: '❌ 14세 이상만 가입 가능합니다' };
+            }
+            if (age > 120) {
+                return { valid: false, message: '❌ 올바른 나이를 입력해주세요' };
+            }
+
+            return { valid: true };
+        }
+
+        // 폼 유효성 전체 체크
+        function checkFormValid() {
+            const usernameValid = validateUsername(usernameInput.value).valid;
+            const ageValid = !ageInput.value || validateAge(ageInput.value).valid;
+            
+            submitBtn.disabled = !(usernameValid && ageValid);
+
+            // 프로그레스 바 업데이트
+            let progress = 0;
+            if (usernameValid) progress += 33;
+            if (ageInput.value && ageValid) progress += 33;
+            if (document.querySelector('input[name="gender"]:checked')) progress += 34;
+            progressBar.style.width = progress + '%';
+        }
+
+        // Username 입력 이벤트
+        usernameInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            const validation = validateUsername(value);
+            
+            // 문자 수 표시
+            usernameCount.textContent = value.length;
+
+            // 유효성 표시
+            if (value.length > 0) {
+                if (validation.valid) {
+                    usernameInput.classList.add('valid');
+                    usernameInput.classList.remove('invalid');
+                    usernameHelper.className = 'helper-text success';
+                    usernameHelper.textContent = validation.message;
+                } else {
+                    usernameInput.classList.remove('valid');
+                    usernameInput.classList.add('invalid');
+                    usernameHelper.className = 'helper-text error';
+                    usernameHelper.textContent = validation.message;
+                }
+            } else {
+                usernameInput.classList.remove('valid', 'invalid');
+                usernameHelper.className = 'helper-text';
+                usernameHelper.textContent = '💡 2-50자, 영문/한글/숫자/_/-/공백 사용 가능';
+            }
+
+            checkFormValid();
+        });
+
+        // Age 입력 이벤트
+        ageInput.addEventListener('input', () => {
+            checkFormValid();
+        });
+
+        // Gender 라디오 버튼 이벤트
+        genderRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                // 모든 옵션에서 selected 클래스 제거
+                document.querySelectorAll('.radio-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // 선택된 옵션에 selected 클래스 추가
+                e.target.closest('.radio-option').classList.add('selected');
+                
+                checkFormValid();
+            });
+        });
+
+        // 폼 제출
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                username: usernameInput.value,
+                age: ageInput.value ? parseInt(ageInput.value) : null,
+                gender: document.querySelector('input[name="gender"]:checked')?.value || null
+            };
+
+            console.log('제출 데이터:', formData);
+            alert('프로필 설정이 완료되었습니다! 🎉\n\n데이터:\n' + JSON.stringify(formData, null, 2));
+            
+            // 실제로는 여기서 API 호출
+            // fetch('/api/user/complete-profile', { method: 'POST', body: JSON.stringify(formData) })
+        });
+
+        // 나중에 입력하기
+        skipBtn.addEventListener('click', () => {
+            if (confirm('나중에 입력하시겠습니까?\n\n일부 기능 이용이 제한될 수 있습니다.')) {
+                alert('메인 페이지로 이동합니다.');
+                // 실제로는 메인 페이지로 리디렉션
+            }
+        });
+
+        // 초기 유효성 체크
+        checkFormValid();
+    </script>
+</body>
+</html>
+
