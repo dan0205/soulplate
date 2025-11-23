@@ -15,6 +15,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks, Re
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse
+from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from typing import List, Optional
@@ -348,6 +349,16 @@ app = FastAPI(
 )
 # FastAPI 애플리케이션의 핵심 인스턴스를 생성한다 
 
+# Session Middleware (OAuth에 필요)
+SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY", "your-session-secret-key-change-in-production")
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SESSION_SECRET_KEY,
+    max_age=3600,  # 1시간
+    same_site="lax",
+    https_only=True  # 프로덕션 환경에서는 HTTPS만 허용
+)
+
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
@@ -434,10 +445,45 @@ async def health_check():
 @app.get("/api/auth/google")
 async def google_login(request: Request):
     """구글 로그인 시작"""
-    # OAuth 콜백 URL 생성
-    redirect_uri = request.url_for('google_callback')
-    # 구글 OAuth 페이지로 리다이렉트
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    try:
+        logger.info("=== Google OAuth Login Started ===")
+        logger.info(f"Request URL: {request.url}")
+        logger.info(f"Request headers: {dict(request.headers)}")
+        
+        # 환경 변수 확인
+        google_client_id = os.getenv('GOOGLE_CLIENT_ID')
+        google_client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+        
+        logger.info(f"GOOGLE_CLIENT_ID exists: {bool(google_client_id)}")
+        logger.info(f"GOOGLE_CLIENT_SECRET exists: {bool(google_client_secret)}")
+        
+        if not google_client_id or not google_client_secret:
+            logger.error("Google OAuth credentials not configured!")
+            raise HTTPException(
+                status_code=500,
+                detail="OAuth not configured. Please contact administrator."
+            )
+        
+        # OAuth 콜백 URL 생성
+        redirect_uri = request.url_for('google_callback')
+        logger.info(f"Redirect URI: {redirect_uri}")
+        
+        # 구글 OAuth 페이지로 리다이렉트
+        logger.info("Attempting to authorize redirect...")
+        result = await oauth.google.authorize_redirect(request, redirect_uri)
+        logger.info("Authorization redirect successful")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Google OAuth login error: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        raise HTTPException(
+            status_code=500,
+            detail=f"OAuth initialization failed: {str(e)}"
+        )
 
 @app.get("/api/auth/google/callback")
 async def google_callback(
@@ -447,24 +493,37 @@ async def google_callback(
 ):
     """구글 OAuth 콜백"""
     try:
+        logger.info("=== Google OAuth Callback Started ===")
+        logger.info(f"Callback URL: {request.url}")
+        logger.info(f"Query params: {dict(request.query_params)}")
+        
         # 구글로부터 토큰 받기
+        logger.info("Attempting to get access token...")
         token = await oauth.google.authorize_access_token(request)
+        logger.info("Access token received successfully")
         
         # 사용자 정보 가져오기
+        logger.info("Getting user info...")
         userinfo = token.get('userinfo')
         if not userinfo:
+            logger.info("Userinfo not in token, fetching separately...")
             userinfo = await oauth.google.userinfo(token=token)
+        
+        logger.info(f"User info received: {userinfo.get('email', 'N/A')}")
         
         # 표준화된 사용자 정보 추출
         user_data = extract_oauth_user_info(userinfo)
+        logger.info(f"Extracted user data - email: {user_data.get('email')}, oauth_id: {user_data.get('oauth_id')}")
         
         if not user_data['oauth_id'] or not user_data['email']:
+            logger.error(f"Missing required user data - oauth_id: {user_data.get('oauth_id')}, email: {user_data.get('email')}")
             raise HTTPException(
                 status_code=400, 
                 detail="Failed to get user info from Google"
             )
         
         # 기존 사용자 확인 (oauth_id 또는 email로)
+        logger.info(f"Checking for existing user with oauth_id: {user_data['oauth_id']} or email: {user_data['email']}")
         user = db.query(models.User).filter(
             (models.User.oauth_id == user_data['oauth_id']) | 
             (models.User.email == user_data['email'])
@@ -472,19 +531,22 @@ async def google_callback(
         
         if user:
             # 기존 사용자 - OAuth 정보 업데이트
+            logger.info(f"Found existing user: {user.username} (ID: {user.id})")
             user.oauth_provider = 'google'
             user.oauth_id = user_data['oauth_id']
             user.profile_picture = user_data['picture']
             db.commit()
             db.refresh(user)
-            logger.info(f"Existing user logged in via Google: {user.username}")
+            logger.info(f"Existing user updated and logged in via Google: {user.username}")
         else:
             # 신규 사용자 - 생성
+            logger.info("No existing user found, creating new user...")
             username = sanitize_username(
                 user_data['name'], 
                 user_data['email'], 
                 db
             )
+            logger.info(f"Generated username: {username}")
             
             user = models.User(
                 username=username,
@@ -510,32 +572,40 @@ async def google_callback(
             logger.info(f"New user created via Google: {user.username} (ID: {user.id})")
             
             # 백그라운드에서 초기 예측 계산
+            logger.info("Starting background task for predictions...")
             from prediction_cache import calculate_and_store_predictions
             background_tasks.add_task(calculate_and_store_predictions, user.id, db)
         
         # JWT 토큰 생성
+        logger.info("Creating JWT token...")
         access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = auth.create_access_token(
             data={"sub": user.username}, 
             expires_delta=access_token_expires
         )
+        logger.info("JWT token created successfully")
         
         # 프론트엔드로 리디렉션 (토큰 포함)
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-        return RedirectResponse(
-            url=f"{frontend_url}/auth/callback?token={access_token}"
-        )
+        redirect_url = f"{frontend_url}/auth/callback?token={access_token}"
+        logger.info(f"Redirecting to: {redirect_url}")
+        
+        return RedirectResponse(url=redirect_url)
         
     except Exception as e:
-        logger.error(f"Google OAuth error: {str(e)}")
+        logger.error("=== Google OAuth Callback Error ===")
+        logger.error(f"Error type: {type(e).__name__}")
+        logger.error(f"Error message: {str(e)}")
         import traceback
-        traceback.print_exc()
+        logger.error(f"Full traceback:\n{traceback.format_exc()}")
         
         # 에러 발생 시 프론트엔드 로그인 페이지로 리디렉션
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-        return RedirectResponse(
-            url=f"{frontend_url}/login?error=oauth_failed"
-        )
+        error_msg = str(e).replace(' ', '_')[:50]  # URL safe
+        redirect_url = f"{frontend_url}/login?error=oauth_failed&detail={error_msg}"
+        logger.info(f"Redirecting to error page: {redirect_url}")
+        
+        return RedirectResponse(url=redirect_url)
 
 @app.get("/api/auth/me", response_model=schemas.UserResponse)
 async def get_current_user_info(current_user: models.User = Depends(auth.get_current_user)):
