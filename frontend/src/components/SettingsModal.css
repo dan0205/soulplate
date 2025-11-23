@@ -194,10 +194,14 @@
 
 .settings-modal-content .helper-text.success {
   color: #51cf66;
+  height: 38px !important;
+  max-height: 38px !important;
 }
 
 .settings-modal-content .helper-text.error {
   color: #ff6b6b;
+  height: 38px !important;
+  max-height: 38px !important;
 }
 
 /* 라디오 그룹 */

@@ -117,10 +117,14 @@
 
 .onboarding-box .helper-text.success {
   color: #51cf66;
+  height: 38px !important;
+  max-height: 38px !important;
 }
 
 .onboarding-box .helper-text.error {
   color: #ff6b6b;
+  height: 38px !important;
+  max-height: 38px !important;
 }
 
 .onboarding-box .radio-group {
