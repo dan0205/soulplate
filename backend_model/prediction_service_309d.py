@@ -7,6 +7,7 @@ import numpy as np
 from models.deepfm_ranking import DeepFM
 from models.multitower_ranking import MultiTowerModel
 from model_loader import ensure_model_file
+from utils.text_embedding import get_text_embedding_service
 import json
 import os
 import logging
@@ -34,6 +35,10 @@ class PredictionService:
         
         # ABSA 피처 키 (순서 유지)
         self.absa_keys = self._get_absa_keys()
+        
+        # 텍스트 임베딩 서비스 (옵셔널)
+        self.text_embedding_service = None
+        self._load_text_embedding_service()
     
     def _load_global_avg_embeddings(self):
         """전역 평균 임베딩 로딩"""
@@ -58,6 +63,16 @@ class PredictionService:
             logger.error(f"[Global Avg] 로딩 실패: {e}")
             self.global_user_avg = np.zeros(100, dtype=np.float32)
             self.global_business_avg = np.zeros(100, dtype=np.float32)
+    
+    def _load_text_embedding_service(self):
+        """텍스트 임베딩 서비스 로딩 (옵셔널)"""
+        try:
+            self.text_embedding_service = get_text_embedding_service()
+            logger.info("[Text Embedding] ✅ 서비스 로딩 완료")
+        except Exception as e:
+            logger.warning(f"[Text Embedding] ⚠️ 로딩 실패: {e}")
+            logger.warning("[Text Embedding] → 0 벡터로 fallback")
+            self.text_embedding_service = None
     
     def _load_scaler_params(self):
         """Scaler 파라미터 로딩 (309d 버전)"""
