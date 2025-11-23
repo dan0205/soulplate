@@ -268,25 +268,24 @@ const ReviewTab = ({ businessId }) => {
     }
   };
 
+  // 자동 확장 함수
+  const autoResizeTextarea = (textarea) => {
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+    }
+  };
+
   // 리뷰 아이템 컴포넌트
   const ReviewItem = ({ review, isReply = false }) => (
     <div 
       className={`review-item ${isReply ? 'reply-item' : ''} ${replyingTo === review.id ? 'replying-target' : ''}`}
     >
-      {/* 아바타 (왼쪽, 3줄 높이) */}
-      <div 
-        className="review-avatar clickable"
-        onClick={() => handleUserClick(review.user_id)}
-      >
-        {review.username ? review.username.charAt(0).toUpperCase() : 'U'}
-      </div>
-      
-      {/* 컨텐츠 (아바타 오른쪽) */}
-      <div className="review-content">
-        {/* 첫 줄: 이름 + 별점 + 케밥 */}
-        <div className="review-first-line">
+      {/* 미니멀 헤더: 이름 + 별점 (왼쪽) + 케밥 (오른쪽) */}
+      <div className="review-minimal-header">
+        <div className="review-minimal-header-left">
           <span 
-            className="review-username clickable"
+            className="review-minimal-author"
             onClick={() => handleUserClick(review.user_id)}
           >
             {review.username || '익명'}
@@ -296,45 +295,47 @@ const ReviewTab = ({ businessId }) => {
               {'⭐'.repeat(Math.floor(review.stars))}
             </span>
           )}
-          {/* Kebab 메뉴 (로그인한 경우만) */}
-          {user && <KebabMenu review={review} />}
         </div>
-        
-        {/* 둘째 줄: 리뷰 텍스트 */}
-        <p className="review-text">{review.text}</p>
-        
-        {/* 셋째 줄: useful + 날짜 */}
-        <div className="review-footer">
-          <button 
-            className="useful-btn"
-            onClick={() => handleUsefulClick(review.id)}
-          >
-            👍 {review.useful || 0}
-          </button>
-          <span className="review-date">
-            {new Date(review.created_at || review.date).toLocaleDateString()}
-          </span>
-        </div>
-        
-        {/* 답글 토글 버튼 (최상위 리뷰만, 답글이 있는 경우) */}
-        {!isReply && review.reply_count > 0 && (
-          <button 
-            className="toggle-replies-btn"
-            onClick={() => toggleReplies(review.id)}
-          >
-            {expandedReplies.has(review.id) ? '▼' : '▶'} 답글 {review.reply_count}개
-          </button>
-        )}
-        
-        {/* 답글 목록 (review-content 안으로 이동) */}
-        {!isReply && expandedReplies.has(review.id) && repliesData[review.id] && (
-          <div className="replies-list">
-            {repliesData[review.id].map(reply => (
-              <ReviewItem key={reply.id} review={reply} isReply={true} />
-            ))}
-          </div>
-        )}
+        {/* Kebab 메뉴 (로그인한 경우만) */}
+        {user && <KebabMenu review={review} />}
       </div>
+      
+      {/* 날짜 + useful 메타 정보 */}
+      <div className="review-minimal-meta">
+        <span>{new Date(review.created_at || review.date).toLocaleDateString()}</span>
+      </div>
+      
+      {/* 리뷰 텍스트 */}
+      <p className="review-text">{review.text}</p>
+      
+      {/* useful 버튼 */}
+      <div className="review-minimal-footer">
+        <button 
+          className="useful-btn"
+          onClick={() => handleUsefulClick(review.id)}
+        >
+          👍 {review.useful || 0}명이 도움됨
+        </button>
+      </div>
+      
+      {/* 답글 토글 버튼 (최상위 리뷰만, 답글이 있는 경우) */}
+      {!isReply && review.reply_count > 0 && (
+        <button 
+          className="toggle-replies-btn"
+          onClick={() => toggleReplies(review.id)}
+        >
+          {expandedReplies.has(review.id) ? '▼' : '▶'} 답글 {review.reply_count}개
+        </button>
+      )}
+      
+      {/* 답글 목록 */}
+      {!isReply && expandedReplies.has(review.id) && repliesData[review.id] && (
+        <div className="replies-list">
+          {repliesData[review.id].map(reply => (
+            <ReviewItem key={reply.id} review={reply} isReply={true} />
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -398,11 +399,23 @@ const ReviewTab = ({ businessId }) => {
             </div>
           ) : (
             <form className="bottom-write-form" onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
-              {/* 모드 표시 */}
+              {/* 상단 바: 별점 + 닫기 버튼 */}
               <div className="write-form-header">
-                {writingMode === 'create' && <h4>✍️ 리뷰 작성</h4>}
-                {writingMode === 'edit' && <h4>✏️ 리뷰 수정</h4>}
-                {writingMode === 'reply' && <h4>💬 답글 작성</h4>}
+                {/* 별점 (답글 작성 시는 표시 안함) */}
+                {writingMode !== 'reply' && (
+                  <div className="star-rating">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        className={`star-btn ${star <= formData.stars ? 'active' : ''}`}
+                        onClick={() => setFormData({ ...formData, stars: star })}
+                      >
+                        ⭐
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <button 
                   type="button" 
                   className="btn-close"
@@ -417,60 +430,28 @@ const ReviewTab = ({ businessId }) => {
                 </button>
               </div>
               
-              {/* 별점 선택 (리뷰 작성/수정 시만) */}
-              {writingMode !== 'reply' && (
-                <div className="form-group">
-                  <label>별점 선택</label>
-                  <div className="star-rating">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        className={`star-btn ${star <= formData.stars ? 'active' : ''}`}
-                        onClick={() => setFormData({ ...formData, stars: star })}
-                      >
-                        ⭐
-                      </button>
-                    ))}
-                    <span className="star-value">{formData.stars}.0</span>
-                  </div>
-                </div>
-              )}
-              
-              {/* 텍스트 입력 */}
-              <div className="form-group">
-                <label>{writingMode === 'reply' ? '답글 내용' : '리뷰 내용'}</label>
+              {/* 메인 영역: 텍스트 + 제출 버튼 */}
+              <div className="form-content">
                 <textarea
                   className="review-textarea"
-                  placeholder={writingMode === 'reply' ? '답글을 입력해주세요...' : '이 음식점에 대한 솔직한 리뷰를 작성해주세요...'}
+                  placeholder={writingMode === 'reply' ? '답글을 입력해주세요...' : '리뷰를 작성해주세요...'}
                   value={formData.text}
                   onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-                  rows={5}
+                  onInput={(e) => autoResizeTextarea(e.target)}
                   required
                 />
-              </div>
-              
-              {/* 사진 업로드 (준비 중) */}
-              {writingMode !== 'reply' && (
-                <div className="form-group">
-                  <label>사진 업로드</label>
-                  <div className="photo-upload-placeholder">
-                    📷 사진 업로드 기능은 준비중입니다
-                  </div>
+                <div className="form-actions">
+                  <button 
+                    type="submit" 
+                    className="icon-btn primary"
+                    title={submitting ? '작성 중...' : 
+                           writingMode === 'edit' ? '수정 완료' : 
+                           writingMode === 'reply' ? '답글 등록' : '등록'}
+                    disabled={submitting || !formData.text.trim()}
+                  >
+                    ✓
+                  </button>
                 </div>
-              )}
-              
-              {/* 제출 버튼 */}
-              <div className="form-actions">
-                <button 
-                  type="submit" 
-                  className="btn-submit-review"
-                  disabled={submitting || !formData.text.trim()}
-                >
-                  {submitting ? '작성 중...' : 
-                   writingMode === 'edit' ? '수정 완료' : 
-                   writingMode === 'reply' ? '답글 등록' : '리뷰 등록'}
-                </button>
               </div>
             </form>
           )}

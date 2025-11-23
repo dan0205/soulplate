@@ -625,13 +625,13 @@ reach-portal {
 .star-rating {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .star-btn {
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: 22px;
   cursor: pointer;
   padding: 0;
   transition: all 0.2s;
@@ -640,74 +640,80 @@ reach-portal {
 
 .star-btn.active {
   opacity: 1;
-  transform: scale(1.1);
 }
 
 .star-btn:hover {
-  transform: scale(1.2);
-}
-
-.star-value {
-  margin-left: 8px;
-  font-size: var(--font-body);
-  font-weight: 600;
-  color: var(--primary);
+  transform: scale(1.1);
 }
 
 .review-textarea {
-  width: 100%;
-  padding: 12px;
+  flex: 1;
+  padding: 10px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: var(--font-small);
+  border-radius: 6px;
+  font-size: 14px;
   font-family: inherit;
-  resize: vertical;
-  min-height: 100px;
+  resize: none;
+  min-height: 70px;
+  height: 70px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.review-textarea::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }
 
 .review-textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.photo-upload-placeholder {
-  padding: 40px 20px;
-  background: white;
-  border: 2px dashed var(--border);
-  border-radius: 8px;
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: var(--font-small);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.1);
 }
 
 .form-actions {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
   justify-content: flex-end;
-  gap: 10px;
+  align-items: flex-end;
 }
 
-.btn-submit-review {
-  padding: 12px 24px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: var(--font-body);
-  font-weight: 600;
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 6px;
+  font-size: 18px;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
-.btn-submit-review:hover:not(:disabled) {
+.icon-btn:hover {
+  background: #f8f9fa;
+  border-color: var(--primary);
+}
+
+.icon-btn.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.icon-btn.primary:hover {
   background: var(--primary-dark);
-  transform: translateY(-2px);
 }
 
-.btn-submit-review:disabled {
+.icon-btn:disabled {
   background: #ccc;
+  border-color: #ccc;
   cursor: not-allowed;
-  transform: none;
 }
 
 .review-sort {
@@ -729,11 +735,14 @@ reach-portal {
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  gap: 12px;
+  padding: 20px;
+  display: block;
   position: relative;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+}
+
+.review-item:hover {
+  background: #fafafa;
 }
 
 /* 답글 스타일 */
@@ -742,8 +751,9 @@ reach-portal {
   margin-top: 8px;
   border: none;
   background: transparent;
-  padding: 12px 0;
+  padding: 16px 0 16px 16px;
   border-bottom: 1px solid #f0f0f0;
+  border-left: 3px solid #f0f0f0;
 }
 
 /* 답글 작성 대상 강조 */
@@ -762,76 +772,62 @@ reach-portal {
   }
 }
 
-/* 리뷰 아바타 (왼쪽, 3줄 높이) */
-.review-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: white;
+/* 미니멀 리뷰 헤더 */
+.review-minimal-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 16px;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: all 0.2s;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 12px;
 }
 
-.review-avatar:hover {
-  transform: scale(1.1);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
-/* 리뷰 컨텐츠 (아바타 오른쪽) */
-.review-content {
-  flex: 1;
+.review-minimal-header-left {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
   gap: 8px;
+  flex: 1;
   min-width: 0;
 }
 
-/* 첫 줄: 이름 + 별점 + 케밥 */
-.review-first-line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.review-username {
+.review-minimal-author {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: color 0.2s;
 }
 
-.review-username:hover {
+.review-minimal-author:hover {
   color: var(--primary);
   text-decoration: underline;
+}
+
+.review-minimal-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 10px;
+}
+
+.review-minimal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .review-stars {
   font-size: 14px;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .review-text {
   font-size: 14px;
-  color: var(--text-primary);
+  color: #666;
   line-height: 1.6;
-  margin: 0;
+  margin: 0 0 8px 0;
   word-break: break-word;
-}
-
-.review-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  color: var(--text-secondary);
 }
 
 .useful-btn {
@@ -1042,36 +1038,30 @@ reach-portal {
   font-size: 20px;
 }
 
-/* 하단 작성 폼 */
+/* 하단 작성 폼 - 옵션 2 스타일 */
 .bottom-write-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
 .write-form-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-}
-
-.write-form-header h4 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .btn-close {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 20px;
   cursor: pointer;
-  color: #666;
+  color: #999;
   padding: 0;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1082,6 +1072,12 @@ reach-portal {
 .btn-close:hover {
   background: #f0f0f0;
   color: #333;
+}
+
+.form-content {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
 }
 
 /* 로그인 필요 메시지 (화면 하단 고정) */
