@@ -16,7 +16,6 @@ const SettingsModal = ({ isOpen, onClose, currentUser, onUpdateSuccess }) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const modalRef = useRef(null);
 
   // currentUser 정보로 초기화
@@ -174,8 +173,6 @@ const SettingsModal = ({ isOpen, onClose, currentUser, onUpdateSuccess }) => {
         gender: formData.gender
       });
 
-      // 성공 배너 표시
-      setShowSuccessBanner(true);
       toast.success('프로필이 성공적으로 업데이트되었습니다!');
 
       // 사용자 정보 새로고침
@@ -183,9 +180,8 @@ const SettingsModal = ({ isOpen, onClose, currentUser, onUpdateSuccess }) => {
         await onUpdateSuccess();
       }
 
-      // 3초 후 모달 닫기
+      // 2초 후 모달 닫기
       setTimeout(() => {
-        setShowSuccessBanner(false);
         onClose();
       }, 2000);
     } catch (error) {
@@ -219,13 +215,6 @@ const SettingsModal = ({ isOpen, onClose, currentUser, onUpdateSuccess }) => {
           <div className="logo">설정</div>
           <div className="subtitle">프로필 정보를 수정할 수 있습니다</div>
         </div>
-
-        {/* 성공 배너 */}
-        {showSuccessBanner && (
-          <div className="success-banner">
-            ✓ 프로필이 성공적으로 업데이트되었습니다!
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           {/* Username */}
