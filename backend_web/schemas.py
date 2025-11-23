@@ -25,9 +25,18 @@ class UserResponse(UserBase):
     created_at: datetime
     oauth_provider: Optional[str] = None
     profile_picture: Optional[str] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    profile_completed: bool = False
     
     class Config:
         from_attributes = True
+
+class CompleteProfileRequest(BaseModel):
+    """온보딩 프로필 완성"""
+    username: str = Field(min_length=2, max_length=50)
+    age: int = Field(ge=14, le=120)
+    gender: str = Field(pattern="^(male|female)$")
 
 # OAuth 사용으로 인해 더 이상 사용하지 않음
 # class UserCreate(UserBase):

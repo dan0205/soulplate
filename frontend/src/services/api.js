@@ -57,6 +57,7 @@ api.interceptors.response.use(
 // API 함수들
 export const authAPI = {
   getMe: () => api.get('/auth/me'),
+  completeProfile: (data) => api.post('/user/complete-profile', data),
 };
 
 export const businessAPI = {

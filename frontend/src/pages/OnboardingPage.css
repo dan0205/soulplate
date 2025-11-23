@@ -1,0 +1,245 @@
+/**
+ * 온보딩 페이지 스타일
+ */
+
+.onboarding-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #ffd6d6;
+  padding: 20px;
+}
+
+.onboarding-box {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 100%;
+  padding: 40px;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboarding-box .header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.onboarding-box .logo {
+  font-size: 32px;
+  font-weight: 800;
+  color: #ff6b6b;
+  margin-bottom: 10px;
+}
+
+.onboarding-box .subtitle {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.onboarding-box .form-group {
+  margin-bottom: 25px;
+}
+
+.onboarding-box .form-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.onboarding-box .character-count {
+  font-size: 12px;
+  color: #999;
+  font-weight: 400;
+}
+
+.onboarding-box .form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.onboarding-box .form-input:focus {
+  outline: none;
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+.onboarding-box .form-input.valid {
+  border-color: #51cf66;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='%2351cf66'%3E%3Cpath d='M8.5 14.5l-4-4 1.4-1.4 2.6 2.6 6.6-6.6 1.4 1.4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.onboarding-box .form-input.invalid {
+  border-color: #ff6b6b;
+}
+
+.onboarding-box .helper-text {
+  font-size: 13px;
+  color: #666;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.onboarding-box .helper-text.success {
+  color: #51cf66;
+}
+
+.onboarding-box .helper-text.error {
+  color: #ff6b6b;
+}
+
+.onboarding-box .radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.onboarding-box .radio-option {
+  position: relative;
+  padding: 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.onboarding-box .radio-option:hover {
+  border-color: #ff6b6b;
+  background: #fff5f5;
+}
+
+.onboarding-box .radio-option input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.onboarding-box .radio-option input[type="radio"]:checked {
+  border-color: #ff6b6b;
+  background: #ff6b6b;
+}
+
+.onboarding-box .radio-option input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.onboarding-box .radio-option.selected {
+  border-color: #ff6b6b;
+  background: #fff5f5;
+}
+
+.onboarding-box .radio-option.selected .radio-label {
+  color: #ff6b6b;
+  font-weight: 600;
+}
+
+.onboarding-box .radio-label {
+  font-size: 15px;
+  color: #333;
+  flex: 1;
+}
+
+.onboarding-box .btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.onboarding-box .btn-primary {
+  background: #ff6b6b;
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+
+.onboarding-box .btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+}
+
+.onboarding-box .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.onboarding-box .age-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.onboarding-box .age-input-wrapper .form-input {
+  width: 100px;
+  text-align: center;
+}
+
+.onboarding-box .age-input-wrapper span {
+  color: #666;
+  font-size: 15px;
+}
+
+@media (max-width: 600px) {
+  .onboarding-box {
+    padding: 30px 20px;
+  }
+
+  .onboarding-box .logo {
+    font-size: 28px;
+  }
+
+  .onboarding-box .subtitle {
+    font-size: 14px;
+  }
+}
+

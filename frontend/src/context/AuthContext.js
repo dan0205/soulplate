@@ -55,8 +55,15 @@ export const AuthProvider = ({ children }) => {
   const handleOAuthCallback = async (token) => {
     try {
       localStorage.setItem('access_token', token);
-      await loadUser();
-      navigate('/', { replace: true });
+      const response = await authAPI.getMe();
+      setUser(response.data);
+      
+      // profile_completed 체크
+      if (!response.data.profile_completed) {
+        navigate('/onboarding', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (error) {
       console.error('OAuth callback error:', error);
       localStorage.removeItem('access_token');

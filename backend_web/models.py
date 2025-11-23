@@ -51,6 +51,8 @@ class User(Base):
     taste_test_axis_scores = Column(JSONB, nullable=True)  # 각 축의 확률 점수
     
     # 온보딩
+    age = Column(Integer, nullable=True)  # 나이
+    gender = Column(String(10), nullable=True)  # 'male', 'female'
     profile_completed = Column(Boolean, default=False, nullable=False)  # 프로필 입력 완료 여부
     
     # Relationships

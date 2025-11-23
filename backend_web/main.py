@@ -615,8 +615,45 @@ async def google_callback(
 @app.get("/api/auth/me", response_model=schemas.UserResponse)
 async def get_current_user_info(current_user: models.User = Depends(auth.get_current_user)):
     """현재 사용자 정보"""
-    # 현재 로그인된 사용자의 정보를 반환한다 
-    return current_user
+    return schemas.UserResponse(
+        id=current_user.id,
+        username=current_user.username,
+        email=current_user.email,
+        created_at=current_user.created_at,
+        oauth_provider=current_user.oauth_provider,
+        profile_picture=current_user.profile_picture,
+        age=current_user.age,
+        gender=current_user.gender,
+        profile_completed=current_user.profile_completed
+    )
+
+@app.post("/api/user/complete-profile")
+async def complete_profile(
+    profile_data: schemas.CompleteProfileRequest,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """온보딩 완료: username, age, gender 업데이트"""
+    
+    # username 중복 체크 (자신 제외)
+    existing = db.query(models.User).filter(
+        models.User.username == profile_data.username,
+        models.User.id != current_user.id
+    ).first()
+    
+    if existing:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    # 업데이트
+    current_user.username = profile_data.username
+    current_user.age = profile_data.age
+    current_user.gender = profile_data.gender
+    current_user.profile_completed = True
+    
+    db.commit()
+    db.refresh(current_user)
+    
+    return {"message": "Profile completed successfully"}
 
 # ============================================================================
 # User Profile Endpoints

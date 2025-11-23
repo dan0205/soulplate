@@ -10,6 +10,7 @@ import PrivateRoute from './components/PrivateRoute';
 import SplashScreen from './components/SplashScreen';
 import LoginPage from './pages/LoginPage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
+import OnboardingPage from './pages/OnboardingPage';
 import HomePage from './pages/HomePage';
 import MyProfilePage from './pages/MyProfilePage';
 import UserProfilePage from './pages/UserProfilePage';
@@ -61,6 +62,7 @@ function App() {
             <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route
             path="/"
             element={

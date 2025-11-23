@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" style="background: #ffd6d6;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulPlate 로그인 - 옵션 1 (미니멀 + 브랜딩 강화)</title>
+    <title>SoulPlate 로그인</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: #ffd6d6;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -45,35 +45,14 @@
 
         .logo-container {
             margin-bottom: 40px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
         }
 
         .logo {
             font-size: 48px;
             font-weight: 800;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 50%, #ffd93d 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #ff6b6b;
             margin-bottom: 12px;
             letter-spacing: -1px;
-        }
-
-        .logo-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            display: inline-block;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
         }
 
         .tagline {
@@ -98,7 +77,7 @@
             gap: 12px;
             padding: 16px 24px;
             background: white;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #ff6b6b;
             border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
@@ -110,9 +89,9 @@
         }
 
         .google-btn:hover {
-            background: #f8f9fa;
-            border-color: #4285f4;
-            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
+            background: #fff5f5;
+            border-color: #ff6b6b;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
             transform: translateY(-2px);
         }
 
@@ -154,15 +133,10 @@
         }
 
         .feature-icon {
-            width: 20px;
-            height: 20px;
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            width: 6px;
+            height: 6px;
+            background: #ff6b6b;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
             flex-shrink: 0;
         }
 
@@ -189,22 +163,6 @@
             color: #ff6b6b;
         }
 
-        .security-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 20px;
-            padding: 8px 16px;
-            background: #f8f9fa;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .security-icon {
-            font-size: 14px;
-        }
-
         @media (max-width: 600px) {
             .container {
                 padding: 40px 30px;
@@ -212,10 +170,6 @@
 
             .logo {
                 font-size: 40px;
-            }
-
-            .logo-icon {
-                font-size: 56px;
             }
 
             .tagline {
@@ -227,7 +181,6 @@
 <body>
     <div class="container">
         <div class="logo-container">
-            <div class="logo-icon">🍽️</div>
             <div class="logo">SoulPlate</div>
         </div>
 
@@ -248,26 +201,21 @@
         </a>
 
         <div class="features">
-            <div class="features-title">🎯 SoulPlate의 특별함</div>
+            <div class="features-title">SoulPlate의 특별함</div>
             <div class="feature-list">
                 <div class="feature-item">
-                    <div class="feature-icon">✓</div>
+                    <div class="feature-icon"></div>
                     <span>AI 기반 맞춤형 맛집 추천</span>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon">✓</div>
+                    <div class="feature-icon"></div>
                     <span>당신만의 음식 취향 MBTI 분석</span>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon">✓</div>
+                    <div class="feature-icon"></div>
                     <span>실시간 맛집 리뷰 및 평가</span>
                 </div>
             </div>
-        </div>
-
-        <div class="security-badge">
-            <span class="security-icon">🔒</span>
-            안전하고 빠른 Google 로그인
         </div>
 
         <div class="footer">
@@ -289,4 +237,3 @@
     </script>
 </body>
 </html>
-
