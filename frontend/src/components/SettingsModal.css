@@ -183,12 +183,13 @@
   display: block;
   height: 38px !important;
   max-height: 38px !important;
-  line-height: 38px;
+  line-height: 1.5;
+  padding-top: 10px;
   overflow: hidden;
   box-sizing: border-box;
-  padding: 0;
   white-space: nowrap;
   text-overflow: ellipsis;
+  text-align: left;
 }
 
 .settings-modal-content .helper-text.success {
