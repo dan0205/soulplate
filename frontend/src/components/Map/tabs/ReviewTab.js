@@ -43,10 +43,21 @@ const ReviewTab = ({ businessId }) => {
     loadReviews();
   }, [businessId, sortBy]);
 
+  // 스크롤 위치 ref로 관리
+  const scrollPosRef = useRef(0);
+
   useEffect(() => {
     const bottomSheet = document.querySelector('[data-rsbs-scroll]');
     console.log('WritingMode changed:', writingMode);
     console.log('Bottom sheet scroll:', bottomSheet?.scrollTop || 0);
+    
+    // writingMode가 변경될 때 스크롤 위치 복원
+    if (writingMode && bottomSheet && scrollPosRef.current > 0) {
+      requestAnimationFrame(() => {
+        bottomSheet.scrollTop = scrollPosRef.current;
+        console.log('WritingMode - Scroll restored to:', scrollPosRef.current);
+      });
+    }
     
     // 하단 작성칸이 확장될 때 스크롤 변경 감지
     if (writingMode) {
@@ -191,23 +202,27 @@ const ReviewTab = ({ businessId }) => {
   // 수정 시작
   const handleEditStart = (review) => {
     const bottomSheet = document.querySelector('[data-rsbs-scroll]');
-    console.log('handleEditStart called, scroll before:', bottomSheet?.scrollTop || 0);
+    const scrollPos = bottomSheet?.scrollTop || 0;
+    scrollPosRef.current = scrollPos; // ref에 저장
+    console.log('handleEditStart called, scroll before:', scrollPos);
+    
     setEditingReview(review);
     setFormData({ stars: review.stars || 5, text: review.text });
-    setWritingMode('edit');
     setOpenMenu(null);
-    console.log('handleEditStart done, scroll after:', bottomSheet?.scrollTop || 0);
+    setWritingMode('edit');
   };
 
   // 답글 시작
   const handleReplyStart = (reviewId) => {
     const bottomSheet = document.querySelector('[data-rsbs-scroll]');
-    console.log('handleReplyStart called, scroll before:', bottomSheet?.scrollTop || 0);
+    const scrollPos = bottomSheet?.scrollTop || 0;
+    scrollPosRef.current = scrollPos; // ref에 저장
+    console.log('handleReplyStart called, scroll before:', scrollPos);
+    
     setReplyingTo(reviewId);
     setFormData({ stars: 5, text: '' });
-    setWritingMode('reply');
     setOpenMenu(null);
-    console.log('handleReplyStart done, scroll after:', bottomSheet?.scrollTop || 0);
+    setWritingMode('reply');
   };
 
   const handleUserClick = (userId) => {
