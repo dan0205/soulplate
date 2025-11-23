@@ -1062,6 +1062,11 @@ reach-portal {
   border-bottom: 1px solid #f0f0f0;
 }
 
+/* 답글 작성 시 닫기 버튼만 있을 때 오른쪽 정렬 */
+.write-form-header.reply-mode {
+  justify-content: flex-end;
+}
+
 .btn-close {
   background: none;
   border: none;

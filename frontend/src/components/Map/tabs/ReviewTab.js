@@ -222,7 +222,16 @@ const ReviewTab = ({ businessId }) => {
     setReplyingTo(reviewId);
     setFormData({ stars: 5, text: '' });
     setOpenMenu(null);
-    setWritingMode('reply');
+    
+    // writingMode가 이미 'reply'인 경우에도 스크롤 복원을 위해 일시적으로 null로 변경
+    if (writingMode === 'reply') {
+      setWritingMode(null);
+      setTimeout(() => {
+        setWritingMode('reply');
+      }, 0);
+    } else {
+      setWritingMode('reply');
+    }
   };
 
   const handleUserClick = (userId) => {
@@ -486,7 +495,7 @@ const ReviewTab = ({ businessId }) => {
           ) : (
             <form className="bottom-write-form" onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
               {/* 상단 바: 별점 + 닫기 버튼 */}
-              <div className="write-form-header">
+              <div className={`write-form-header ${writingMode === 'reply' ? 'reply-mode' : ''}`}>
                 {/* 별점 (답글 작성 시는 표시 안함) */}
                 {writingMode !== 'reply' && (
                   <div className="star-rating">
