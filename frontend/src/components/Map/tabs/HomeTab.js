@@ -42,11 +42,11 @@ const HomeTab = ({ restaurant }) => {
       </div>
 
       {/* AI 브리핑 (ABSA) */}
-      {(restaurant.absa_food_avg || restaurant.absa_service_avg || restaurant.absa_atmosphere_avg) && (
+      {(restaurant.absa_food_avg != null || restaurant.absa_service_avg != null || restaurant.absa_atmosphere_avg != null) && (
         <div className="absa-features">
           <h3>🤖 AI 브리핑</h3>
           <div className="feature-bars">
-            {restaurant.absa_food_avg && (
+            {restaurant.absa_food_avg != null && (
               <div className="feature-bar">
                 <span className="feature-label">🍜 음식 맛</span>
                 <div className="feature-progress">
@@ -58,7 +58,7 @@ const HomeTab = ({ restaurant }) => {
                 <span className="feature-value">{restaurant.absa_food_avg.toFixed(1)}</span>
               </div>
             )}
-            {restaurant.absa_service_avg && (
+            {restaurant.absa_service_avg != null && (
               <div className="feature-bar">
                 <span className="feature-label">👨‍🍳 서비스</span>
                 <div className="feature-progress">
@@ -70,7 +70,7 @@ const HomeTab = ({ restaurant }) => {
                 <span className="feature-value">{restaurant.absa_service_avg.toFixed(1)}</span>
               </div>
             )}
-            {restaurant.absa_atmosphere_avg && (
+            {restaurant.absa_atmosphere_avg != null && (
               <div className="feature-bar">
                 <span className="feature-label">🏠 분위기</span>
                 <div className="feature-progress">
