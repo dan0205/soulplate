@@ -36,6 +36,11 @@ const ReviewTab = ({ businessId }) => {
     loadReviews();
   }, [businessId, sortBy]);
 
+  useEffect(() => {
+    console.log('WritingMode changed:', writingMode);
+    console.log('Current scroll position:', window.scrollY);
+  }, [writingMode]);
+
   const loadReviews = async (loadMore = false) => {
     try {
       setLoading(true);
@@ -170,18 +175,22 @@ const ReviewTab = ({ businessId }) => {
 
   // 수정 시작
   const handleEditStart = (review) => {
+    console.log('handleEditStart called, scroll before:', window.scrollY);
     setEditingReview(review);
     setFormData({ stars: review.stars || 5, text: review.text });
     setWritingMode('edit');
     setOpenMenu(null);
+    console.log('handleEditStart done, scroll after:', window.scrollY);
   };
 
   // 답글 시작
   const handleReplyStart = (reviewId) => {
+    console.log('handleReplyStart called, scroll before:', window.scrollY);
     setReplyingTo(reviewId);
     setFormData({ stars: 5, text: '' });
     setWritingMode('reply');
     setOpenMenu(null);
+    console.log('handleReplyStart done, scroll after:', window.scrollY);
   };
 
   const handleUserClick = (userId) => {
@@ -209,9 +218,12 @@ const ReviewTab = ({ businessId }) => {
     return (
       <div className="kebab-menu">
         <button 
+          type="button"
           className="kebab-btn"
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
+            console.log('Kebab button clicked');
             setOpenMenu(isOpen ? null : review.id);
           }}
         >
@@ -221,15 +233,40 @@ const ReviewTab = ({ businessId }) => {
           <div className="kebab-dropdown">
             {isOwner ? (
               <>
-                <button onClick={() => handleEditStart(review)}>
+                <button 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Edit clicked');
+                    handleEditStart(review);
+                  }}
+                >
                   ✏️ 수정
                 </button>
-                <button onClick={() => handleDelete(review.id)} className="danger">
+                <button 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Delete clicked');
+                    handleDelete(review.id);
+                  }} 
+                  className="danger"
+                >
                   🗑️ 삭제
                 </button>
               </>
             ) : (
-              <button onClick={() => handleReplyStart(review.id)}>
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Reply clicked');
+                  handleReplyStart(review.id);
+                }}
+              >
                 💬 답글 달기
               </button>
             )}
