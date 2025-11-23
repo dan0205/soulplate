@@ -94,7 +94,8 @@ function TasteTestPage() {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
       } else {
-        submitTest();
+        // 마지막 문항이므로 최신 답변 배열을 전달하여 제출
+        submitTest(newAnswers);
       }
     }, 500);
   };
@@ -125,12 +126,14 @@ function TasteTestPage() {
     }
   };
 
-  const submitTest = async () => {
+  const submitTest = async (answersToSubmit = null) => {
     setSubmitting(true);
+    const finalAnswers = answersToSubmit || answers;
+    
     try {
       const response = await tasteTestAPI.submit({
         test_type: testType,
-        answers: answers
+        answers: finalAnswers
       });
       
       toast.success('취향 테스트가 완료되었습니다! 🎉');
