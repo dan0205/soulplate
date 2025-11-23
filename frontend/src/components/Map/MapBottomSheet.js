@@ -397,8 +397,12 @@ const MapBottomSheet = ({
                 <button 
                   className="action-btn"
                   onClick={() => {
-                    toast.dismiss();
-                    toast('전화번호 준비 중입니다');
+                    if (selectedRestaurant.phone) {
+                      window.location.href = `tel:${selectedRestaurant.phone}`;
+                    } else {
+                      toast.dismiss();
+                      toast('전화번호 정보가 없습니다');
+                    }
                   }}
                 >
                   📞 전화
