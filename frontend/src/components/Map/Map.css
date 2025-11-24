@@ -827,6 +827,7 @@ reach-portal {
   line-height: 1.6;
   margin: 0 0 8px 0;
   word-break: break-word;
+  white-space: pre-line;
 }
 
 .useful-btn {

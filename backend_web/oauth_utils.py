@@ -93,3 +93,4 @@ def extract_oauth_user_info(userinfo: dict) -> dict:
         'picture': userinfo.get('picture')
     }
 
+
