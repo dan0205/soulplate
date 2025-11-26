@@ -559,9 +559,6 @@ async def google_callback(
                 oauth_provider='google',
                 oauth_id=user_data['oauth_id'],
                 profile_picture=user_data['picture'],
-                # OAuth 유저는 비밀번호 없음
-                hashed_password=None,
-                yelp_user_id=None,
                 # 기본값
                 review_count=0,
                 useful=0,
