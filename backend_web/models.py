@@ -110,6 +110,9 @@ class Review(Base):
     # ABSA 피처 (JSON: 51개 aspect-sentiment 값)
     absa_features = Column(JSONB, nullable=True)
     
+    # 텍스트 임베딩 (JSON: 100차원 벡터)
+    text_embedding = Column(JSONB, nullable=True)
+    
     # 유용성 점수
     useful = Column(Integer, default=0, nullable=False)
     

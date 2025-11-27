@@ -90,7 +90,9 @@ def update_user_profile(user_id: int, db: Session):
         for key, value in review.absa_features.items():
             absa_sum[key] += value * weight
         
-        # 텍스트 임베딩 가중 합산 (리뷰에 저장되어 있지 않으므로 생략)
+        # 텍스트 임베딩 가중 합산
+        if review.text_embedding:
+            text_emb_sum += np.array(review.text_embedding, dtype=np.float32) * weight
         
         total_weight += weight
     
@@ -104,6 +106,9 @@ def update_user_profile(user_id: int, db: Session):
         for key, value in absa_sum.items()
     }
     
+    # 텍스트 임베딩 평균 저장
+    user.text_embedding = (text_emb_sum / total_weight).tolist()
+    
     # 실제 리뷰 통계 업데이트
     user.review_count = real_review_count
     if real_review_count > 0:
@@ -116,7 +121,7 @@ def update_user_profile(user_id: int, db: Session):
 def update_business_profile(business_id: int, db: Session):
     """
     비즈니스 프로필 재계산
-    해당 비즈니스의 모든 리뷰로부터 ABSA 평균 계산
+    해당 비즈니스의 모든 리뷰로부터 ABSA 및 text_embedding 평균 계산
     """
     # 해당 비즈니스의 모든 리뷰 조회 (ABSA가 있는 것만)
     reviews = db.query(models.Review).filter(
@@ -128,14 +133,21 @@ def update_business_profile(business_id: int, db: Session):
         logger.info(f"Business {business_id}: No reviews with ABSA features")
         return
     
-    # ABSA 평균 계산
+    # ABSA 및 text_embedding 평균 계산
     absa_sum = defaultdict(float)
+    text_emb_sum = np.zeros(100, dtype=np.float32)
+    text_emb_count = 0
     total_stars = 0.0
     
     for review in reviews:
         # ABSA 합산
         for key, value in review.absa_features.items():
             absa_sum[key] += value
+        
+        # 텍스트 임베딩 합산
+        if review.text_embedding:
+            text_emb_sum += np.array(review.text_embedding, dtype=np.float32)
+            text_emb_count += 1
         
         # 별점 합산
         if review.stars:
@@ -151,6 +163,10 @@ def update_business_profile(business_id: int, db: Session):
         key: value / len(reviews) 
         for key, value in absa_sum.items()
     }
+    
+    # 텍스트 임베딩 평균 저장
+    if text_emb_count > 0:
+        business.text_embedding = (text_emb_sum / text_emb_count).tolist()
     
     # 별점 평균 및 리뷰 수 업데이트
     business.stars = total_stars / len(reviews)
@@ -203,10 +219,11 @@ async def process_review_features(review_id: int, user_id: int, text: str, stars
         review = db.query(models.Review).filter(models.Review.id == review_id).first()
         if review:
             review.absa_features = absa_features
+            review.text_embedding = text_embedding
             db.commit()
         
         step2_time = time.time() - step2_start
-        logger.info(f"  ✅ [Step 2/5] Review ABSA 저장 완료 - {step2_time:.2f}s")
+        logger.info(f"  ✅ [Step 2/5] Review ABSA/text_embedding 저장 완료 - {step2_time:.2f}s")
         
         # 3. User 프로필 업데이트
         step3_start = time.time()

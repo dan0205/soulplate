@@ -7,6 +7,9 @@
 import pickle
 import numpy as np
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TextEmbeddingService:
     """텍스트 임베딩 서비스 클래스"""
@@ -20,15 +23,32 @@ class TextEmbeddingService:
         self.vectorizer = None
         
     def load_vectorizer(self):
-        """Vectorizer 로딩"""
-        if not os.path.exists(self.vectorizer_path):
+        """Vectorizer 로딩 (로컬 -> HuggingFace 순서로 시도)"""
+        # 1. 로컬 경로 확인
+        if os.path.exists(self.vectorizer_path):
+            logger.info(f"[Text Embedding] 로컬 파일 사용: {self.vectorizer_path}")
+            with open(self.vectorizer_path, 'rb') as f:
+                self.vectorizer = pickle.load(f)
+            logger.info(f"[Text Embedding] Vectorizer 로딩 완료 (어휘 크기: {len(self.vectorizer.vocabulary_)})")
+            return True
+        
+        # 2. HuggingFace에서 다운로드 시도
+        try:
+            from model_loader import download_model_file
+            logger.info("[Text Embedding] HuggingFace에서 다운로드 시도...")
+            
+            # HuggingFace에는 tfidf_vectorizer_309d.pkl로 저장되어 있음
+            downloaded_path = download_model_file("tfidf_vectorizer_309d.pkl")
+            
+            with open(downloaded_path, 'rb') as f:
+                self.vectorizer = pickle.load(f)
+            
+            logger.info(f"[Text Embedding] HuggingFace에서 로딩 완료 (어휘 크기: {len(self.vectorizer.vocabulary_)})")
+            return True
+            
+        except Exception as e:
+            logger.error(f"[Text Embedding] HuggingFace 다운로드 실패: {e}")
             raise FileNotFoundError(f"Vectorizer 파일을 찾을 수 없습니다: {self.vectorizer_path}")
-        
-        with open(self.vectorizer_path, 'rb') as f:
-            self.vectorizer = pickle.load(f)
-        
-        print(f"[OK] TF-IDF Vectorizer 로딩 완료 (어휘 크기: {len(self.vectorizer.vocabulary_)})")
-        return True
     
     def transform_text(self, text):
         """
