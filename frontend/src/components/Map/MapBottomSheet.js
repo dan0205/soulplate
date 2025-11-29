@@ -143,15 +143,16 @@ const MapBottomSheet = ({
         }
         setSnapIndex(newSnapIndex);
         
-        // 🆕 detail 모드에서 50% → 10%로 드래그했을 때만 선택 해제
-        if (newSnapIndex === 0 && snapIndex === 1 && sheetMode === 'detail' && onClose) {
-          console.log('🔽 [ResizeObserver] detail 50% → 10% 드래그 감지 → 선택 해제');
+        // 🆕 detail 모드에서 10%로 드래그했을 때 선택 해제
+        // 🔧 수정: snapIndex === 1 조건 제거 (빠른 드래그 시 조건을 놓치는 문제 해결)
+        if (newSnapIndex === 0 && sheetMode === 'detail' && onClose) {
+          console.log('🔽 [ResizeObserver] detail → 10% 드래그 감지 → 선택 해제');
           onClose(); // selectedRestaurant를 null로 만듦
         }
         
-        // 🔥 10%일 때는 list → hint로만 전환 (detail 모드는 유지)
-        if (newSnapIndex === 0 && sheetMode === 'list') {
-          console.log('🔄 [ResizeObserver] sheetMode: list → hint');
+        // 🔥 10%일 때는 list/detail → hint로 전환
+        if (newSnapIndex === 0 && (sheetMode === 'list' || sheetMode === 'detail')) {
+          console.log('🔄 [ResizeObserver] sheetMode:', sheetMode, '→ hint');
           setSheetMode('hint');
         }
         // 🔥 snap이 50% 이상이고 hint 모드면 자동으로 list 모드로 전환
