@@ -78,6 +78,7 @@ const MapBottomSheet = ({
   const [sheetMode, setSheetMode] = useState('hint');
   const [snapIndex, setSnapIndex] = useState(0); // 0: 10%, 1: 50%, 2: 100%
   const sheetRef = useRef(null);
+  const prevSnapIndexRef = useRef(0); // 이전 snapIndex 추적 (드래그 vs 마커 클릭 구분용)
 
   // selectedRestaurant 변경 시 detail 모드로 전환 + 10%일 때 50%로 자동 확장
   useEffect(() => {
@@ -143,16 +144,21 @@ const MapBottomSheet = ({
         }
         setSnapIndex(newSnapIndex);
         
-        // 🆕 detail 모드에서 10%로 드래그했을 때 선택 해제
-        // 🔧 수정: snapIndex === 1 조건 제거 (빠른 드래그 시 조건을 놓치는 문제 해결)
-        if (newSnapIndex === 0 && sheetMode === 'detail' && onClose) {
-          console.log('🔽 [ResizeObserver] detail → 10% 드래그 감지 → 선택 해제');
+        // 🆕 detail 모드에서 50% → 10%로 드래그했을 때만 선택 해제
+        // 🔧 수정: prevSnapIndexRef를 사용하여 "드래그 다운"과 "마커 클릭 직후"를 구분
+        // - 마커 클릭 직후: prevSnapIndex === 0, newSnapIndex === 0 (아직 확장 전)
+        // - 드래그 다운: prevSnapIndex === 1, newSnapIndex === 0 (50% → 10%)
+        if (newSnapIndex === 0 && prevSnapIndexRef.current === 1 && sheetMode === 'detail' && onClose) {
+          console.log('🔽 [ResizeObserver] detail 50% → 10% 드래그 감지 → 선택 해제');
           onClose(); // selectedRestaurant를 null로 만듦
         }
         
-        // 🔥 10%일 때는 list/detail → hint로 전환
-        if (newSnapIndex === 0 && (sheetMode === 'list' || sheetMode === 'detail')) {
-          console.log('🔄 [ResizeObserver] sheetMode:', sheetMode, '→ hint');
+        // 이전 snapIndex 업데이트
+        prevSnapIndexRef.current = newSnapIndex;
+        
+        // 🔥 10%일 때는 list → hint로만 전환 (detail 모드는 유지하여 마커 클릭 시 확장 가능)
+        if (newSnapIndex === 0 && sheetMode === 'list') {
+          console.log('🔄 [ResizeObserver] sheetMode: list → hint');
           setSheetMode('hint');
         }
         // 🔥 snap이 50% 이상이고 hint 모드면 자동으로 list 모드로 전환
