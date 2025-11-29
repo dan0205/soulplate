@@ -888,6 +888,19 @@ async def get_businesses_for_map(
     
     return {"businesses": result, "count": len(result)}
 
+# 카테고리 매핑 (UI 카테고리 → DB 검색 키워드 목록)
+CATEGORY_MAPPING = {
+    "korean": ["한식", "족발/보쌈", "돈까스", "치킨/닭강정", "국수", "육류/고기요리", "찜닭", "낙지요리", 
+               "찌개/전골", "돼지고기구이", "곱창/막창/양", "백반/가정식", "감자탕", "추어탕", 
+               "장어/먹장어요리", "곰탕/설렁탕", "칼국수/만두", "냉면", "순대/순댓국", "국밥", 
+               "오리요리", "분식", "도시락/컵밥", "포장마차"],
+    "western": ["스파게티/양식", "핫도그", "햄버거", "스테이크", "피자", "패밀리레스토랑", 
+                "스페인음식", "스파게티/파스타전문", "샌드위치", "다이어트/샐러드"],
+    "japanese": ["일식당", "일본식라면", "덮밥", "생선회"],
+    "asian": ["베트남음식", "인도음식", "태국음식"],
+    "chinese": ["중식당", "마라탕"]
+}
+
 @app.get("/api/businesses/in-bounds")
 async def get_businesses_in_bounds(
     north: float,
@@ -896,16 +909,18 @@ async def get_businesses_in_bounds(
     west: float,
     limit: int = 200,
     search: Optional[str] = None,
+    category: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user_optional)
 ):
     """
     지도 범위(bounds) 내 레스토랑 조회
     north, south, east, west로 정의된 사각형 영역 내의 레스토랑을 반환
+    category: korean, western, japanese, asian, chinese 중 하나
     """
     from sqlalchemy import and_, or_
     
-    logger.info(f"🗺️  Bounds API: north={north}, south={south}, east={east}, west={west}, limit={limit}")
+    logger.info(f"🗺️  Bounds API: north={north}, south={south}, east={east}, west={west}, limit={limit}, category={category}")
     
     # 쿼리 구성
     query = db.query(models.Business)
@@ -925,6 +940,12 @@ async def get_businesses_in_bounds(
             models.Business.longitude.between(west, east)
         )
     )
+    
+    # 카테고리 필터링
+    if category and category in CATEGORY_MAPPING:
+        category_keywords = CATEGORY_MAPPING[category]
+        category_filters = [models.Business.categories.ilike(f"%{kw}%") for kw in category_keywords]
+        query = query.filter(or_(*category_filters))
     
     # 검색 필터링
     if search:

@@ -57,6 +57,96 @@ body:has(.snap-100) .floating-search-bar {
   color: white;
 }
 
+/* 카테고리 필터 */
+.category-filter-container {
+  position: fixed;
+  top: 68px;
+  left: 20px;
+  right: 20px;
+  z-index: 1001;
+  max-width: 500px;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+/* 100% 카드일 때 카테고리 필터 숨기기 */
+body:has(.snap-100) .category-filter-container {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+}
+
+.category-filter-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.category-filter-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+.category-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.category-chip:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.category-chip.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.category-emoji {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.category-label {
+  font-size: 13px;
+}
+
+/* 모바일 카테고리 필터 */
+@media (max-width: 767px) {
+  .category-filter-container {
+    top: 62px;
+    left: 15px;
+    right: 15px;
+  }
+  
+  .category-chip {
+    padding: 6px 12px;
+  }
+  
+  .category-emoji {
+    font-size: 14px;
+  }
+  
+  .category-label {
+    font-size: 12px;
+  }
+}
+
 /* 지도 컨테이너 */
 .map-container {
   position: fixed;

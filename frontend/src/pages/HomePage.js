@@ -13,6 +13,7 @@ import MapView from '../components/Map/MapView';
 import MapBottomSheet from '../components/Map/MapBottomSheet';
 import FloatingProfileButton from '../components/FloatingProfileButton';
 import FloatingSearchBar from '../components/Map/FloatingSearchBar';
+import CategoryFilter from '../components/Map/CategoryFilter';
 import { calculateDistance } from '../utils/distance';
 import './Home.css';
 
@@ -32,6 +33,7 @@ const HomePage = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [currentBounds, setCurrentBounds] = useState(null);
   const [loadingBusiness, setLoadingBusiness] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   
   const LOAD_MORE_COUNT = 20;
   
@@ -53,6 +55,14 @@ const HomePage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch]);
+
+  // 카테고리 변경 시 지도 범위 재로드
+  useEffect(() => {
+    if (currentBounds) {
+      loadMapRestaurants(currentBounds);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory]);
 
   // 사용자 위치 가져오기
   useEffect(() => {
@@ -197,7 +207,8 @@ const HomePage = () => {
         east: bounds.east,
         west: bounds.west,
         limit: 200,
-        search: debouncedSearch || undefined
+        search: debouncedSearch || undefined,
+        category: selectedCategory || undefined
       });
       
       const { businesses } = response.data;
@@ -222,7 +233,7 @@ const HomePage = () => {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, userLocation, isInitialLoading]);
+  }, [debouncedSearch, selectedCategory, userLocation, isInitialLoading]);
 
   // 지도 bounds 변경 핸들러
   const handleMapBoundsChange = useCallback((bounds) => {
@@ -285,6 +296,11 @@ const HomePage = () => {
     setSearchQuery(query);
   };
 
+  // 카테고리 변경 핸들러
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+  };
+
   return (
     <div className="home-container">
       {/* 플로팅 프로필 버튼 */}
@@ -295,6 +311,12 @@ const HomePage = () => {
         onSearch={handleSearch}
         placeholder="🔍 음식점 이름, 카테고리, 지역 검색..."
         defaultValue={searchQuery}
+      />
+
+      {/* 카테고리 필터 */}
+      <CategoryFilter 
+        selectedCategory={selectedCategory}
+        onCategoryChange={handleCategoryChange}
       />
 
       {/* 지도 (항상 표시) */}
