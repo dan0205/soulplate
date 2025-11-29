@@ -319,10 +319,24 @@ reach-portal {
   z-index: 1003 !important;
 }
 
-/* 바텀시트 터치 이벤트 제어 - 세로 드래그만 허용하여 지도 움직임 방지 */
-[data-rsbs-overlay],
-[data-rsbs-backdrop],
-[data-rsbs-header],
+/* 바텀시트 터치 이벤트 제어 - 지도 터치 완전 차단 */
+[data-rsbs-overlay] {
+  touch-action: none !important;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+[data-rsbs-backdrop] {
+  touch-action: none !important;
+  pointer-events: none;
+}
+
+[data-rsbs-header] {
+  touch-action: pan-y !important;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 [data-rsbs-scroll] {
   touch-action: pan-y !important;
   -webkit-user-drag: none;
@@ -336,6 +350,7 @@ reach-portal {
   height: 100%;
   overflow: hidden;
   touch-action: pan-y !important;
+  -webkit-touch-callout: none;
 }
 
 /* 공통 헤더: 가게 이름 + AI 점수 */
@@ -387,6 +402,29 @@ reach-portal {
 
 .snap-100 .content-50-only {
   display: none;
+}
+
+/* 10%, 50% 상태에서 내부 스크롤 방지 (13번 요구사항) */
+.snap-10 .content-50-only,
+.snap-10 .restaurant-list,
+.snap-50 .content-50-only,
+.snap-50 .restaurant-list {
+  overflow: hidden !important;
+  touch-action: none !important;
+  -webkit-overflow-scrolling: auto;
+}
+
+/* 100% 상태에서만 스크롤 허용 */
+.snap-100 .restaurant-list {
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.snap-100 .content-100-only .react-tabs__tab-panel {
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* AI 점수 배지 */

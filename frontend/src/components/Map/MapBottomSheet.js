@@ -82,24 +82,16 @@ const MapBottomSheet = ({
 
   // selectedRestaurant 변경 시 detail 모드로 전환 + 10%일 때 50%로 자동 확장
   useEffect(() => {
-    console.log('🎯 [useEffect1] 트리거됨 - selectedRestaurant:', !!selectedRestaurant, 'snapIndex:', snapIndex, 'sheetMode:', sheetMode);
-    
     if (selectedRestaurant) {
       setSheetMode('detail');
       // 10% 상태에서 마커 클릭 시 50%로 확장
-      // ⚠️ sheetMode가 'hint'일 때만 자동 확장 (사용자가 수동으로 내린 경우 제외)
       if (snapIndex === 0 && sheetMode === 'hint' && sheetRef.current) {
-        console.log('🚀 [useEffect1] 조건 충족! 50%로 자동 확장 예약');
         setTimeout(() => {
-          console.log('🚀 [useEffect1] 50%로 확장 실행!');
           sheetRef.current.snapTo(({ snapPoints }) => snapPoints[1]);
         }, 100);
-      } else {
-        console.log('⛔ [useEffect1] 자동 확장 조건 불충족 - snapIndex:', snapIndex, 'sheetMode:', sheetMode);
       }
     } else if (sheetMode === 'detail') {
       // 선택 해제 시 list 모드로
-      console.log('🔄 [useEffect1] 선택 해제 → list 모드');
       setSheetMode('list');
     }
   }, [selectedRestaurant, snapIndex, sheetMode]);
@@ -112,59 +104,34 @@ const MapBottomSheet = ({
         const windowHeight = window.innerHeight;
         const ratio = height / windowHeight;
         
-        // 🔍 디버깅: ratio 값 출력
-        console.log('📏 [ResizeObserver] ratio:', ratio.toFixed(3), 'height:', height, 'windowHeight:', windowHeight);
-        
+        // snapIndex 계산
         let newSnapIndex;
-        // snap index 업데이트 (임계값 조정: 선택 매장 콘텐츠가 많을 때도 10%로 스냅되도록)
         if (ratio < 0.3) {
           newSnapIndex = 0; // 10%
-          console.log('🔽 [ResizeObserver] ratio < 0.3 감지! → 10%로 스냅 시도');
-          // 🔧 수정: ratio가 12%~25% 사이에서 멈춰있으면 강제로 10%로 스냅
-          // ⚠️ 단, detail 모드일 때는 강제 스냅 안 함 (마커 클릭 후 확장 중일 수 있음)
-          if (ratio > 0.12 && ratio < 0.25 && sheetRef.current && sheetMode !== 'detail') {
-            console.log('✅ [ResizeObserver] 중간에 멈춤 감지 → 강제 snapTo(10%) 실행!');
-            sheetRef.current.snapTo(({ snapPoints }) => snapPoints[0]);
-          } else if (snapIndex !== 0 && sheetRef.current && sheetMode !== 'detail') {
-            console.log('✅ [ResizeObserver] snapTo(10%) 실행!');
-            sheetRef.current.snapTo(({ snapPoints }) => snapPoints[0]);
-          } else {
-            console.log('⚠️ [ResizeObserver] snapTo 실행 안됨 - snapIndex:', snapIndex, 'ratio:', ratio.toFixed(3), 'sheetMode:', sheetMode);
-          }
         } else if (ratio < 0.7) {
           newSnapIndex = 1; // 50%
-          console.log('🔽 [ResizeObserver] ratio 0.3~0.7 → 50% 상태');
         } else {
           newSnapIndex = 2; // 100%
-          console.log('🔽 [ResizeObserver] ratio >= 0.7 → 100% 상태');
         }
         
+        // snapIndex 변경 시에만 업데이트
         if (newSnapIndex !== snapIndex) {
-          console.log('🔄 [ResizeObserver] snapIndex 변경:', snapIndex, '→', newSnapIndex);
-        }
-        setSnapIndex(newSnapIndex);
-        
-        // 🆕 detail 모드에서 50% → 10%로 드래그했을 때만 선택 해제
-        // 🔧 수정: prevSnapIndexRef를 사용하여 "드래그 다운"과 "마커 클릭 직후"를 구분
-        // - 마커 클릭 직후: prevSnapIndex === 0, newSnapIndex === 0 (아직 확장 전)
-        // - 드래그 다운: prevSnapIndex === 1, newSnapIndex === 0 (50% → 10%)
-        if (newSnapIndex === 0 && prevSnapIndexRef.current === 1 && sheetMode === 'detail' && onClose) {
-          console.log('🔽 [ResizeObserver] detail 50% → 10% 드래그 감지 → 선택 해제');
-          onClose(); // selectedRestaurant를 null로 만듦
-        }
-        
-        // 이전 snapIndex 업데이트
-        prevSnapIndexRef.current = newSnapIndex;
-        
-        // 🔥 10%일 때는 list → hint로만 전환 (detail 모드는 유지하여 마커 클릭 시 확장 가능)
-        if (newSnapIndex === 0 && sheetMode === 'list') {
-          console.log('🔄 [ResizeObserver] sheetMode: list → hint');
-          setSheetMode('hint');
-        }
-        // 🔥 snap이 50% 이상이고 hint 모드면 자동으로 list 모드로 전환
-        else if (newSnapIndex >= 1 && sheetMode === 'hint') {
-          console.log('🔄 [ResizeObserver] sheetMode: hint → list');
-          setSheetMode('list');
+          setSnapIndex(newSnapIndex);
+          
+          // detail 모드에서 50% → 10% 드래그 시 선택 해제
+          if (newSnapIndex === 0 && prevSnapIndexRef.current === 1 && sheetMode === 'detail' && onClose) {
+            onClose();
+          }
+          
+          // sheetMode 자동 전환
+          if (newSnapIndex === 0 && sheetMode === 'list') {
+            setSheetMode('hint');
+          } else if (newSnapIndex >= 1 && sheetMode === 'hint') {
+            setSheetMode('list');
+          }
+          
+          // 이전 snapIndex 업데이트
+          prevSnapIndexRef.current = newSnapIndex;
         }
       }
     });
@@ -196,7 +163,7 @@ const MapBottomSheet = ({
       clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [sheetMode, snapIndex, onClose]); // sheetMode, snapIndex, onClose 변경 감지
+  }, [sheetMode, snapIndex, onClose]);
 
   const handleHintClick = () => {
     setSheetMode('list');
