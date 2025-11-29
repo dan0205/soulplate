@@ -84,17 +84,15 @@ const MapBottomSheet = ({
   useEffect(() => {
     if (selectedRestaurant) {
       setSheetMode('detail');
-      // 10% 상태에서 마커 클릭 시 50%로 확장
-      if (snapIndex === 0 && sheetMode === 'hint' && sheetRef.current) {
+      // 10% 상태에서 마커 클릭 시 50%로 확장 (sheetMode 조건 제거 - list 상태에서도 확장)
+      if (snapIndex === 0 && sheetRef.current) {
         setTimeout(() => {
           sheetRef.current.snapTo(({ snapPoints }) => snapPoints[1]);
         }, 100);
       }
-    } else if (sheetMode === 'detail') {
-      // 선택 해제 시 list 모드로
-      setSheetMode('list');
     }
-  }, [selectedRestaurant, snapIndex, sheetMode]);
+    // selectedRestaurant가 null일 때는 ResizeObserver에서 sheetMode 처리
+  }, [selectedRestaurant, snapIndex]);
 
   // ResizeObserver로 snap 상태 감지
   useEffect(() => {
@@ -118,15 +116,17 @@ const MapBottomSheet = ({
         if (newSnapIndex !== snapIndex) {
           setSnapIndex(newSnapIndex);
           
-          // detail 모드에서 50% → 10% 드래그 시 선택 해제
-          if (newSnapIndex === 0 && prevSnapIndexRef.current === 1 && sheetMode === 'detail' && onClose) {
-            onClose();
-          }
-          
-          // sheetMode 자동 전환
-          if (newSnapIndex === 0 && sheetMode === 'list') {
+          // detail 모드에서 10%로 내릴 때: hint로 전환 후 선택 해제
+          if (newSnapIndex === 0 && prevSnapIndexRef.current === 1 && sheetMode === 'detail') {
             setSheetMode('hint');
-          } else if (newSnapIndex >= 1 && sheetMode === 'hint') {
+            if (onClose) onClose();
+          }
+          // list 모드에서 10%로 내릴 때: hint로 전환
+          else if (newSnapIndex === 0 && sheetMode === 'list') {
+            setSheetMode('hint');
+          }
+          // hint 모드에서 50% 이상으로 올릴 때: list로 전환
+          else if (newSnapIndex >= 1 && sheetMode === 'hint') {
             setSheetMode('list');
           }
           
