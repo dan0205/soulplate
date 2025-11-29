@@ -107,13 +107,13 @@ body:has(.snap-100) .category-filter-container {
 }
 
 .category-chip:hover {
-  border-color: #667eea;
-  background: #f8f9ff;
+  border-color: #ff6b6b;
+  background: #fff5f5;
 }
 
 .category-chip.active {
-  background: #667eea;
-  border-color: #667eea;
+  background: #ff6b6b;
+  border-color: #ff6b6b;
   color: white;
 }
 
@@ -162,9 +162,10 @@ body:has(.snap-100) .category-filter-container {
 }
 
 /* 아주대학교 바로가기 버튼 */
+/* 🔧 수정: 10% 카드 기준으로 고정 (10vh + 버튼 높이 + 여백) */
 .ajou-university-btn {
   position: fixed;
-  bottom: 150px;
+  bottom: calc(10vh + 70px); /* 10% 카드 + 내위치 버튼 + 여백 */
   right: 20px;
   z-index: 1000;
   width: 50px;
@@ -191,9 +192,10 @@ body:has(.snap-100) .category-filter-container {
 }
 
 /* 내 위치 버튼 */
+/* 🔧 수정: 10% 카드 기준으로 고정 */
 .my-location-btn {
   position: fixed;
-  bottom: 90px;
+  bottom: calc(10vh + 10px); /* 10% 카드 + 여백 */
   right: 20px;
   z-index: 1000;
   width: 50px;

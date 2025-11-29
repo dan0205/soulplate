@@ -121,15 +121,15 @@ const MapBottomSheet = ({
           newSnapIndex = 0; // 10%
           console.log('🔽 [ResizeObserver] ratio < 0.3 감지! → 10%로 스냅 시도');
           // 🔧 수정: ratio가 12%~25% 사이에서 멈춰있으면 강제로 10%로 스냅
-          // (snapIndex 상태와 무관하게 실제 위치 기반으로 판단)
-          if (ratio > 0.12 && ratio < 0.25 && sheetRef.current) {
+          // ⚠️ 단, detail 모드일 때는 강제 스냅 안 함 (마커 클릭 후 확장 중일 수 있음)
+          if (ratio > 0.12 && ratio < 0.25 && sheetRef.current && sheetMode !== 'detail') {
             console.log('✅ [ResizeObserver] 중간에 멈춤 감지 → 강제 snapTo(10%) 실행!');
             sheetRef.current.snapTo(({ snapPoints }) => snapPoints[0]);
-          } else if (snapIndex !== 0 && sheetRef.current) {
+          } else if (snapIndex !== 0 && sheetRef.current && sheetMode !== 'detail') {
             console.log('✅ [ResizeObserver] snapTo(10%) 실행!');
             sheetRef.current.snapTo(({ snapPoints }) => snapPoints[0]);
           } else {
-            console.log('⚠️ [ResizeObserver] snapTo 실행 안됨 - snapIndex:', snapIndex, 'ratio:', ratio.toFixed(3));
+            console.log('⚠️ [ResizeObserver] snapTo 실행 안됨 - snapIndex:', snapIndex, 'ratio:', ratio.toFixed(3), 'sheetMode:', sheetMode);
           }
         } else if (ratio < 0.7) {
           newSnapIndex = 1; // 50%
