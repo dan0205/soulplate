@@ -1251,7 +1251,8 @@ async def get_review_summary(
             avg_stars=0.0,
             review_count=0,
             stars_distribution={5: 0, 4: 0, 3: 0, 2: 0, 1: 0},
-            recent_reviews=[]
+            recent_reviews=[],
+            absa_features=business.absa_features  # ABSA 피처 포함
         )
     
     # 별점 분포 계산 (최상위 리뷰만, 답글 제외)
@@ -1300,7 +1301,8 @@ async def get_review_summary(
         avg_stars=business.stars or 0.0,
         review_count=business.review_count,
         stars_distribution=stars_distribution,
-        recent_reviews=review_previews
+        recent_reviews=review_previews,
+        absa_features=business.absa_features  # ABSA 피처 포함
     )
 
 # ============================================================================

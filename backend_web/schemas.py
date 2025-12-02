@@ -245,4 +245,5 @@ class ReviewSummaryResponse(BaseModel):
     review_count: int
     stars_distribution: Dict[int, float]  # {5: 85.0, 4: 10.0, ...} 퍼센트
     recent_reviews: List[ReviewPreviewItem]
+    absa_features: Optional[Dict[str, float]] = None  # 전체 ABSA 피처 (51개)
     

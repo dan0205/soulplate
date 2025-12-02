@@ -1,24 +1,104 @@
 import React, { useState, useEffect } from 'react';
 import { businessAPI } from '../../../services/api';
 
-// ABSA 카테고리별 자연어 텍스트 매핑
-const ABSA_TEXT = {
-  food: {
+// 17개 ABSA 특성에 대한 자연어 매핑
+const ABSA_TEXT_MAP = {
+  '맛': {
     positive: '맛이 뛰어나요',
     negative: '맛이 아쉬워요',
     icon: '🍜'
   },
-  service: {
+  '짠맛': {
+    positive: '간이 적당해요',
+    negative: '너무 짜요',
+    icon: '🧂'
+  },
+  '매운맛': {
+    positive: '매운맛이 좋아요',
+    negative: '너무 매워요',
+    icon: '🌶️'
+  },
+  '단맛': {
+    positive: '달콤해요',
+    negative: '너무 달아요',
+    icon: '🍯'
+  },
+  '느끼함': {
+    positive: '느끼하지 않아요',
+    negative: '느끼해요',
+    icon: '🧈'
+  },
+  '담백함': {
+    positive: '담백해요',
+    negative: '담백함이 부족해요',
+    icon: '🥗'
+  },
+  '고소함': {
+    positive: '고소해요',
+    negative: '고소함이 부족해요',
+    icon: '🥜'
+  },
+  '품질/신선도': {
+    positive: '재료가 신선해요',
+    negative: '신선도가 아쉬워요',
+    icon: '✨'
+  },
+  '양': {
+    positive: '양이 푸짐해요',
+    negative: '양이 적어요',
+    icon: '🍽️'
+  },
+  '서비스': {
     positive: '친절한 서비스',
     negative: '서비스가 아쉬워요',
     icon: '👨‍🍳'
   },
-  atmosphere: {
+  '가격': {
+    positive: '가성비가 좋아요',
+    negative: '가격이 비싸요',
+    icon: '💰'
+  },
+  '쾌적함/청결도': {
+    positive: '깔끔하고 청결해요',
+    negative: '청결이 아쉬워요',
+    icon: '🧹'
+  },
+  '소음': {
+    positive: '조용해요',
+    negative: '시끄러워요',
+    icon: '🔇'
+  },
+  '분위기': {
     positive: '분위기가 좋아요',
     negative: '분위기가 아쉬워요',
     icon: '🏠'
+  },
+  '공간': {
+    positive: '공간이 넓어요',
+    negative: '공간이 좁아요',
+    icon: '📐'
+  },
+  '주차': {
+    positive: '주차가 편해요',
+    negative: '주차가 어려워요',
+    icon: '🚗'
+  },
+  '대기': {
+    positive: '대기가 짧아요',
+    negative: '대기가 길어요',
+    icon: '⏱️'
   }
 };
+
+// 17개 특성 목록
+const ASPECTS = [
+  '맛', '짠맛', '매운맛', '단맛', '느끼함', '담백함', '고소함',
+  '품질/신선도', '양', '서비스', '가격', '쾌적함/청결도',
+  '소음', '분위기', '공간', '주차', '대기'
+];
+
+// 순점수 임계값 (이 값 이상/이하만 표시)
+const THRESHOLD = 0.1;
 
 const HomeTab = ({ restaurant, onSwitchToReview }) => {
   const [reviewSummary, setReviewSummary] = useState(null);
@@ -44,50 +124,49 @@ const HomeTab = ({ restaurant, onSwitchToReview }) => {
     loadReviewSummary();
   }, [restaurant?.business_id]);
 
-  // ABSA 점수에서 강점/약점 추출 (최대 3개씩)
+  // 17개 특성에서 강점/약점 추출 (상위/하위 3개씩)
   const getStrengthsAndWeaknesses = () => {
-    const strengths = [];
-    const weaknesses = [];
+    const absa = reviewSummary?.absa_features;
+    if (!absa) return { strengths: [], weaknesses: [], hasData: false };
 
-    const absaData = [
-      { key: 'food', score: restaurant.absa_food_avg },
-      { key: 'service', score: restaurant.absa_service_avg },
-      { key: 'atmosphere', score: restaurant.absa_atmosphere_avg }
-    ];
-
-    absaData.forEach(({ key, score }) => {
-      if (score == null) return;
-      
-      const textInfo = ABSA_TEXT[key];
-      if (score > 0) {
-        strengths.push({
-          icon: textInfo.icon,
-          text: textInfo.positive,
-          score
-        });
-      } else if (score < 0) {
-        weaknesses.push({
-          icon: textInfo.icon,
-          text: textInfo.negative,
-          score: Math.abs(score)
-        });
-      }
+    // 각 특성의 순점수 계산 (긍정 - 부정)
+    const scores = ASPECTS.map(aspect => {
+      const positive = absa[`${aspect}_긍정`] || 0;
+      const negative = absa[`${aspect}_부정`] || 0;
+      const netScore = positive - negative;
+      return { aspect, netScore };
     });
 
-    // 점수 순으로 정렬 후 최대 3개
-    strengths.sort((a, b) => b.score - a.score);
-    weaknesses.sort((a, b) => b.score - a.score);
+    // 강점: 순점수가 임계값 이상인 것들 중 상위 3개
+    const strengths = scores
+      .filter(item => item.netScore > THRESHOLD)
+      .sort((a, b) => b.netScore - a.netScore)
+      .slice(0, 3)
+      .map(item => ({
+        icon: ABSA_TEXT_MAP[item.aspect].icon,
+        text: ABSA_TEXT_MAP[item.aspect].positive,
+        score: item.netScore
+      }));
+
+    // 약점: 순점수가 -임계값 이하인 것들 중 하위 3개
+    const weaknesses = scores
+      .filter(item => item.netScore < -THRESHOLD)
+      .sort((a, b) => a.netScore - b.netScore)
+      .slice(0, 3)
+      .map(item => ({
+        icon: ABSA_TEXT_MAP[item.aspect].icon,
+        text: ABSA_TEXT_MAP[item.aspect].negative,
+        score: Math.abs(item.netScore)
+      }));
 
     return {
-      strengths: strengths.slice(0, 3),
-      weaknesses: weaknesses.slice(0, 3)
+      strengths,
+      weaknesses,
+      hasData: true
     };
   };
 
-  const { strengths, weaknesses } = getStrengthsAndWeaknesses();
-  const hasABSAData = restaurant.absa_food_avg != null || 
-                      restaurant.absa_service_avg != null || 
-                      restaurant.absa_atmosphere_avg != null;
+  const { strengths, weaknesses, hasData } = getStrengthsAndWeaknesses();
   const hasStrengths = strengths.length > 0;
   const hasWeaknesses = weaknesses.length > 0;
   const onlyOneCard = (hasStrengths && !hasWeaknesses) || (!hasStrengths && hasWeaknesses);
@@ -114,7 +193,12 @@ const HomeTab = ({ restaurant, onSwitchToReview }) => {
 
       {/* AI 브리핑 - 강점/약점 카드 */}
       <div className="absa-features">
-        {hasABSAData ? (
+        {loading ? (
+          <div className="absa-analyzing-message">
+            <span>🔄</span>
+            <span>AI 분석 정보 로딩 중...</span>
+          </div>
+        ) : hasData ? (
           <div className={`strengths-weaknesses ${onlyOneCard ? 'single-card' : ''}`}>
             {/* 강점 카드 */}
             {hasStrengths && (
@@ -152,7 +236,7 @@ const HomeTab = ({ restaurant, onSwitchToReview }) => {
               </div>
             )}
 
-            {/* 둘 다 없는 경우 (모든 점수가 0인 경우) */}
+            {/* 둘 다 없는 경우 (모든 점수가 임계값 이하인 경우) */}
             {!hasStrengths && !hasWeaknesses && (
               <div className="absa-neutral-message">
                 <span>📊</span>
