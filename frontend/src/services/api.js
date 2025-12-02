@@ -67,6 +67,8 @@ export const businessAPI = {
   get: (businessId) => api.get(`/businesses/${businessId}`),
   getReviews: (businessId, params) =>
     api.get(`/businesses/${businessId}/reviews`, { params }),
+  getReviewSummary: (businessId) =>
+    api.get(`/businesses/${businessId}/review-summary`),
   createReview: (businessId, data) =>
     api.post(`/businesses/${businessId}/reviews`, data),
 };

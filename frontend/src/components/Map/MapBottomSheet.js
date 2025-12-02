@@ -77,6 +77,7 @@ const MapBottomSheet = ({
   // 3가지 모드: hint, list, detail
   const [sheetMode, setSheetMode] = useState('hint');
   const [snapIndex, setSnapIndex] = useState(0); // 0: 10%, 1: 50%, 2: 100%
+  const [detailTabIndex, setDetailTabIndex] = useState(0); // 홈 탭 기본 선택
   const sheetRef = useRef(null);
   const prevSnapIndexRef = useRef(0); // 이전 snapIndex 추적 (드래그 vs 마커 클릭 구분용)
 
@@ -84,6 +85,7 @@ const MapBottomSheet = ({
   useEffect(() => {
     if (selectedRestaurant) {
       setSheetMode('detail');
+      setDetailTabIndex(0); // 새 레스토랑 선택 시 홈 탭으로 리셋
       // 10% 상태에서 마커 클릭 시 50%로 확장 (sheetMode 조건 제거 - list 상태에서도 확장)
       if (snapIndex === 0 && sheetRef.current) {
         setTimeout(() => {
@@ -316,7 +318,7 @@ const MapBottomSheet = ({
               </button>
             </div>
 
-            {/* 공통 헤더: 가게 이름 + AI 점수 */}
+            {/* 공통 헤더: 가게 이름 + AI 점수 + 액션 버튼 */}
             <div 
               className="sheet-header-common"
               onTouchStart={(e) => e.stopPropagation()}
@@ -325,19 +327,44 @@ const MapBottomSheet = ({
               onTouchCancel={(e) => e.stopPropagation()}
             >
               <h2>{selectedRestaurant.name}</h2>
-              <div className="ai-scores">
-                <span 
-                  className="score-badge deepfm"
-                  style={{ backgroundColor: getMarkerColor(deepfmScore) }}
-                >
-                  DeepFM {deepfmScore.toFixed(1)}
-                </span>
-                <span 
-                  className="score-badge multitower"
-                  style={{ backgroundColor: getMarkerColor(multitowerScore) }}
-                >
-                  Multi {multitowerScore.toFixed(1)}
-                </span>
+              <div className="header-actions-row">
+                <div className="ai-scores">
+                  <span 
+                    className="score-badge deepfm"
+                    style={{ backgroundColor: getMarkerColor(deepfmScore) }}
+                  >
+                    DeepFM {deepfmScore.toFixed(1)}
+                  </span>
+                  <span 
+                    className="score-badge multitower"
+                    style={{ backgroundColor: getMarkerColor(multitowerScore) }}
+                  >
+                    Multi {multitowerScore.toFixed(1)}
+                  </span>
+                </div>
+                <div className="header-action-buttons">
+                  <button 
+                    className="header-action-btn"
+                    title="길찾기"
+                    onClick={() => window.open(`https://map.kakao.com/link/to/${selectedRestaurant.name},${selectedRestaurant.latitude},${selectedRestaurant.longitude}`, '_blank')}
+                  >
+                    🚗
+                  </button>
+                  <button 
+                    className="header-action-btn"
+                    title="전화"
+                    onClick={() => {
+                      if (selectedRestaurant.phone) {
+                        window.location.href = `tel:${selectedRestaurant.phone}`;
+                      } else {
+                        toast.dismiss();
+                        toast('전화번호 정보가 없습니다');
+                      }
+                    }}
+                  >
+                    📞
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -391,7 +418,7 @@ const MapBottomSheet = ({
 
             {/* 100% 전용 콘텐츠: 탭 */}
             <div className="content-100-only">
-              <Tabs>
+              <Tabs selectedIndex={detailTabIndex} onSelect={(index) => setDetailTabIndex(index)}>
                 <TabList>
                   <Tab>홈</Tab>
                   <Tab>메뉴</Tab>
@@ -400,7 +427,10 @@ const MapBottomSheet = ({
                 </TabList>
 
                 <TabPanel>
-                  <HomeTab restaurant={selectedRestaurant} />
+                  <HomeTab 
+                    restaurant={selectedRestaurant} 
+                    onSwitchToReview={() => setDetailTabIndex(2)}
+                  />
                 </TabPanel>
 
                 <TabPanel>

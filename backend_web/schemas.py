@@ -226,5 +226,23 @@ class BusinessListResponse(BaseModel):
     businesses: List[BusinessResponse]
     total: int
     skip: int
-    limit: int 
+    limit: int
+
+# Review Summary for HomeTab
+class ReviewPreviewItem(BaseModel):
+    """리뷰 미리보기 아이템"""
+    id: int
+    username: str
+    user_id: int
+    stars: Optional[float]
+    text: str
+    created_at: datetime
+    useful: int = 0
+
+class ReviewSummaryResponse(BaseModel):
+    """리뷰 요약 정보 (홈 탭용)"""
+    avg_stars: float
+    review_count: int
+    stars_distribution: Dict[int, float]  # {5: 85.0, 4: 10.0, ...} 퍼센트
+    recent_reviews: List[ReviewPreviewItem]
     

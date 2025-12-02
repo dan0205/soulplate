@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>음식점 100% 화면 프리뷰</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+      overflow: hidden;
+    }
+
+    /* CSS 변수 */
+    :root {
+      --primary: #ff6b6b;
+      --primary-dark: #ff5252;
+      --primary-light: #8b9df7;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --bg-primary: #f5f7fa;
+      --bg-card: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --border: #e0e0e0;
+      --font-h1: 24px;
+      --font-h2: 20px;
+      --font-h3: 18px;
+      --font-body: 15px;
+      --font-small: 13px;
+    }
+
+    /* 바텀시트 컨테이너 (100% 상태 시뮬레이션) */
+    .bottom-sheet-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      z-index: 1003;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    .bottom-sheet-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* 탭 헤더 (선택 매장 / 전체 리스트) */
+    .sheet-tabs {
+      display: flex;
+      border-bottom: 2px solid #e0e0e0;
+      background: white;
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: none;
+      font-size: 15px;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* 공통 헤더: 가게 이름 + AI 점수 */
+    .sheet-header-common {
+      padding: 20px 20px 16px 20px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .sheet-header-common h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 12px 0;
+    }
+
+    /* AI 점수 배지 + 액션 버튼 컨테이너 */
+    .header-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* AI 점수 배지 */
+    .ai-scores {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+    }
+
+    /* 헤더 액션 버튼 (작은 아이콘 버튼) */
+    .header-action-buttons {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .header-action-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      color: var(--text-primary);
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .header-action-btn:hover {
+      background: var(--bg-primary);
+      border-color: var(--primary);
+      transform: scale(1.05);
+    }
+
+    .header-action-btn:active {
+      transform: scale(0.95);
+    }
+
+    .score-badge {
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .score-badge.deepfm {
+      background-color: #ff6b6b;
+    }
+
+    .score-badge.multitower {
+      background-color: #FFB74D;
+    }
+
+    /* 100% 전용 콘텐츠: 탭 */
+    .content-100-only {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* React Tabs 스타일 */
+    .react-tabs {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .react-tabs__tab-list {
+      display: flex;
+      border-bottom: 2px solid #e0e0e0;
+      margin: 0;
+      padding: 0 20px;
+      background: white;
+      flex-shrink: 0;
+    }
+
+    .react-tabs__tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 15px;
+      font-weight: 500;
+      color: #666;
+      list-style: none;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+    }
+
+    .react-tabs__tab:hover {
+      color: var(--primary);
+    }
+
+    .react-tabs__tab--selected {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .react-tabs__tab-panel {
+      padding: 12px 20px;
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 홈 탭 스타일 */
+    .home-tab {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 14px 20px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      color: var(--text-primary);
+      font-size: var(--font-small);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 44px;
+    }
+
+    .action-btn:hover {
+      background: var(--bg-primary);
+      border-color: var(--primary);
+    }
+
+    .basic-info-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-label {
+      font-size: var(--font-small);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .info-value {
+      font-size: var(--font-small);
+      color: var(--text-secondary);
+    }
+
+    /* 리뷰 요약 섹션 */
+    .review-summary {
+      margin-top: 0;
+      padding: 20px 0 16px 0;
+      border-top: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    /* 리뷰 미리보기 섹션 */
+    .review-preview {
+      padding: 0 0 20px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .review-preview-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .review-preview-item {
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .review-preview-item:first-child {
+      padding-top: 0;
+    }
+
+    .review-preview-item:last-child {
+      border-bottom: none;
+    }
+
+    .btn-view-all-reviews {
+      width: 100%;
+      padding: 12px;
+      margin-top: 16px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: var(--font-small);
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .btn-view-all-reviews:hover {
+      background: var(--bg-primary);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .review-summary-header {
+      margin-bottom: 16px;
+    }
+
+    .review-summary-header h3 {
+      font-size: var(--font-h3);
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .help-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      padding: 0;
+    }
+
+    .help-icon:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .review-summary-content {
+      display: flex;
+      gap: 32px;
+      align-items: flex-start;
+    }
+
+    /* 평균 평점 (왼쪽) - 모바일 기준 */
+    .average-rating {
+      flex-shrink: 0;
+      text-align: left;
+      min-width: 60px;
+      max-width: 70px;
+      order: -1; /* 왼쪽에 배치 */
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding-top: 4px;
+    }
+
+    .average-score {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 4px 0;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .average-stars {
+      font-size: 10px;
+      line-height: 1;
+      margin: 0 0 4px 0;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    .review-count {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin: 0;
+      text-align: center;
+    }
+
+    /* 별점 분포 (오른쪽) - 모바일 기준 */
+    .rating-distribution {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .rating-bar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rating-number {
+      display: none; /* 숫자 제거 */
+    }
+
+    .rating-bar {
+      flex: 1;
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+      min-width: 0;
+    }
+
+    .rating-bar-fill {
+      height: 100%;
+      background: #FFD700;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+      min-width: 2px; /* 최소 너비 보장 */
+    }
+
+    /* ABSA 특징 - 사용자 맞춤형 (옵션 3) */
+    .absa-features {
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    .absa-features h3 {
+      display: none; /* 제목 제거 */
+    }
+
+    /* 강점/약점 섹션 */
+    .strengths-weaknesses {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .strength-card, .weakness-card {
+      padding: 16px;
+      border-radius: 12px;
+    }
+
+    .strength-card {
+      background: #f1f8e9;
+      border: 1px solid #c5e1a5;
+    }
+
+    .weakness-card {
+      background: #fff3e0;
+      border: 1px solid #ffcc80;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .strength-card .card-title {
+      color: #558b2f;
+    }
+
+    .weakness-card .card-title {
+      color: #e65100;
+    }
+
+    .card-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .card-icon {
+      font-size: 16px;
+    }
+
+    @media (max-width: 767px) {
+      .strengths-weaknesses {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      
+      .strength-card, .weakness-card {
+        padding: 12px;
+      }
+      
+      .card-title {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+      
+      .card-item {
+        font-size: 12px;
+        gap: 6px;
+      }
+      
+      .card-icon {
+        font-size: 14px;
+      }
+    }
+
+    /* 메뉴 탭 스타일 */
+    .menu-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+    }
+
+    /* 리뷰 탭 스타일 */
+    .review-tab {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding-bottom: 100px;
+    }
+
+    .review-header-top {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 0;
+    }
+
+    .review-sort {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .reviews-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .review-item {
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .review-item:last-child {
+      border-bottom: none;
+    }
+
+    .review-minimal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      gap: 12px;
+    }
+
+    .review-minimal-header-left {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .review-minimal-author {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .review-minimal-author:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    .review-stars {
+      font-size: 14px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .review-minimal-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 6px;
+    }
+
+    .review-text {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+      margin: 0 0 6px 0;
+      word-break: break-word;
+      white-space: pre-line;
+    }
+
+    .review-minimal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .useful-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .useful-btn:hover {
+      color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    /* 사진 탭 스타일 */
+    .photo-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+    }
+
+    /* EmptyState 스타일 */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state-message {
+      font-size: var(--font-small);
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .btn-upload {
+      padding: 12px 24px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: var(--font-small);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-upload:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    /* 하단 고정 작성칸 (리뷰 탭용) */
+    .bottom-write-bar-fixed {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .bottom-write-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      transition: all 0.2s;
+    }
+
+    .bottom-write-bar-fixed:hover .bottom-write-placeholder {
+      border-color: var(--primary);
+      background: #f5f7ff;
+    }
+
+    .placeholder-text {
+      color: #999;
+      font-size: 14px;
+    }
+
+    .placeholder-icon {
+      font-size: 20px;
+    }
+
+    /* 반응형 */
+    @media (max-width: 767px) {
+      .sheet-header-common h2 {
+        font-size: 20px;
+      }
+
+      .header-action-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+      }
+
+      .header-actions-row {
+        gap: 8px;
+      }
+
+      .ai-scores {
+        gap: 6px;
+      }
+
+      .score-badge {
+        font-size: 12px;
+        padding: 3px 8px;
+      }
+
+      .review-summary {
+        padding: 16px 0;
+        margin-top: 0;
+      }
+
+      .review-summary-content {
+        gap: 20px;
+      }
+
+      /* 모바일에서 막대 높이 */
+      .rating-bar {
+        height: 8px;
+      }
+
+      .rating-bar-fill {
+        min-width: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bottom-sheet-container">
+    <div class="bottom-sheet-content snap-100">
+      <!-- 탭 헤더 (선택 매장 / 전체 리스트) -->
+      <div class="sheet-tabs">
+        <button class="tab-btn active">📍 선택 매장</button>
+        <button class="tab-btn">📋 전체 리스트</button>
+      </div>
+
+      <!-- 공통 헤더: 가게 이름 + AI 점수 + 액션 버튼 -->
+      <div class="sheet-header-common">
+        <h2>맛있는 김치찌개집</h2>
+        <div class="header-actions-row">
+          <div class="ai-scores">
+            <span class="score-badge deepfm">DeepFM 4.5</span>
+            <span class="score-badge multitower">Multi 4.2</span>
+          </div>
+          <div class="header-action-buttons">
+            <button class="header-action-btn" title="길찾기">🚗</button>
+            <button class="header-action-btn" title="전화">📞</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 100% 전용 콘텐츠: 탭 -->
+      <div class="content-100-only">
+        <div class="react-tabs">
+          <ul class="react-tabs__tab-list">
+            <li class="react-tabs__tab react-tabs__tab--selected">홈</li>
+            <li class="react-tabs__tab">메뉴</li>
+            <li class="react-tabs__tab">리뷰</li>
+            <li class="react-tabs__tab">사진</li>
+          </ul>
+
+          <!-- 홈 탭 -->
+          <div class="react-tabs__tab-panel" style="display: block;">
+            <div class="home-tab">
+              <!-- 기본 정보 -->
+              <div class="basic-info-section">
+                <div class="info-item">
+                  <div class="info-label">📍 주소</div>
+                  <div class="info-value">서울특별시 강남구 테헤란로 123</div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-label">🕐 영업시간</div>
+                  <div class="info-value">준비 중입니다</div>
+                </div>
+
+                <div class="info-item">
+                  <div class="info-label">📞 전화번호</div>
+                  <div class="info-value">02-1234-5678</div>
+                </div>
+              </div>
+
+              <!-- AI 브리핑 (ABSA) - 사용자 맞춤형 -->
+              <div class="absa-features">
+                <!-- 강점/약점 -->
+                <div class="strengths-weaknesses">
+                  <div class="strength-card">
+                    <div class="card-title">
+                      <span>✓</span>
+                      <span>이 가게의 강점</span>
+                    </div>
+                    <div class="card-items">
+                      <div class="card-item">
+                        <span class="card-icon">🍜</span>
+                        <span>맛이 뛰어나요</span>
+                      </div>
+                      <div class="card-item">
+                        <span class="card-icon">👨‍🍳</span>
+                        <span>친절한 서비스</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="weakness-card">
+                    <div class="card-title">
+                      <span>!</span>
+                      <span>아쉬운 점</span>
+                    </div>
+                    <div class="card-items">
+                      <div class="card-item">
+                        <span class="card-icon">🏠</span>
+                        <span>분위기가 시끄러워요</span>
+                      </div>
+                      <div class="card-item">
+                        <span class="card-icon">💰</span>
+                        <span>가격이 다소 비싸요</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 리뷰 요약 -->
+              <div class="review-summary">
+                <div class="review-summary-content">
+                  <!-- 왼쪽: 별점 분포 -->
+                  <div class="rating-distribution">
+                    <div class="rating-bar-item">
+                      <span class="rating-number">5</span>
+                      <div class="rating-bar">
+                        <div class="rating-bar-fill" style="width: 85%;"></div>
+                      </div>
+                    </div>
+                    <div class="rating-bar-item">
+                      <span class="rating-number">4</span>
+                      <div class="rating-bar">
+                        <div class="rating-bar-fill" style="width: 10%;"></div>
+                      </div>
+                    </div>
+                    <div class="rating-bar-item">
+                      <span class="rating-number">3</span>
+                      <div class="rating-bar">
+                        <div class="rating-bar-fill" style="width: 2%;"></div>
+                      </div>
+                    </div>
+                    <div class="rating-bar-item">
+                      <span class="rating-number">2</span>
+                      <div class="rating-bar">
+                        <div class="rating-bar-fill" style="width: 1%;"></div>
+                      </div>
+                    </div>
+                    <div class="rating-bar-item">
+                      <span class="rating-number">1</span>
+                      <div class="rating-bar">
+                        <div class="rating-bar-fill" style="width: 2%;"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- 왼쪽: 평균 평점 -->
+                  <div class="average-rating">
+                    <div class="average-score">4.5</div>
+                    <div class="average-stars">⭐⭐⭐⭐⭐</div>
+                    <div class="review-count">(92개)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 리뷰 미리보기 (3개) -->
+              <div class="review-preview">
+                <div class="review-preview-list">
+                  <!-- 리뷰 1 -->
+                  <div class="review-preview-item">
+                    <div class="review-minimal-header">
+                      <div class="review-minimal-header-left">
+                        <span class="review-minimal-author">김맛집</span>
+                        <span class="review-stars">⭐⭐⭐⭐⭐</span>
+                      </div>
+                    </div>
+                    <div class="review-minimal-meta">
+                      <span>2024.11.23</span>
+                    </div>
+                    <p class="review-text">
+                      정말 맛있었어요! 김치찌개가 정말 진하고 고기가 부드러웠습니다. 
+                      서비스도 친절하고 분위기도 좋아서 다시 가고 싶은 곳이에요.
+                    </p>
+                    <div class="review-minimal-footer">
+                      <button class="useful-btn">👍 15명이 도움됨</button>
+                    </div>
+                  </div>
+
+                  <!-- 리뷰 2 -->
+                  <div class="review-preview-item">
+                    <div class="review-minimal-header">
+                      <div class="review-minimal-header-left">
+                        <span class="review-minimal-author">이카페</span>
+                        <span class="review-stars">⭐⭐⭐⭐</span>
+                      </div>
+                    </div>
+                    <div class="review-minimal-meta">
+                      <span>2024.11.22</span>
+                    </div>
+                    <p class="review-text">
+                      분위기가 정말 좋아요! 커피도 맛있고 디저트도 훌륭했습니다. 
+                      사진 찍기 좋은 곳이에요. 다만 좀 비싼 편이긴 해요.
+                    </p>
+                    <div class="review-minimal-footer">
+                      <button class="useful-btn">👍 8명이 도움됨</button>
+                    </div>
+                  </div>
+
+                  <!-- 리뷰 3 -->
+                  <div class="review-preview-item">
+                    <div class="review-minimal-header">
+                      <div class="review-minimal-header-left">
+                        <span class="review-minimal-author">박고기</span>
+                        <span class="review-stars">⭐⭐⭐⭐⭐</span>
+                      </div>
+                    </div>
+                    <div class="review-minimal-meta">
+                      <span>2024.11.22</span>
+                    </div>
+                    <p class="review-text">
+                      최고의 스테이크였습니다! 고기 품질이 정말 좋고, 조리도 완벽했어요. 
+                      가격이 비싸긴 하지만 그만한 가치가 있다고 생각합니다.
+                    </p>
+                    <div class="review-minimal-footer">
+                      <button class="useful-btn">👍 32명이 도움됨</button>
+                    </div>
+                  </div>
+                </div>
+                <button class="btn-view-all-reviews" onclick="switchToReviewTab()">모든 리뷰 보기</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 메뉴 탭 -->
+          <div class="react-tabs__tab-panel" style="display: none;">
+            <div class="menu-tab">
+              <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-message">준비 중입니다. 곧 업데이트 예정입니다.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 리뷰 탭 -->
+          <div class="react-tabs__tab-panel" style="display: none;">
+            <div class="review-tab">
+              <!-- 상단 헤더 -->
+              <div class="review-header-top">
+                <select class="review-sort">
+                  <option value="latest">최신순</option>
+                  <option value="useful">추천순</option>
+                  <option value="stars_desc">별점 높은 순</option>
+                  <option value="stars_asc">별점 낮은 순</option>
+                </select>
+              </div>
+
+              <!-- 리뷰 리스트 -->
+              <div class="reviews-list">
+                <!-- 리뷰 1 -->
+                <div class="review-item">
+                  <div class="review-minimal-header">
+                    <div class="review-minimal-header-left">
+                      <span class="review-minimal-author">김맛집</span>
+                      <span class="review-stars">⭐⭐⭐⭐⭐</span>
+                    </div>
+                  </div>
+                  <div class="review-minimal-meta">
+                    <span>2024.11.23</span>
+                  </div>
+                  <p class="review-text">
+                    정말 맛있었어요! 김치찌개가 정말 진하고 고기가 부드러웠습니다. 
+                    서비스도 친절하고 분위기도 좋아서 다시 가고 싶은 곳이에요.
+                  </p>
+                  <div class="review-minimal-footer">
+                    <button class="useful-btn">👍 15명이 도움됨</button>
+                  </div>
+                </div>
+
+                <!-- 리뷰 2 -->
+                <div class="review-item">
+                  <div class="review-minimal-header">
+                    <div class="review-minimal-header-left">
+                      <span class="review-minimal-author">이카페</span>
+                      <span class="review-stars">⭐⭐⭐⭐</span>
+                    </div>
+                  </div>
+                  <div class="review-minimal-meta">
+                    <span>2024.11.22</span>
+                  </div>
+                  <p class="review-text">
+                    분위기가 정말 좋아요! 커피도 맛있고 디저트도 훌륭했습니다. 
+                    사진 찍기 좋은 곳이에요. 다만 좀 비싼 편이긴 해요.
+                  </p>
+                  <div class="review-minimal-footer">
+                    <button class="useful-btn">👍 8명이 도움됨</button>
+                  </div>
+                </div>
+
+                <!-- 리뷰 3 -->
+                <div class="review-item">
+                  <div class="review-minimal-header">
+                    <div class="review-minimal-header-left">
+                      <span class="review-minimal-author">박고기</span>
+                      <span class="review-stars">⭐⭐⭐⭐⭐</span>
+                    </div>
+                  </div>
+                  <div class="review-minimal-meta">
+                    <span>2024.11.22</span>
+                  </div>
+                  <p class="review-text">
+                    최고의 스테이크였습니다! 고기 품질이 정말 좋고, 조리도 완벽했어요. 
+                    가격이 비싸긴 하지만 그만한 가치가 있다고 생각합니다.
+                  </p>
+                  <div class="review-minimal-footer">
+                    <button class="useful-btn">👍 32명이 도움됨</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 하단 고정 작성칸 -->
+            <div class="bottom-write-bar-fixed">
+              <div class="bottom-write-placeholder">
+                <span class="placeholder-text">리뷰를 작성해주세요...</span>
+                <span class="placeholder-icon">✍️</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 사진 탭 -->
+          <div class="react-tabs__tab-panel" style="display: none;">
+            <div class="photo-tab">
+              <div class="empty-state">
+                <div class="empty-state-icon">📸</div>
+                <div class="empty-state-message">사진이 없어요. 음식, 매장 사진을 공유해주세요!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 탭 전환 기능
+    const tabs = document.querySelectorAll('.react-tabs__tab');
+    const panels = document.querySelectorAll('.react-tabs__tab-panel');
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => {
+        // 모든 탭 비활성화
+        tabs.forEach(t => t.classList.remove('react-tabs__tab--selected'));
+        panels.forEach(p => p.style.display = 'none');
+
+        // 선택한 탭 활성화
+        tab.classList.add('react-tabs__tab--selected');
+        panels[index].style.display = 'block';
+      });
+    });
+
+    // 상단 탭 버튼 전환
+    const topTabs = document.querySelectorAll('.tab-btn');
+    topTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        topTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+
+    // 리뷰 탭으로 전환
+    function switchToReviewTab() {
+      const reviewTab = document.querySelectorAll('.react-tabs__tab')[2]; // 리뷰 탭은 3번째 (인덱스 2)
+      const reviewPanel = document.querySelectorAll('.react-tabs__tab-panel')[2];
+      
+      // 모든 탭 비활성화
+      tabs.forEach(t => t.classList.remove('react-tabs__tab--selected'));
+      panels.forEach(p => p.style.display = 'none');
+
+      // 리뷰 탭 활성화
+      reviewTab.classList.add('react-tabs__tab--selected');
+      reviewPanel.style.display = 'block';
+      
+      // 스크롤을 리뷰 탭으로 이동
+      reviewPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  </script>
+</body>
+</html>
+

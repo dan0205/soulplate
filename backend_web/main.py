@@ -1220,6 +1220,90 @@ async def get_business(
     # 특정 가게의 상세 정보를 본다 
 
 # ============================================================================
+# Review Summary Endpoint
+# ============================================================================
+
+@app.get("/api/businesses/{business_id}/review-summary", response_model=schemas.ReviewSummaryResponse)
+async def get_review_summary(
+    business_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    비즈니스 리뷰 요약 정보 조회 (HomeTab용)
+    - 평균 별점
+    - 별점 분포 (퍼센트)
+    - 최근 리뷰 3개
+    """
+    from sqlalchemy import func
+    from sqlalchemy.orm import joinedload
+    
+    # 비즈니스 조회
+    business = db.query(models.Business).filter(
+        models.Business.business_id == business_id
+    ).first()
+    
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    
+    # 리뷰가 없는 경우 기본값 반환
+    if business.review_count == 0:
+        return schemas.ReviewSummaryResponse(
+            avg_stars=0.0,
+            review_count=0,
+            stars_distribution={5: 0, 4: 0, 3: 0, 2: 0, 1: 0},
+            recent_reviews=[]
+        )
+    
+    # 별점 분포 계산 (최상위 리뷰만, 답글 제외)
+    star_counts = db.query(
+        func.floor(models.Review.stars).label('star'),
+        func.count(models.Review.id).label('count')
+    ).filter(
+        models.Review.business_id == business.id,
+        models.Review.stars.isnot(None),
+        models.Review.parent_review_id.is_(None)  # 답글 제외
+    ).group_by(func.floor(models.Review.stars)).all()
+    
+    # 총 리뷰 수
+    total_reviews = sum(count for _, count in star_counts)
+    
+    # 퍼센트로 변환
+    stars_distribution = {5: 0.0, 4: 0.0, 3: 0.0, 2: 0.0, 1: 0.0}
+    if total_reviews > 0:
+        for star, count in star_counts:
+            star_int = int(star)
+            if 1 <= star_int <= 5:
+                stars_distribution[star_int] = round((count / total_reviews) * 100, 1)
+    
+    # 최근 리뷰 3개 조회 (User 정보 포함)
+    recent_reviews = db.query(models.Review).options(
+        joinedload(models.Review.user)
+    ).filter(
+        models.Review.business_id == business.id,
+        models.Review.parent_review_id.is_(None)  # 최상위 리뷰만
+    ).order_by(models.Review.created_at.desc()).limit(3).all()
+    
+    # 리뷰 미리보기 변환
+    review_previews = []
+    for review in recent_reviews:
+        review_previews.append(schemas.ReviewPreviewItem(
+            id=review.id,
+            username=review.user.username,
+            user_id=review.user_id,
+            stars=review.stars,
+            text=review.text,
+            created_at=review.created_at,
+            useful=review.useful or 0
+        ))
+    
+    return schemas.ReviewSummaryResponse(
+        avg_stars=business.stars or 0.0,
+        review_count=business.review_count,
+        stars_distribution=stars_distribution,
+        recent_reviews=review_previews
+    )
+
+# ============================================================================
 # Review Endpoints
 # ============================================================================
 
