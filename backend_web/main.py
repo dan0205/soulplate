@@ -866,9 +866,9 @@ async def get_businesses_for_map(
             "state": business.state,
             "latitude": business.latitude,
             "longitude": business.longitude,
-            "absa_food_avg": business.absa_features.get('음식_긍정', 0) if business.absa_features else 0,
-            "absa_service_avg": business.absa_features.get('서비스_긍정', 0) if business.absa_features else 0,
-            "absa_atmosphere_avg": business.absa_features.get('분위기_긍정', 0) if business.absa_features else 0,
+            "absa_food_avg": (business.absa_features.get('음식_긍정', 0) - business.absa_features.get('음식_부정', 0)) if business.absa_features else 0,
+            "absa_service_avg": (business.absa_features.get('서비스_긍정', 0) - business.absa_features.get('서비스_부정', 0)) if business.absa_features else 0,
+            "absa_atmosphere_avg": (business.absa_features.get('분위기_긍정', 0) - business.absa_features.get('분위기_부정', 0)) if business.absa_features else 0,
         }
         
         # ✅ N+1 문제 해결: 딕셔너리에서 바로 조회 (쿼리 0번)
@@ -988,9 +988,9 @@ async def get_businesses_in_bounds(
             "longitude": business.longitude,
             "address": business.address,
             "phone": business.phone,
-            "absa_food_avg": business.absa_features.get('음식_긍정', 0) if business.absa_features else 0,
-            "absa_service_avg": business.absa_features.get('서비스_긍정', 0) if business.absa_features else 0,
-            "absa_atmosphere_avg": business.absa_features.get('분위기_긍정', 0) if business.absa_features else 0,
+            "absa_food_avg": (business.absa_features.get('음식_긍정', 0) - business.absa_features.get('음식_부정', 0)) if business.absa_features else 0,
+            "absa_service_avg": (business.absa_features.get('서비스_긍정', 0) - business.absa_features.get('서비스_부정', 0)) if business.absa_features else 0,
+            "absa_atmosphere_avg": (business.absa_features.get('분위기_긍정', 0) - business.absa_features.get('분위기_부정', 0)) if business.absa_features else 0,
         }
         
         # AI 예측 추가
@@ -1141,9 +1141,9 @@ async def get_businesses(
             "longitude": business.longitude,
             "phone": business.phone,
             "top_features": get_top_absa_features(absa_dict),
-            "absa_food_avg": absa_dict.get('음식_긍정', 0) if absa_dict else 0,
-            "absa_service_avg": absa_dict.get('서비스_긍정', 0) if absa_dict else 0,
-            "absa_atmosphere_avg": absa_dict.get('분위기_긍정', 0) if absa_dict else 0
+            "absa_food_avg": (absa_dict.get('음식_긍정', 0) - absa_dict.get('음식_부정', 0)) if absa_dict else 0,
+            "absa_service_avg": (absa_dict.get('서비스_긍정', 0) - absa_dict.get('서비스_부정', 0)) if absa_dict else 0,
+            "absa_atmosphere_avg": (absa_dict.get('분위기_긍정', 0) - absa_dict.get('분위기_부정', 0)) if absa_dict else 0
         }
         
         # 로그인 사용자면 캐시된 AI 예측 추가 (이미 가져온 데이터 사용)
