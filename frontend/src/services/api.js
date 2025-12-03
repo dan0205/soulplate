@@ -58,6 +58,7 @@ api.interceptors.response.use(
 export const authAPI = {
   getMe: () => api.get('/auth/me'),
   completeProfile: (data) => api.post('/user/complete-profile', data),
+  browseDemoLogin: () => api.post('/auth/browse-demo'),
 };
 
 export const businessAPI = {

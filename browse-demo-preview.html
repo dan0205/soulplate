@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulPlate - 둘러보기 모드 프리뷰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            --primary: #ff6b6b;
+            --text-primary: #333;
+            --bg-primary: #f5f5f5;
+            --border: #e0e0e0;
+            --font-body: 15px;
+        }
+
+        /* 로그인 페이지 스타일 */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #ffd6d6;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            max-width: 450px;
+            width: 100%;
+            padding: 60px 50px;
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 800;
+            color: #ff6b6b;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+        }
+
+        .tagline {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .description {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .google-login-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 24px;
+            background-color: white;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #3c4043;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            margin-bottom: 16px;
+        }
+
+        .google-login-button:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .browse-demo-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px 24px;
+            background: white;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #3c4043;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .browse-demo-button:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-color: #dadce0;
+        }
+
+        /* 프로필 버튼 스타일 */
+        .floating-profile-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1002;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .floating-profile-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            border: 2px solid #ff6b6b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+        }
+
+        .floating-profile-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .floating-profile-btn:active {
+            transform: scale(0.95);
+        }
+
+        .profile-initial {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ff6b6b;
+        }
+
+        /* 프로필 메뉴 팝업 */
+        .profile-menu-popup {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            min-width: 180px;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-menu-header {
+            padding: 12px 16px;
+        }
+
+        .profile-menu-username {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .profile-menu-divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 8px 0;
+        }
+
+        .profile-menu-item {
+            width: 100%;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: none;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+            color: #333;
+            text-align: left;
+        }
+
+        .profile-menu-item:hover {
+            background: #f5f5f5;
+        }
+
+        .profile-menu-item:active {
+            transform: scale(0.98);
+        }
+
+        .profile-menu-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .profile-menu-item.disabled:hover {
+            background: #fafafa;
+        }
+
+        .profile-menu-item.logout {
+            color: #e74c3c;
+        }
+
+        .profile-menu-item.logout:hover {
+            background: #fee;
+        }
+
+        .menu-icon {
+            font-size: 18px;
+        }
+
+        /* 토스트 메시지 */
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff6b6b;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            animation: toastSlideUp 0.3s ease-out;
+        }
+
+        @keyframes toastSlideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* 지도 화면 시뮬레이션 */
+        .map-container {
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 18px;
+        }
+
+        /* 탭 네비게이션 */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            z-index: 999;
+            padding: 12px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            color: #ff6b6b;
+            border-bottom-color: #ff6b6b;
+        }
+
+        .tab-button:hover {
+            color: #ff6b6b;
+        }
+
+        /* 섹션 */
+        .preview-section {
+            margin-bottom: 60px;
+            padding: 20px;
+            padding-top: 80px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #ff6b6b;
+        }
+
+        .section-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        /* 취향 테스트 결과 페이지 스타일 - MBTIDetailPage와 동일 */
+        .mbti-detail-container {
+            min-height: 100vh;
+            background: #f5f5f5;
+            padding: 15px;
+            padding-bottom: 50px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .profile-header-actions {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .profile-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff6b6b;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-back-detail {
+            background: transparent;
+            color: #666;
+            border: none;
+            padding: 10px 0;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back-detail:hover {
+            color: #FF6B6B;
+        }
+
+        .demo-notice {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #856404;
+        }
+
+        .demo-notice-icon {
+            font-size: 24px;
+        }
+
+        .demo-notice-text {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .mbti-card-detailed {
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            background: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .mbti-card-header-detailed {
+            background: #FF6B6B;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .mbti-type-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .mbti-type-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .mbti-emoji {
+            font-size: 2rem;
+        }
+
+        .mbti-name {
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .mbti-catchphrase {
+            font-size: 1rem;
+            opacity: 0.95;
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .mbti-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        .mbti-card-body-detailed {
+            padding: 25px;
+            background: white;
+            border-radius: 0 0 16px 16px;
+            color: #333;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .mbti-info-section {
+            margin-bottom: 20px;
+        }
+
+        .mbti-info-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mbti-recommend {
+            color: #2b8a3e;
+        }
+
+        .mbti-avoid {
+            color: #c92a2a;
+        }
+
+        .mbti-info-content {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            color: #333;
+        }
+
+        .mbti-info-content ul {
+            list-style: none;
+            padding-left: 20px;
+            margin: 0;
+            text-align: left;
+        }
+
+        .mbti-info-content li {
+            padding: 6px 0;
+            line-height: 1.6;
+            color: #333;
+            text-align: left;
+        }
+
+        .mbti-info-content li:before {
+            content: "•";
+            color: #FF6B6B;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        /* 확률 분석 */
+        .probability-view {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .probability-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 40px;
+            color: #333;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .trait-group {
+            margin-bottom: 40px;
+        }
+
+        .trait-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .trait-percentage {
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .bar-track {
+            position: relative;
+            width: 100%;
+            height: 14px;
+            background-color: #eaeaea;
+            border-radius: 7px;
+            margin-bottom: 10px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 7px;
+            transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .bar-circle {
+            position: absolute;
+            top: 50%;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-width: 5px;
+            border-style: solid;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            z-index: 2;
+            transition: left 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .trait-flavor .bar-fill { background-color: #FF6B6B; }
+        .trait-flavor .bar-circle { border-color: #FF6B6B; }
+        .trait-flavor .highlight { color: #FF6B6B; }
+
+        .trait-env .bar-fill { background-color: #4ECDC4; }
+        .trait-env .bar-circle { border-color: #4ECDC4; }
+        .trait-env .highlight { color: #4ECDC4; }
+
+        .trait-price .bar-fill { background-color: #FFD93D; }
+        .trait-price .bar-circle { border-color: #FFD93D; }
+        .trait-price .highlight { color: #eeb600; }
+
+        .trait-social .bar-fill { background-color: #6C5CE7; }
+        .trait-social .bar-circle { border-color: #6C5CE7; }
+        .trait-social .highlight { color: #6C5CE7; }
+
+        .trait-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: 600;
+        }
+
+        .trait-flavor .label-left { color: #FF6B6B; }
+        .trait-env .label-left { color: #4ECDC4; }
+        .trait-price .label-left { color: #eeb600; }
+        .trait-social .label-right { color: #6C5CE7; }
+
+        /* 버튼들 */
+        .retest-section {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .btn-retest-main {
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 44px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-retest-main:hover {
+            background: #FF5252;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-explore-types-main {
+            width: auto;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 20px auto;
+            min-height: 44px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            display: block;
+        }
+
+        .btn-explore-types-main:hover {
+            background: #FF5252;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-login-demo {
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 20px auto;
+            min-height: 44px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            display: block;
+        }
+
+        .btn-login-demo:hover {
+            background: #FF5252;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- 탭 네비게이션 -->
+    <div class="tab-nav">
+        <button class="tab-button active" onclick="showTab('login')">1. 로그인 페이지</button>
+        <button class="tab-button" onclick="showTab('browse')">2. 둘러보기 모드</button>
+        <button class="tab-button" onclick="showTab('result')">3. 취향 테스트 결과</button>
+    </div>
+
+    <!-- 1. 로그인 페이지 -->
+    <div id="login-tab" class="preview-section">
+        <div class="section-title">로그인 페이지 - "둘러보기" 버튼 추가</div>
+        <div class="section-description">
+            로그인 페이지에 "둘러보기" 버튼이 추가되어, 사용자가 로그인 없이도 서비스를 체험할 수 있습니다.
+        </div>
+        
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="logo-container">
+                    <h1 class="logo">SoulPlate</h1>
+                </div>
+
+                <div class="tagline">당신의 음식 취향을 발견하세요</div>
+                <div class="description">
+                    AI가 분석한 맞춤형 맛집 추천,<br />
+                    지금 바로 시작해보세요
+                </div>
+
+                <button class="google-login-button">
+                    <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    <span>구글로 계속하기</span>
+                </button>
+
+                <button class="browse-demo-button">
+                    <span>👀</span>
+                    <span>둘러보기</span>
+                </button>
+
+                <div class="features" style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e0e0e0;">
+                    <div class="features-title" style="font-size: 14px; color: #999; margin-bottom: 20px; font-weight: 500;">SoulPlate의 특별함</div>
+                    <div class="feature-list" style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+                        <div class="feature-item" style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #666;">
+                            <div class="feature-icon" style="width: 6px; height: 6px; background: #ff6b6b; border-radius: 50%; flex-shrink: 0;"></div>
+                            <span>AI 기반 맞춤형 맛집 추천</span>
+                        </div>
+                        <div class="feature-item" style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #666;">
+                            <div class="feature-icon" style="width: 6px; height: 6px; background: #ff6b6b; border-radius: 50%; flex-shrink: 0;"></div>
+                            <span>당신만의 음식 취향 MBTI 분석</span>
+                        </div>
+                        <div class="feature-item" style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: #666;">
+                            <div class="feature-icon" style="width: 6px; height: 6px; background: #ff6b6b; border-radius: 50%; flex-shrink: 0;"></div>
+                            <span>실시간 맛집 리뷰 및 평가</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 둘러보기 모드 -->
+    <div id="browse-tab" class="preview-section" style="display: none;">
+        <div class="section-title">둘러보기 모드 - 프로필 메뉴</div>
+        <div class="section-description">
+            둘러보기 모드에서 프로필 버튼을 클릭하면 메뉴가 표시됩니다. 취향테스트와 로그인을 제외한 항목들은 비활성화되어 있으며, 클릭 시 로그인 안내 메시지가 표시됩니다.
+        </div>
+
+        <!-- 프로필 버튼 (둘러보기 모드) -->
+        <div class="floating-profile-container" ref="menuRef">
+            <button 
+                class="floating-profile-btn" 
+                onclick="toggleMenu()"
+                aria-label="프로필 메뉴"
+            >
+                <span class="profile-initial">둘</span>
+            </button>
+
+            <div id="profile-menu" class="profile-menu-popup" style="display: none;">
+                <div class="profile-menu-header">
+                    <div class="profile-menu-username">둘러보기</div>
+                </div>
+                <div class="profile-menu-divider"></div>
+                <button 
+                    class="profile-menu-item disabled"
+                    onclick="showLoginMessage('내 프로필')"
+                >
+                    <span class="menu-icon">👤</span>
+                    <span>내 프로필</span>
+                </button>
+                <button 
+                    class="profile-menu-item taste-test"
+                    onclick="handleTasteTest()"
+                >
+                    <span class="menu-icon">🍽️</span>
+                    <span>취향 테스트</span>
+                </button>
+                <button 
+                    class="profile-menu-item disabled"
+                    onclick="showLoginMessage('최근 리뷰')"
+                >
+                    <span class="menu-icon">📝</span>
+                    <span>최근 리뷰</span>
+                </button>
+                <button 
+                    class="profile-menu-item disabled"
+                    onclick="showLoginMessage('설정')"
+                >
+                    <span class="menu-icon">⚙️</span>
+                    <span>설정</span>
+                </button>
+                <button 
+                    class="profile-menu-item logout"
+                    onclick="handleLogin()"
+                >
+                    <span class="menu-icon">🔐</span>
+                    <span>로그인</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 지도 화면 시뮬레이션 -->
+        <div class="map-container" style="margin-top: 60px;">
+            <div style="text-align: center;">
+                <div style="font-size: 24px; margin-bottom: 12px;">🗺️ 지도 화면</div>
+                <div style="font-size: 16px; color: #999;">
+                    둘러보기 모드에서는 지도와 가게 정보를 볼 수 있습니다.<br />
+                    리뷰 작성은 로그인이 필요합니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 취향 테스트 결과 페이지 -->
+    <div id="result-tab" class="preview-section" style="display: none;">
+        <div class="section-title">취향 테스트 결과 - 둘러보기 모드</div>
+        <div class="section-description">
+            둘러보기 모드에서 취향 테스트를 완료하면 결과를 볼 수 있지만, 저장되지 않는다는 안내가 표시됩니다.
+        </div>
+
+        <div class="mbti-detail-container">
+            <div class="profile-header-actions">
+                <div class="profile-logo">Soulplate</div>
+            </div>
+
+            <!-- 저장 안 함 안내 -->
+            <div class="demo-notice">
+                <span class="demo-notice-icon">⚠️</span>
+                <div class="demo-notice-text">
+                    <strong>둘러보기 모드에서는 결과가 저장되지 않습니다.</strong><br />
+                    로그인하면 결과를 저장하고 AI 추천을 받을 수 있습니다.
+                </div>
+            </div>
+
+            <!-- MBTI 기본 정보 카드 -->
+            <div class="mbti-card-detailed">
+                <div class="mbti-card-header-detailed">
+                    <div class="mbti-type-badge">SAPA</div>
+                    <div class="mbti-type-title">
+                        <span class="mbti-emoji">🍕</span>
+                        <span class="mbti-name">도파민 추구 미식회장</span>
+                    </div>
+                    <div class="mbti-catchphrase">"새로운 맛의 발견자"</div>
+                    <div class="mbti-description">
+                        새로운 맛에 대한 호기심이 강하고, 트렌디한 맛집을 찾아다니는 것을 좋아합니다.
+                        SNS에서 핫한 맛집을 발견하면 바로 가보고 싶어하는 성향이 있습니다.
+                        다양한 음식 문화를 경험하고 싶어하며, 친구들과 함께 맛집 탐방을 즐깁니다.
+                    </div>
+                </div>
+                
+                <div class="mbti-card-body-detailed">
+                    <div class="mbti-info-section">
+                        <div class="mbti-info-title mbti-recommend">
+                            👍 추천 메뉴 & 장소
+                        </div>
+                        <div class="mbti-info-content">
+                            <ul>
+                                <li><strong>파스타:</strong> 크림 파스타, 로제 파스타</li>
+                                <li><strong>피자:</strong> 마르게리타, 페퍼로니</li>
+                                <li><strong>스테이크:</strong> 안심 스테이크, 티본 스테이크</li>
+                                <li><strong>카페:</strong> 브런치 카페, 디저트 카페</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mbti-info-section">
+                        <div class="mbti-info-title mbti-avoid">
+                            🚫 피해야 할 식당
+                        </div>
+                        <div class="mbti-info-content">
+                            <ul>
+                                <li>너무 전통적이고 변화가 없는 식당</li>
+                                <li>분위기가 딱딱하고 경직된 곳</li>
+                                <li>메뉴가 단조롭고 선택지가 적은 곳</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4개 축 확률 분석 -->
+            <div class="probability-view">
+                <h3 class="probability-title">내 음식 성향 분석표</h3>
+                
+                <div class="trait-group trait-flavor">
+                    <div class="trait-info">
+                        <span>맛의 강도</span>
+                        <span class="trait-percentage highlight">
+                            75% 강렬함
+                        </span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 75%"></div>
+                        <div class="bar-circle" style="left: 75%"></div>
+                    </div>
+                    <div class="trait-labels">
+                        <span class="label-left">강렬함 (Strong)</span>
+                        <span class="label-right">부드러움 (Mild)</span>
+                    </div>
+                </div>
+
+                <div class="trait-group trait-env">
+                    <div class="trait-info">
+                        <span>식사 환경</span>
+                        <span class="trait-percentage highlight">
+                            80% 분위기
+                        </span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 80%"></div>
+                        <div class="bar-circle" style="left: 80%"></div>
+                    </div>
+                    <div class="trait-labels">
+                        <span class="label-left">분위기 (Ambiance)</span>
+                        <span class="label-right">효율 (Optimized)</span>
+                    </div>
+                </div>
+
+                <div class="trait-group trait-price">
+                    <div class="trait-info">
+                        <span>가격 민감도</span>
+                        <span class="trait-percentage highlight">
+                            65% 프리미엄
+                        </span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 65%"></div>
+                        <div class="bar-circle" style="left: 65%"></div>
+                    </div>
+                    <div class="trait-labels">
+                        <span class="label-left">프리미엄 (Premium)</span>
+                        <span class="label-right">가성비 (Cost-effective)</span>
+                    </div>
+                </div>
+
+                <div class="trait-group trait-social">
+                    <div class="trait-info">
+                        <span>동행 선호도</span>
+                        <span class="trait-percentage highlight">
+                            30% 혼자
+                        </span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 70%"></div>
+                        <div class="bar-circle" style="left: 70%"></div>
+                    </div>
+                    <div class="trait-labels">
+                        <span class="label-left">함께 (Together)</span>
+                        <span class="label-right">혼자 (Solo)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 다른 취향 탐색하기 버튼 -->
+            <button class="btn-explore-types-main">
+                🔍 다른 취향 탐색하기
+            </button>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 -->
+    <div id="toast" class="toast-message" style="display: none;"></div>
+
+    <script>
+        let menuOpen = false;
+
+        function showTab(tabName) {
+            // 모든 탭 숨기기
+            document.getElementById('login-tab').style.display = 'none';
+            document.getElementById('browse-tab').style.display = 'none';
+            document.getElementById('result-tab').style.display = 'none';
+
+            // 모든 버튼 비활성화
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 선택한 탭 표시
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            
+            // 선택한 버튼 활성화
+            event.target.classList.add('active');
+
+            // 메뉴 닫기
+            if (tabName !== 'browse') {
+                const menu = document.getElementById('profile-menu');
+                if (menu) {
+                    menu.style.display = 'none';
+                    menuOpen = false;
+                }
+            }
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('profile-menu');
+            menuOpen = !menuOpen;
+            menu.style.display = menuOpen ? 'block' : 'none';
+        }
+
+        // 외부 클릭 시 메뉴 닫기
+        document.addEventListener('click', function(event) {
+            const container = document.querySelector('.floating-profile-container');
+            const menu = document.getElementById('profile-menu');
+            if (container && menu && !container.contains(event.target) && menuOpen) {
+                menu.style.display = 'none';
+                menuOpen = false;
+            }
+        });
+
+        function showLoginMessage(featureName) {
+            const toast = document.getElementById('toast');
+            toast.textContent = `${featureName} 기능을 사용하려면 로그인을 진행해주세요.`;
+            toast.style.display = 'block';
+            
+            // 비활성화 느낌을 위한 애니메이션
+            event.target.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                event.target.style.transform = '';
+            }, 150);
+
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+
+        function handleTasteTest() {
+            const menu = document.getElementById('profile-menu');
+            menu.style.display = 'none';
+            menuOpen = false;
+            alert('취향 테스트 모달이 열립니다.');
+        }
+
+        function handleLogin() {
+            const menu = document.getElementById('profile-menu');
+            menu.style.display = 'none';
+            menuOpen = false;
+            alert('로그인 페이지로 이동합니다.');
+        }
+    </script>
+</body>
+</html>
+

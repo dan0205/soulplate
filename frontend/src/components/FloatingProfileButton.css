@@ -129,6 +129,30 @@ body:has(.snap-100) .floating-profile-container {
   background: #fee;
 }
 
+/* 데모 모드 - 비활성화 스타일 */
+.profile-menu-item.disabled {
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.profile-menu-item.disabled:hover {
+  background: none;
+}
+
+.profile-menu-item.disabled:active {
+  transform: none;
+}
+
+/* 데모 모드 - 로그인 버튼 */
+.profile-menu-item.login {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.profile-menu-item.login:hover {
+  background: #fff0f0;
+}
+
 .menu-icon {
   font-size: 18px;
 }

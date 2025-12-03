@@ -50,6 +50,9 @@ logger = logging.getLogger(__name__)
 # Model API URL
 MODEL_API_URL = os.getenv("MODEL_API_URL", "https://backendmodel-production-4594.up.railway.app")
 
+# 데모 계정 (둘러보기 모드)
+DEMO_USERNAME = "demo"
+
 # ============================================================================
 # 프로필 업데이트 함수
 # ============================================================================
@@ -625,6 +628,32 @@ async def google_callback(
         logger.info(f"Redirecting to error page: {redirect_url}")
         
         return RedirectResponse(url=redirect_url)
+
+@app.post("/api/auth/browse-demo")
+async def browse_demo_login(db: Session = Depends(get_db)):
+    """둘러보기 모드 로그인 - 데모 계정으로 자동 로그인"""
+    # 데모 계정 조회
+    demo_user = db.query(models.User).filter(
+        models.User.username == DEMO_USERNAME
+    ).first()
+    
+    if not demo_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Demo account not found"
+        )
+    
+    # JWT 토큰 발급
+    access_token = auth.create_access_token(
+        data={"sub": str(demo_user.id)}
+    )
+    
+    logger.info(f"Demo login successful for user: {demo_user.username}")
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 @app.get("/api/auth/me", response_model=schemas.UserResponse)
 async def get_current_user_info(current_user: models.User = Depends(auth.get_current_user)):
@@ -1463,6 +1492,13 @@ async def create_review(
     db: Session = Depends(get_db)
 ):
     """리뷰 작성 (백그라운드에서 ABSA 분석 및 프로필 업데이트)"""
+    # 데모 계정은 리뷰 작성 불가
+    if current_user.username == DEMO_USERNAME:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Demo account cannot create reviews"
+        )
+    
     business = db.query(models.Business).filter(
         models.Business.business_id == business_id
     ).first()
@@ -1650,6 +1686,13 @@ async def create_reply(
     db: Session = Depends(get_db)
 ):
     """답글 작성 (1단계만 허용, 별점 없음)"""
+    # 데모 계정은 답글 작성 불가
+    if current_user.username == DEMO_USERNAME:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Demo account cannot create replies"
+        )
+    
     # 1. 부모 리뷰 존재 확인
     parent_review = db.query(models.Review).filter(models.Review.id == review_id).first()
     
@@ -1883,6 +1926,21 @@ async def submit_taste_test(
             "recommend": [],
             "avoid": []
         })
+        
+        # 데모 계정은 결과만 반환하고 저장하지 않음
+        if current_user.username == DEMO_USERNAME:
+            logger.info(f"Demo account taste test - returning result without saving")
+            return schemas.TasteTestResult(
+                mbti_type=mbti_type,
+                type_name=type_info["name"],
+                description=type_info["description"],
+                recommendations=type_info["recommendations"],
+                axis_scores=axis_scores,
+                emoji=type_info.get("emoji"),
+                catchphrase=type_info.get("catchphrase"),
+                recommend=type_info.get("recommend"),
+                avoid=type_info.get("avoid")
+            )
         
         # 3. 기존 취향 테스트 삭제 (재테스트 시)
         db.query(models.Review).filter(

@@ -2,11 +2,36 @@
  * 로그인 페이지 - Google OAuth 전용
  */
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import GoogleLoginButton from '../components/GoogleLoginButton';
+import { authAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const { handleOAuthCallback } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleBrowseDemo = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    
+    try {
+      const response = await authAPI.browseDemoLogin();
+      await handleOAuthCallback(response.data.access_token);
+      toast.success('둘러보기 모드로 시작합니다!');
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Browse demo login failed:', error);
+      toast.error('둘러보기 시작에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-box">
@@ -21,6 +46,15 @@ const LoginPage = () => {
         </div>
 
         <GoogleLoginButton />
+
+        <button 
+          className="browse-demo-button"
+          onClick={handleBrowseDemo}
+          disabled={isLoading}
+        >
+          <span>👀</span>
+          <span>{isLoading ? '로딩 중...' : '둘러보기'}</span>
+        </button>
 
         <div className="features">
           <div className="features-title">SoulPlate의 특별함</div>

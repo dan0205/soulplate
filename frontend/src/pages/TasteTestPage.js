@@ -2,13 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { tasteTestAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import ConfirmModal from '../components/ConfirmModal';
 import './TasteTest.css';
+
+// 데모 계정 username
+const DEMO_USERNAME = 'demo';
 
 function TasteTestPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const testType = location.state?.testType || 'quick';
+  
+  // 데모 계정 여부
+  const isDemo = user?.username === DEMO_USERNAME;
 
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -138,12 +146,25 @@ function TasteTestPage() {
       
       toast.success('취향 테스트가 완료되었습니다! 🎉');
       
-      // 0.5초 후 마이페이지로 리다이렉트 (MBTI 상세 페이지로 스크롤)
+      // 0.5초 후 결과 페이지로 리다이렉트
       setTimeout(() => {
-        navigate('/my-profile', { 
-          state: { scrollToMbti: true, showResult: true },
-          replace: true
-        });
+        if (isDemo) {
+          // 데모 계정: 별도의 결과 페이지로 이동 (저장 안 됨)
+          navigate('/taste-test/result', { 
+            state: { 
+              result: response.data, 
+              testType: testType,
+              isDemo: true 
+            },
+            replace: true
+          });
+        } else {
+          // 일반 사용자: 마이페이지로 이동
+          navigate('/my-profile', { 
+            state: { scrollToMbti: true, showResult: true },
+            replace: true
+          });
+        }
       }, 500);
     } catch (err) {
       console.error('테스트 제출 실패:', err);

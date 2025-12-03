@@ -5,9 +5,15 @@ import { businessAPI, reviewAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import ConfirmModal from '../../ConfirmModal';
 
+// 데모 계정 username
+const DEMO_USERNAME = 'demo';
+
 const ReviewTab = ({ businessId }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  // 데모 계정 여부
+  const isDemo = user?.username === DEMO_USERNAME;
   
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -477,8 +483,8 @@ const ReviewTab = ({ businessId }) => {
         </>
       )}
       
-      {/* 하단 고정 작성칸 (position: fixed) */}
-      {user && (
+      {/* 하단 고정 작성칸 (position: fixed) - 데모 계정은 숨김 */}
+      {user && !isDemo && (
         <div 
           className={`bottom-write-bar-fixed ${writingMode ? 'expanded' : ''}`}
           onClick={() => {
@@ -554,9 +560,9 @@ const ReviewTab = ({ businessId }) => {
         </div>
       )}
       
-      {!user && (
+      {(!user || isDemo) && (
         <div className="login-required-message-fixed">
-          리뷰를 작성하려면 로그인이 필요합니다.
+          {isDemo ? '리뷰 작성은 로그인 후 이용할 수 있습니다.' : '리뷰를 작성하려면 로그인이 필요합니다.'}
         </div>
       )}
 

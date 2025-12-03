@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import ConfirmModal from './ConfirmModal';
 import TasteTestModal from './TasteTestModal';
 import SettingsModal from './SettingsModal';
 import { useAuth } from '../context/AuthContext';
 import './FloatingProfileButton.css';
+
+// 데모 계정 username
+const DEMO_USERNAME = 'demo';
 
 const FloatingProfileButton = ({ username, onLogout }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -14,6 +18,9 @@ const FloatingProfileButton = ({ username, onLogout }) => {
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const { user, loadUser } = useAuth();
+  
+  // 데모 계정 여부
+  const isDemo = username === DEMO_USERNAME;
 
   // 외부 클릭 시 메뉴 닫기
   useEffect(() => {
@@ -39,11 +46,19 @@ const FloatingProfileButton = ({ username, onLogout }) => {
   };
 
   const handleMyProfile = () => {
+    if (isDemo) {
+      toast('내 프로필 기능을 사용하려면 로그인을 진행해주세요.', { icon: '🔒' });
+      return;
+    }
     setShowMenu(false);
     navigate('/my-profile');
   };
 
   const handleRecentReviews = () => {
+    if (isDemo) {
+      toast('최근 리뷰 기능을 사용하려면 로그인을 진행해주세요.', { icon: '🔒' });
+      return;
+    }
     setShowMenu(false);
     navigate('/recent-reviews');
   };
@@ -54,6 +69,10 @@ const FloatingProfileButton = ({ username, onLogout }) => {
   };
 
   const handleSettings = () => {
+    if (isDemo) {
+      toast('설정 기능을 사용하려면 로그인을 진행해주세요.', { icon: '🔒' });
+      return;
+    }
     setShowMenu(false);
     setShowSettingsModal(true);
   };
@@ -61,6 +80,12 @@ const FloatingProfileButton = ({ username, onLogout }) => {
   const handleLogout = () => {
     setShowMenu(false);
     setShowLogoutConfirm(true);
+  };
+
+  const handleLogin = () => {
+    setShowMenu(false);
+    localStorage.removeItem('access_token');
+    navigate('/login');
   };
 
   const handleSettingsUpdate = async () => {
@@ -89,11 +114,13 @@ const FloatingProfileButton = ({ username, onLogout }) => {
       {showMenu && (
         <div className="profile-menu-popup">
           <div className="profile-menu-header">
-            <div className="profile-menu-username">{username}</div>
+            <div className="profile-menu-username">
+              {isDemo ? '둘러보기' : username}
+            </div>
           </div>
           <div className="profile-menu-divider" />
           <button 
-            className="profile-menu-item"
+            className={`profile-menu-item ${isDemo ? 'disabled' : ''}`}
             onClick={handleMyProfile}
           >
             <span className="menu-icon">👤</span>
@@ -107,26 +134,36 @@ const FloatingProfileButton = ({ username, onLogout }) => {
             <span>취향 테스트</span>
           </button>
           <button 
-            className="profile-menu-item"
+            className={`profile-menu-item ${isDemo ? 'disabled' : ''}`}
             onClick={handleRecentReviews}
           >
             <span className="menu-icon">📝</span>
             <span>최근 리뷰</span>
           </button>
           <button 
-            className="profile-menu-item"
+            className={`profile-menu-item ${isDemo ? 'disabled' : ''}`}
             onClick={handleSettings}
           >
             <span className="menu-icon">⚙️</span>
             <span>설정</span>
           </button>
-          <button 
-            className="profile-menu-item logout"
-            onClick={handleLogout}
-          >
-            <span className="menu-icon">🚪</span>
-            <span>로그아웃</span>
-          </button>
+          {isDemo ? (
+            <button 
+              className="profile-menu-item login"
+              onClick={handleLogin}
+            >
+              <span className="menu-icon">🔐</span>
+              <span>로그인</span>
+            </button>
+          ) : (
+            <button 
+              className="profile-menu-item logout"
+              onClick={handleLogout}
+            >
+              <span className="menu-icon">🚪</span>
+              <span>로그아웃</span>
+            </button>
+          )}
         </div>
       )}
 
