@@ -64,6 +64,23 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     return '#cc6666'; // 1단계: 연한 빨강 텍스트
   };
 
+  // 줌 레벨에 따른 최소 점수 (확대할수록 낮은 점수 음식점도 표시)
+  const getMinScoreByLevel = (level) => {
+    if (level <= 1) return 0;    // 레벨 1: 모든 음식점
+    if (level <= 2) return 3.0;  // 레벨 2: 3.0 이상
+    if (level <= 3) return 3.5;  // 레벨 3: 3.5 이상
+    return 4.0;                   // 레벨 4+: 4.0 이상
+  };
+
+  // 레스토랑의 AI 점수 계산 (필터링용)
+  const getAiScore = (restaurant) => {
+    const deepfm = restaurant.ai_prediction?.deepfm_rating;
+    const multitower = restaurant.ai_prediction?.multitower_rating;
+    return (deepfm !== undefined && multitower !== undefined) 
+      ? (deepfm + multitower) / 2 
+      : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 2.5));
+  };
+
   // 줌 레벨에 따른 마커 크기 계산
   const getMarkerSize = (level) => {
     const minSize = 15; // 확대했을 때 (레벨 낮음)
@@ -161,7 +178,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     const color = getMarkerColor(aiScore);
     const textColor = getTextColor(aiScore);
     const size = getMarkerSize(mapLevel);
-    const showName = mapLevel <= 2; // 줌 레벨 2 이하일 때 이름 표시
+    const showName = mapLevel <= 3; // 줌 레벨 3 이하일 때 이름 표시
     
     return (
       <div
@@ -310,16 +327,18 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
           />
         )}
 
-        {/* 레스토랑 마커들 */}
-        {restaurants && restaurants.map((restaurant) => (
-          <CustomOverlayMap
-            key={restaurant.id}
-            position={{ lat: restaurant.latitude, lng: restaurant.longitude }}
-            yAnchor={1}
-          >
-            <CustomMarker restaurant={restaurant} mapLevel={mapLevel} />
-          </CustomOverlayMap>
-        ))}
+        {/* 레스토랑 마커들 (줌 레벨에 따라 필터링) */}
+        {restaurants && restaurants
+          .filter((restaurant) => getAiScore(restaurant) >= getMinScoreByLevel(mapLevel))
+          .map((restaurant) => (
+            <CustomOverlayMap
+              key={restaurant.id}
+              position={{ lat: restaurant.latitude, lng: restaurant.longitude }}
+              yAnchor={1}
+            >
+              <CustomMarker restaurant={restaurant} mapLevel={mapLevel} />
+            </CustomOverlayMap>
+          ))}
       </Map>
       
       {/* 아주대학교 바로가기 버튼 */}
