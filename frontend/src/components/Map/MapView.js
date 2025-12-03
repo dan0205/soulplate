@@ -161,7 +161,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     const color = getMarkerColor(aiScore);
     const textColor = getTextColor(aiScore);
     const size = getMarkerSize(mapLevel);
-    const showName = mapLevel <= 4; // 줌 레벨 4 이하일 때 이름 표시
+    const showName = mapLevel <= 1; // 줌 레벨 1일 때 이름 표시
     
     return (
       <div
