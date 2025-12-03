@@ -3,7 +3,7 @@ import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
 import toast from 'react-hot-toast';
 import './Map.css';
 
-const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationChange, loading, isInitialLoading, initialCenter }) => {
+const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationChange, loading, isInitialLoading, initialCenter, searchQuery, selectedCategory }) => {
   const [center, setCenter] = useState(initialCenter || { lat: 37.5665, lng: 126.9780 }); // 서울 중심 기본 위치
   const [userLocation, setUserLocation] = useState(null);
   const [mapLevel, setMapLevel] = useState(3);
@@ -327,9 +327,16 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
           />
         )}
 
-        {/* 레스토랑 마커들 (줌 레벨에 따라 필터링) */}
+        {/* 레스토랑 마커들 (줌 레벨에 따라 필터링, 검색/카테고리 필터 시 모든 음식점 표시) */}
         {restaurants && restaurants
-          .filter((restaurant) => getAiScore(restaurant) >= getMinScoreByLevel(mapLevel))
+          .filter((restaurant) => {
+            // 검색어나 카테고리 필터가 활성화되어 있으면 모든 음식점 표시
+            if (searchQuery || selectedCategory) {
+              return true;
+            }
+            // 그 외에는 줌 레벨에 따라 필터링
+            return getAiScore(restaurant) >= getMinScoreByLevel(mapLevel);
+          })
           .map((restaurant) => (
             <CustomOverlayMap
               key={restaurant.id}

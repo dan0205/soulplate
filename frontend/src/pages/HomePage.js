@@ -327,6 +327,8 @@ const HomePage = () => {
         loading={loading}
         isInitialLoading={isInitialLoading}
         initialCenter={mapCenter}
+        searchQuery={debouncedSearch}
+        selectedCategory={selectedCategory}
       />
 
       {/* 하단 시트 (통합) */}
