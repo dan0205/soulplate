@@ -96,34 +96,35 @@
   flex-shrink: 0;
 }
 
-/* 둘러보기 버튼 */
+/* 둘러보기 버튼 - 구글 로그인 버튼과 동일한 스타일 */
 .browse-demo-button {
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 14px 24px;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 24px;
   margin-top: 16px;
-  background: white;
-  color: #666;
-  border: 2px solid #ddd;
-  border-radius: 12px;
+  background-color: white;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 500;
+  color: #3c4043;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
+  font-family: inherit;
 }
 
 .browse-demo-button:hover:not(:disabled) {
-  border-color: #ff6b6b;
-  color: #ff6b6b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.15);
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-color: #dadce0;
 }
 
 .browse-demo-button:active:not(:disabled) {
-  transform: translateY(0);
+  background-color: #f1f3f4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .browse-demo-button:disabled {
