@@ -1,7 +1,91 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
 import toast from 'react-hot-toast';
 import './Map.css';
+
+// AI 점수에 따른 마커 색상 (5단계 빨간색 계열) - 외부로 이동하여 재생성 방지
+const getMarkerColor = (aiScore) => {
+  if (aiScore >= 4.5) return '#ff2929'; // 5단계: 진한 빨강 (4.5~5.0)
+  if (aiScore >= 4.0) return '#ff4a4a'; // 4단계: 중간 빨강 (4.0~4.49)
+  if (aiScore >= 3.5) return '#ff6b6b'; // 3단계: 기준 빨강 (3.5~3.99)
+  if (aiScore >= 3.0) return '#ff9292'; // 2단계: 연한 빨강 (3.0~3.49)
+  return '#ffb3b3'; // 1단계: 회색에 가까운 연한 빨강 (0~2.99)
+};
+
+// AI 점수에 따른 텍스트 색상 (마커 색상 기반, 가독성을 위해 약간 진한 톤)
+const getTextColor = (aiScore) => {
+  if (aiScore >= 4.5) return '#cc0000'; // 5단계: 진한 빨강 텍스트
+  if (aiScore >= 4.0) return '#cc1a1a'; // 4단계
+  if (aiScore >= 3.5) return '#cc3333'; // 3단계
+  if (aiScore >= 3.0) return '#cc4d4d'; // 2단계
+  return '#cc6666'; // 1단계: 연한 빨강 텍스트
+};
+
+// 줌 레벨에 따른 마커 크기 계산
+const getMarkerSize = () => {
+  return 25; // 고정 크기
+};
+
+// 커스텀 마커 컴포넌트 (React.memo로 성능 최적화)
+const CustomMarker = memo(({ restaurant, onClick }) => {
+  // DeepFM과 Multi-Tower의 평균값 사용, 없으면 기본값 2.5
+  const deepfm = restaurant.ai_prediction?.deepfm_rating;
+  const multitower = restaurant.ai_prediction?.multitower_rating;
+  const aiScore = (deepfm !== undefined && multitower !== undefined) 
+    ? (deepfm + multitower) / 2 
+    : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 2.5));
+  const color = getMarkerColor(aiScore);
+  const textColor = getTextColor(aiScore);
+  const size = getMarkerSize();
+  
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        cursor: 'pointer',
+      }}
+      onClick={onClick}
+    >
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 40 50"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* 지도핀 모양 (물방울 형태) */}
+        <path
+          d="M20 0 C10 0, 2 8, 2 18 C2 28, 10 35, 20 50 C30 35, 38 28, 38 18 C38 8, 30 0, 20 0 Z"
+          fill={color}
+          stroke="white"
+          strokeWidth="2.5"
+        />
+      </svg>
+      {/* 가게 이름 */}
+      <div
+        style={{
+          marginTop: '4px',
+          padding: '4px 8px',
+          borderRadius: '6px',
+          fontSize: '12px',
+          fontWeight: '600',
+          whiteSpace: 'nowrap',
+          background: 'rgba(255, 255, 255, 0.95)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          border: '1px solid rgba(0,0,0,0.1)',
+          color: textColor,
+          maxWidth: '120px',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          pointerEvents: 'none',
+        }}
+      >
+        {restaurant.name}
+      </div>
+    </div>
+  );
+});
 
 const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationChange, loading, isInitialLoading, initialCenter, searchQuery, selectedCategory }) => {
   const [center, setCenter] = useState(initialCenter || { lat: 37.5665, lng: 126.9780 }); // 서울 중심 기본 위치
@@ -62,24 +146,6 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     }
   }, [initialCenter])
 
-  // AI 점수에 따른 마커 색상 (5단계 빨간색 계열)
-  const getMarkerColor = (aiScore) => {
-    if (aiScore >= 4.5) return '#ff2929'; // 5단계: 진한 빨강 (4.5~5.0)
-    if (aiScore >= 4.0) return '#ff4a4a'; // 4단계: 중간 빨강 (4.0~4.49)
-    if (aiScore >= 3.5) return '#ff6b6b'; // 3단계: 기준 빨강 (3.5~3.99)
-    if (aiScore >= 3.0) return '#ff9292'; // 2단계: 연한 빨강 (3.0~3.49)
-    return '#ffb3b3'; // 1단계: 회색에 가까운 연한 빨강 (0~2.99)
-  };
-
-  // AI 점수에 따른 텍스트 색상 (마커 색상 기반, 가독성을 위해 약간 진한 톤)
-  const getTextColor = (aiScore) => {
-    if (aiScore >= 4.5) return '#cc0000'; // 5단계: 진한 빨강 텍스트
-    if (aiScore >= 4.0) return '#cc1a1a'; // 4단계
-    if (aiScore >= 3.5) return '#cc3333'; // 3단계
-    if (aiScore >= 3.0) return '#cc4d4d'; // 2단계
-    return '#cc6666'; // 1단계: 연한 빨강 텍스트
-  };
-
   // 줌 레벨에 따른 최소 점수 (확대할수록 낮은 점수 음식점도 표시)
   const getMinScoreByLevel = (level) => {
     if (level <= 1) return 0;    // 레벨 1: 모든 음식점
@@ -95,19 +161,6 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     return (deepfm !== undefined && multitower !== undefined) 
       ? (deepfm + multitower) / 2 
       : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 2.5));
-  };
-
-  // 줌 레벨에 따른 마커 크기 계산
-  const getMarkerSize = (level) => {
-    const minSize = 15; // 확대했을 때 (레벨 낮음)
-    const maxSize = 35; // 축소했을 때 (레벨 높음)
-    const minLevel = 1;
-    const maxLevel = 14;
-    
-    // 정비례 관계 (레벨이 높을수록 = 축소할수록 마커 크게)
-    const size = minSize + ((level - minLevel) / (maxLevel - minLevel)) * (maxSize - minSize);
-    //return Math.max(minSize, Math.min(maxSize, size));
-    return 25;
   };
 
   // 마커 클릭 핸들러
@@ -182,76 +235,6 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
       }
     };
   }, []);
-
-  // 커스텀 마커 컴포넌트 (지도핀 모양 + 이름 표시)
-  const CustomMarker = ({ restaurant, mapLevel }) => {
-    // DeepFM과 Multi-Tower의 평균값 사용, 없으면 기본값 2.5
-    const deepfm = restaurant.ai_prediction?.deepfm_rating;
-    const multitower = restaurant.ai_prediction?.multitower_rating;
-    const aiScore = (deepfm !== undefined && multitower !== undefined) 
-      ? (deepfm + multitower) / 2 
-      : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 2.5));
-    const color = getMarkerColor(aiScore);
-    const textColor = getTextColor(aiScore);
-    const size = getMarkerSize(mapLevel);
-    const showName = true; // 모든 줌 레벨에서 이름 표시
-    
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease',
-        }}
-        onClick={() => handleMarkerClick(restaurant)}
-        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
-        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-      >
-        <svg
-          width={size}
-          height={size}
-          viewBox="0 0 40 50"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{
-            filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))',
-          }}
-        >
-          {/* 지도핀 모양 (물방울 형태) */}
-          <path
-            d="M20 0 C10 0, 2 8, 2 18 C2 28, 10 35, 20 50 C30 35, 38 28, 38 18 C38 8, 30 0, 20 0 Z"
-            fill={color}
-            stroke="white"
-            strokeWidth="2.5"
-          />
-        </svg>
-        {/* 가게 이름 (줌 레벨 4 이하에서만 표시) */}
-        {showName && (
-          <div
-            style={{
-              marginTop: '4px',
-              padding: '4px 8px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: '600',
-              whiteSpace: 'nowrap',
-              background: 'rgba(255, 255, 255, 0.95)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              border: '1px solid rgba(0,0,0,0.1)',
-              color: textColor,
-              maxWidth: '120px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              pointerEvents: 'none',
-            }}
-          >
-            {restaurant.name}
-          </div>
-        )}
-      </div>
-    );
-  };
 
   // 내 위치로 이동하는 핸들러
   const handleGoToMyLocation = () => {
@@ -360,7 +343,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
               position={{ lat: restaurant.latitude, lng: restaurant.longitude }}
               yAnchor={1}
             >
-              <CustomMarker restaurant={restaurant} mapLevel={mapLevel} />
+              <CustomMarker restaurant={restaurant} onClick={() => handleMarkerClick(restaurant)} />
             </CustomOverlayMap>
           ))}
       </Map>
