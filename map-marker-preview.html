@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지도 마커 이름 표시 프리뷰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+            background: #e0e0e0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .custom-marker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .custom-marker-container:hover {
+            transform: scale(1.15);
+        }
+
+        .marker-svg {
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+        }
+
+        .restaurant-name {
+            margin-top: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: 1px solid rgba(0,0,0,0.1);
+            pointer-events: none;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .restaurant-name.hidden {
+            opacity: 0;
+            transform: translateY(-5px);
+            pointer-events: none;
+        }
+
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .info-panel h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .info-panel p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .zoom-level {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .zoom-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 4px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+        }
+
+        .zoom-btn:active {
+            transform: scale(0.95);
+        }
+
+        .marker-wrapper {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .marker-wrapper:hover {
+            transform: translate(-50%, -100%) scale(1.15);
+        }
+    </style>
+</head>
+<body>
+    <div id="map">
+        <!-- 마커들이 여기에 동적으로 추가됩니다 -->
+    </div>
+    
+    <div class="info-panel">
+        <h3>📌 마커 이름 표시 프리뷰</h3>
+        <p>지도를 <strong>확대</strong>하면 (줌 레벨이 낮아지면) 각 마커 아래에 음식점 이름이 표시됩니다.</p>
+        <p>이름 색상은 각 마커 색상에 맞는 빨간색 톤으로 표시됩니다.</p>
+        <p style="font-size: 12px; color: #999; margin-top: 8px;">
+            5단계 빨간색 계열: 연한 빨강 → 밝은 빨강 → 중간 빨강 → 진한 빨강
+        </p>
+        <p>현재 줌 레벨: <span class="zoom-level" id="zoomLevel">3</span></p>
+        <p style="font-size: 12px; color: #666; margin-top: 4px;">
+            <strong>레벨 5</strong> = 약 500m~1km 반경 (동네 단위)<br>
+            레벨 5 이하에서 가게 이름이 표시됩니다.
+        </p>
+        <p style="margin-top: 12px; font-size: 12px; color: #999;">
+            💡 아래 줌 버튼을 사용하여 확대/축소해보세요
+        </p>
+    </div>
+
+    <div class="zoom-controls">
+        <button class="zoom-btn" id="zoomIn">+</button>
+        <button class="zoom-btn" id="zoomOut">−</button>
+    </div>
+
+    <script>
+        // 샘플 레스토랑 데이터 (화면 좌표로 변환) - 5개만
+        const restaurants = [
+            { id: 1, name: "맛있는 파스타집", x: 25, y: 30, colorIndex: 0 },
+            { id: 2, name: "고급 한식당", x: 40, y: 35, colorIndex: 1 },
+            { id: 3, name: "신선한 초밥", x: 55, y: 40, colorIndex: 2 },
+            { id: 4, name: "분위기 좋은 카페", x: 70, y: 35, colorIndex: 3 },
+            { id: 5, name: "불고기 전문점", x: 50, y: 50, colorIndex: 4 }
+        ];
+
+        // 현재 줌 레벨 (3 = 기본, 숫자가 낮을수록 확대)
+        let currentZoomLevel = 3;
+
+        // 빨간색 계열 색상 팔레트 (#ff6b6b 느낌의 밝고 선명한 빨강 계열) - 5단계
+        const colorPalettes = [
+            { marker: '#ffb3b3', text: '#cc0000' },      // 1단계: 매우 연한 빨강 (회색에 가까운 느낌)
+            { marker: '#ff9292', text: '#cc0000' },      // 2단계: 연한 빨강
+            { marker: '#ff6b6b', text: '#cc0000' },     // 3단계: 기준 색상 (밝은 빨강)
+            { marker: '#ff4a4a', text: '#cc0000' },     // 4단계: 중간 빨강
+            { marker: '#ff2929', text: '#cc0000' }       // 5단계: 진한 빨강
+        ];
+
+        // 색상 인덱스에 따른 마커 색상 가져오기
+        function getMarkerColor(colorIndex) {
+            return colorPalettes[colorIndex % colorPalettes.length].marker;
+        }
+
+        // 색상 인덱스에 따른 텍스트 색상 가져오기
+        function getTextColor(colorIndex) {
+            return colorPalettes[colorIndex % colorPalettes.length].text;
+        }
+
+        // 마커 생성 함수
+        function createMarker(restaurant) {
+            const markerColor = getMarkerColor(restaurant.colorIndex);
+            const textColor = getTextColor(restaurant.colorIndex);
+            const size = 25;
+            const showName = currentZoomLevel <= 5; // 줌 레벨 5 이하일 때 이름 표시
+            
+            const markerWrapper = document.createElement('div');
+            markerWrapper.className = 'marker-wrapper';
+            markerWrapper.style.left = `${restaurant.x}%`;
+            markerWrapper.style.top = `${restaurant.y}%`;
+            
+            markerWrapper.innerHTML = `
+                <div class="custom-marker-container">
+                    <svg width="${size}" height="${size}" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" class="marker-svg">
+                        <path
+                            d="M20 0 C10 0, 2 8, 2 18 C2 28, 10 35, 20 50 C30 35, 38 28, 38 18 C38 8, 30 0, 20 0 Z"
+                            fill="${markerColor}"
+                            stroke="white"
+                            stroke-width="2.5"
+                        />
+                    </svg>
+                    <div class="restaurant-name ${showName ? '' : 'hidden'}" style="color: ${textColor};">
+                        ${restaurant.name}
+                    </div>
+                </div>
+            `;
+            
+            return markerWrapper;
+        }
+
+        // 마커 렌더링
+        function renderMarkers() {
+            const map = document.getElementById('map');
+            
+            // 기존 마커 제거
+            const existingMarkers = map.querySelectorAll('.marker-wrapper');
+            existingMarkers.forEach(marker => marker.remove());
+            
+            // 새 마커 추가
+            restaurants.forEach(restaurant => {
+                const marker = createMarker(restaurant);
+                map.appendChild(marker);
+            });
+            
+            // 줌 레벨 업데이트
+            document.getElementById('zoomLevel').textContent = currentZoomLevel;
+        }
+
+        // 줌 인
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            if (currentZoomLevel > 1) {
+                currentZoomLevel--;
+                renderMarkers();
+            }
+        });
+
+        // 줌 아웃
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            if (currentZoomLevel < 14) {
+                currentZoomLevel++;
+                renderMarkers();
+            }
+        });
+
+        // 초기 렌더링
+        renderMarkers();
+    </script>
+</body>
+</html>

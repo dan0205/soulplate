@@ -46,11 +46,22 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     }
   }, [initialCenter])
 
-  // AI 점수에 따른 마커 색상
+  // AI 점수에 따른 마커 색상 (5단계 빨간색 계열)
   const getMarkerColor = (aiScore) => {
-    if (aiScore > 4.0) return '#ff6b6b'; // 연한 빨강 (높은 점수)
-    if (aiScore > 3.0) return '#FFB74D'; // 연한 주황 (중간 점수)
-    return '#FFF176'; // 연한 노랑 (낮은 점수)
+    if (aiScore >= 4.5) return '#ff2929'; // 5단계: 진한 빨강 (4.5~5.0)
+    if (aiScore >= 4.0) return '#ff4a4a'; // 4단계: 중간 빨강 (4.0~4.49)
+    if (aiScore >= 3.5) return '#ff6b6b'; // 3단계: 기준 빨강 (3.5~3.99)
+    if (aiScore >= 3.0) return '#ff9292'; // 2단계: 연한 빨강 (3.0~3.49)
+    return '#ffb3b3'; // 1단계: 회색에 가까운 연한 빨강 (0~2.99)
+  };
+
+  // AI 점수에 따른 텍스트 색상 (마커 색상 기반, 가독성을 위해 약간 진한 톤)
+  const getTextColor = (aiScore) => {
+    if (aiScore >= 4.5) return '#cc0000'; // 5단계: 진한 빨강 텍스트
+    if (aiScore >= 4.0) return '#cc1a1a'; // 4단계
+    if (aiScore >= 3.5) return '#cc3333'; // 3단계
+    if (aiScore >= 3.0) return '#cc4d4d'; // 2단계
+    return '#cc6666'; // 1단계: 연한 빨강 텍스트
   };
 
   // 줌 레벨에 따른 마커 크기 계산
@@ -139,7 +150,7 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
     };
   }, []);
 
-  // 커스텀 마커 컴포넌트 (지도핀 모양)
+  // 커스텀 마커 컴포넌트 (지도핀 모양 + 이름 표시)
   const CustomMarker = ({ restaurant, mapLevel }) => {
     // DeepFM과 Multi-Tower의 평균값 사용, 없으면 기본값 3.0
     const deepfm = restaurant.ai_prediction?.deepfm_rating;
@@ -148,13 +159,16 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
       ? (deepfm + multitower) / 2 
       : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 3.0));
     const color = getMarkerColor(aiScore);
+    const textColor = getTextColor(aiScore);
     const size = getMarkerSize(mapLevel);
+    const showName = mapLevel <= 4; // 줌 레벨 4 이하일 때 이름 표시
     
     return (
       <div
         style={{
-          width: `${size}px`,
-          height: `${size}px`,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
           cursor: 'pointer',
           transition: 'transform 0.2s ease',
         }}
@@ -179,6 +193,29 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
             strokeWidth="2.5"
           />
         </svg>
+        {/* 가게 이름 (줌 레벨 4 이하에서만 표시) */}
+        {showName && (
+          <div
+            style={{
+              marginTop: '4px',
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: '600',
+              whiteSpace: 'nowrap',
+              background: 'rgba(255, 255, 255, 0.95)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              border: '1px solid rgba(0,0,0,0.1)',
+              color: textColor,
+              maxWidth: '120px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              pointerEvents: 'none',
+            }}
+          >
+            {restaurant.name}
+          </div>
+        )}
       </div>
     );
   };
