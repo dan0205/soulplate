@@ -152,12 +152,12 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
 
   // 커스텀 마커 컴포넌트 (지도핀 모양 + 이름 표시)
   const CustomMarker = ({ restaurant, mapLevel }) => {
-    // DeepFM과 Multi-Tower의 평균값 사용, 없으면 기본값 3.0
+    // DeepFM과 Multi-Tower의 평균값 사용, 없으면 기본값 2.5
     const deepfm = restaurant.ai_prediction?.deepfm_rating;
     const multitower = restaurant.ai_prediction?.multitower_rating;
     const aiScore = (deepfm !== undefined && multitower !== undefined) 
       ? (deepfm + multitower) / 2 
-      : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 3.0));
+      : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 2.5));
     const color = getMarkerColor(aiScore);
     const textColor = getTextColor(aiScore);
     const size = getMarkerSize(mapLevel);

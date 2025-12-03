@@ -22,15 +22,15 @@ const getMarkerColor = (score) => {
 };
 
 const RestaurantListItem = ({ restaurant, onClick }) => {
-  // DeepFM과 Multi-Tower의 평균값 사용, 없으면 기본값 3.0
+  // DeepFM과 Multi-Tower의 평균값 사용, 없으면 기본값 2.5
   const deepfm = restaurant.ai_prediction?.deepfm_rating;
   const multitower = restaurant.ai_prediction?.multitower_rating;
   const aiScore = (deepfm !== undefined && multitower !== undefined) 
     ? (deepfm + multitower) / 2 
-    : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 3.0));
+    : (deepfm !== undefined ? deepfm : (multitower !== undefined ? multitower : 2.5));
   
   // 리스트 카드용 DeepFM 점수 (배지 색상용)
-  const deepfmScore = restaurant.ai_prediction?.deepfm_rating || restaurant.stars || 3.0;
+  const deepfmScore = restaurant.ai_prediction?.deepfm_rating || restaurant.stars || 2.5;
 
   return (
     <div className="restaurant-list-item" onClick={onClick}>
@@ -198,8 +198,8 @@ const MapBottomSheet = ({
   const remainingCount = restaurants.length - displayedCount;
 
   // DeepFM과 Multi-Tower 점수 (detail 모드용)
-  const deepfmScore = selectedRestaurant?.ai_prediction?.deepfm_rating || selectedRestaurant?.stars || 3.0;
-  const multitowerScore = selectedRestaurant?.ai_prediction?.multitower_rating || selectedRestaurant?.ai_prediction?.deepfm_rating || selectedRestaurant?.stars || 3.0;
+  const deepfmScore = selectedRestaurant?.ai_prediction?.deepfm_rating || selectedRestaurant?.stars || 2.5;
+  const multitowerScore = selectedRestaurant?.ai_prediction?.multitower_rating || selectedRestaurant?.ai_prediction?.deepfm_rating || selectedRestaurant?.stars || 2.5;
 
   // snap 상태 확인
   const isHintSnap = snapIndex === 0; // 10%
