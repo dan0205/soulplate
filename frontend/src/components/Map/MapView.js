@@ -11,6 +11,22 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
   const initialLoadRef = useRef(false);
   const mapRef = useRef(null); // Map 객체 저장용 ref
   const lastBoundsRef = useRef(null); // 마지막 bounds 저장용 ref
+  const prevSearchRef = useRef(searchQuery); // 이전 검색어 추적
+  const prevCategoryRef = useRef(selectedCategory); // 이전 카테고리 추적
+  
+  // 검색어/카테고리 변경 감지 (API 응답 전 마커 깜빡임 방지용)
+  const isFilterChanging = loading && (
+    prevSearchRef.current !== searchQuery || 
+    prevCategoryRef.current !== selectedCategory
+  );
+  
+  // 로딩 완료 시 이전 값 업데이트
+  useEffect(() => {
+    if (!loading) {
+      prevSearchRef.current = searchQuery;
+      prevCategoryRef.current = selectedCategory;
+    }
+  }, [loading, searchQuery, selectedCategory]);
   
   // 아주대학교 좌표
   const AJOU_UNIVERSITY = { lat: 37.2809, lng: 127.0447 };
@@ -328,7 +344,8 @@ const MapView = ({ restaurants, onRestaurantSelect, onBoundsChange, onLocationCh
         )}
 
         {/* 레스토랑 마커들 (줌 레벨에 따라 필터링, 검색/카테고리 필터 시 모든 음식점 표시) */}
-        {restaurants && restaurants
+        {/* 검색/카테고리 변경 중에는 마커 숨김 (깜빡임 방지) */}
+        {!isFilterChanging && restaurants && restaurants
           .filter((restaurant) => {
             // 검색어나 카테고리 필터가 활성화되어 있으면 모든 음식점 표시
             if (searchQuery || selectedCategory) {
