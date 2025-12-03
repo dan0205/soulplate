@@ -12,11 +12,13 @@ import PhotoTab from './tabs/PhotoTab';
 import SortDropdown from './SortDropdown';
 import { formatDistance } from '../../utils/distance';
 
-// AI 점수 기반 색상 (공통 함수)
+// AI 점수 기반 색상 (5단계 빨간색 계열)
 const getMarkerColor = (score) => {
-  if (score > 4.0) return '#ff6b6b'; // 연한 빨강 (높은 점수)
-  if (score > 3.0) return '#FFB74D'; // 연한 주황 (중간 점수)
-  return '#FFF176'; // 연한 노랑 (낮은 점수)
+  if (score >= 4.5) return '#ff2929'; // 5단계: 진한 빨강 (4.5~5.0)
+  if (score >= 4.0) return '#ff4a4a'; // 4단계: 중간 빨강 (4.0~4.49)
+  if (score >= 3.5) return '#ff6b6b'; // 3단계: 기준 빨강 (3.5~3.99)
+  if (score >= 3.0) return '#ff9292'; // 2단계: 연한 빨강 (3.0~3.49)
+  return '#ffb3b3'; // 1단계: 회색에 가까운 연한 빨강 (0~2.99)
 };
 
 const RestaurantListItem = ({ restaurant, onClick }) => {
