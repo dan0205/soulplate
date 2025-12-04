@@ -50,6 +50,7 @@ const CustomMarker = memo(({ restaurant, onClick }) => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        pointerEvents: 'none', // 부모는 클릭 이벤트 차단 (근처 마커 클릭 가능하도록)
       }}
     >
       <svg
@@ -58,7 +59,10 @@ const CustomMarker = memo(({ restaurant, onClick }) => {
         viewBox="0 0 40 50"
         xmlns="http://www.w3.org/2000/svg"
         onClick={handleClick}
-        style={{ cursor: 'pointer' }}
+        style={{ 
+          cursor: 'pointer',
+          pointerEvents: 'auto', // SVG만 클릭 가능
+        }}
       >
         {/* 지도핀 모양 (물방울 형태) */}
         <path
@@ -86,6 +90,7 @@ const CustomMarker = memo(({ restaurant, onClick }) => {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           cursor: 'pointer',
+          pointerEvents: 'auto', // 텍스트만 클릭 가능
         }}
       >
         {restaurant.name}
