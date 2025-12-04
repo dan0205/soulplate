@@ -37,6 +37,12 @@ const CustomMarker = memo(({ restaurant, onClick }) => {
   const color = getMarkerColor(aiScore);
   const textColor = getTextColor(aiScore);
   const size = getMarkerSize();
+
+  // 클릭 핸들러 (이벤트 전파 방지 포함)
+  const handleClick = (e) => {
+    e.stopPropagation(); // 지도로 이벤트 전파 방지
+    onClick();
+  };
   
   return (
     <div
@@ -44,15 +50,15 @@ const CustomMarker = memo(({ restaurant, onClick }) => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        cursor: 'pointer',
       }}
-      onClick={onClick}
     >
       <svg
         width={size}
         height={size}
         viewBox="0 0 40 50"
         xmlns="http://www.w3.org/2000/svg"
+        onClick={handleClick}
+        style={{ cursor: 'pointer' }}
       >
         {/* 지도핀 모양 (물방울 형태) */}
         <path
@@ -64,6 +70,7 @@ const CustomMarker = memo(({ restaurant, onClick }) => {
       </svg>
       {/* 가게 이름 */}
       <div
+        onClick={handleClick}
         style={{
           marginTop: '4px',
           padding: '4px 8px',
@@ -78,7 +85,7 @@ const CustomMarker = memo(({ restaurant, onClick }) => {
           maxWidth: '120px',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          pointerEvents: 'none',
+          cursor: 'pointer',
         }}
       >
         {restaurant.name}
